@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Deuda } from "../../src/models/Deuda.ts";
 import { dia, nuevoEvento, reglas } from "./factories.ts";
-import { InteresFijoPorDia } from "./InteresFijoPorDia.ts";
+import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 
 const montoPorFalta = 1000;
 const interesDiario = 10;

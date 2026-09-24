@@ -6,27 +6,25 @@ import { Transicion, type Accion, type Disparador } from "./Transicion.ts";
 
 export class Participante {
   private _nombre: string;
-  private _reglas: Reglas;
   private _estado: Estado;
   private _historial: Transicion[];
 
-  constructor(nombre: string, reglas: Reglas, fechaDeIngreso: Date) {
+  constructor(nombre: string, fechaDeIngreso: Date) {
     this._nombre = nombre;
-    this._reglas = reglas;
     this._estado = new Participando();
     this._historial = [Transicion.ingreso(fechaDeIngreso, this._estado.nombre())];
   }
 
-  voy(evento: Evento): void {
-    this._transicionar("voy", evento.fecha(), this._estado.voy(evento, this._reglas));
+  voy(evento: Evento, reglas: Reglas): void {
+    this._transicionar("voy", evento.fecha(), this._estado.voy(evento, reglas));
   }
 
-  falto(evento: Evento): void {
-    this._transicionar("falto", evento.fecha(), this._estado.falto(evento, this._reglas));
+  falto(evento: Evento, reglas: Reglas): void {
+    this._transicionar("falto", evento.fecha(), this._estado.falto(evento, reglas));
   }
 
-  pago(fecha: Date): void {
-    this._transicionar("pago", fecha, this._estado.pago(fecha, this._reglas));
+  pago(fecha: Date, reglas: Reglas): void {
+    this._transicionar("pago", fecha, this._estado.pago(fecha, reglas));
   }
 
   nombre(): string {

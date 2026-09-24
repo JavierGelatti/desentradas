@@ -10,8 +10,13 @@ export const nuevoEvento = ({
 }: { numero?: number; asistentes?: string[] } = {}) => new Evento(dia(numero), asistentes);
 
 export const reglas = ({
+  rigeDesde = dia(1),
   toleranciaDeFaltas = 2,
   montoPorFalta = 1000,
   politicaDeInteres = new SinInteres(),
-}: { toleranciaDeFaltas?: number; montoPorFalta?: number; politicaDeInteres?: PoliticaDeInteres } = {}) =>
-  new Reglas(toleranciaDeFaltas, montoPorFalta, politicaDeInteres);
+}: {
+  rigeDesde?: Date;
+  toleranciaDeFaltas?: number;
+  montoPorFalta?: number;
+  politicaDeInteres?: PoliticaDeInteres;
+} = {}) => new Reglas(rigeDesde, toleranciaDeFaltas, montoPorFalta, politicaDeInteres);

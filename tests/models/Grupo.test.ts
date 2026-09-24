@@ -1,10 +1,142 @@
 import { describe, expect, it } from "vitest";
 import { Grupo } from "../../src/models/Grupo.ts";
+import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 import { dia, nuevoEvento, reglas } from "./factories.ts";
 
 const nuevoGrupo = (toleranciaDeFaltas = 2) => new Grupo(reglas({ toleranciaDeFaltas }));
 
 describe("Grupo", () => {
+  describe("reglas", () => {
+    it("se crea con sus reglas iniciales, que son la única versión del historial", () => {
+      const reglasIniciales = reglas();
+
+      const grupo = new Grupo(reglasIniciales);
+
+      expect(grupo.reglas()).toBe(reglasIniciales);
+      expect(grupo.historialDeReglas()).toEqual([reglasIniciales]);
+    });
+
+    it("cambiar las reglas después de un evento agrega una versión al historial", () => {
+      const reglasIniciales = reglas();
+      const grupo = new Grupo(reglasIniciales);
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      const nuevasReglas = reglas({ rigeDesde: dia(3) });
+
+      grupo.cambiarReglas(nuevasReglas);
+
+      expect(grupo.reglas()).toBe(nuevasReglas);
+      expect(grupo.historialDeReglas()).toEqual([reglasIniciales, nuevasReglas]);
+    });
+
+    it("las nuevas reglas deben regir desde después del último evento registrado", () => {
+      const reglasIniciales = reglas();
+      const grupo = new Grupo(reglasIniciales);
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(() => {
+        grupo.cambiarReglas(reglas({ rigeDesde: dia(9) }));
+      }).toThrow("Las nuevas reglas deben regir desde después del último evento registrado");
+      expect(grupo.historialDeReglas()).toEqual([reglasIniciales]);
+    });
+
+    it("las nuevas reglas pueden regir desde una fecha futura", () => {
+      const grupo = new Grupo(reglas());
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      const nuevasReglas = reglas({ rigeDesde: dia(30) });
+
+      grupo.cambiarReglas(nuevasReglas);
+
+      expect(grupo.reglas()).toBe(nuevasReglas);
+    });
+
+    it("si no hubo eventos desde que rige la versión actual, las nuevas reglas la reemplazan", () => {
+      const reglasIniciales = reglas();
+      const grupo = new Grupo(reglasIniciales);
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(3) }));
+      const reglasDefinitivas = reglas({ rigeDesde: dia(4) });
+
+      grupo.cambiarReglas(reglasDefinitivas);
+
+      expect(grupo.historialDeReglas()).toEqual([reglasIniciales, reglasDefinitivas]);
+    });
+
+    it("las reglas iniciales también se reemplazan si todavía no hubo eventos", () => {
+      const grupo = new Grupo(reglas());
+      const reglasDefinitivas = reglas({ rigeDesde: dia(4) });
+
+      grupo.cambiarReglas(reglasDefinitivas);
+
+      expect(grupo.historialDeReglas()).toEqual([reglasDefinitivas]);
+    });
+
+    it("las faltas a un evento se rigen por las reglas vigentes en su fecha", () => {
+      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["ana", "beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(5), montoPorFalta: 2000 }));
+
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(ana.deudaAl(dia(10))).toBe(2000);
+    });
+
+    it("un evento anterior a que rijan las nuevas reglas se rige por las anteriores", () => {
+      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["ana", "beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(20), montoPorFalta: 2000 }));
+
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(ana.deudaAl(dia(10))).toBe(1000);
+    });
+
+    it("la tolerancia de faltas que se aplica en un evento es la de las reglas vigentes en su fecha", () => {
+      const grupo = new Grupo(reglas({ toleranciaDeFaltas: 2 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarPago("ana", dia(3));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(5), toleranciaDeFaltas: 1 }));
+
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(ana.motivoDeFinalizacion()).toBe("por faltas");
+    });
+
+    it("un cambio de reglas no altera las deudas existentes", () => {
+      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cambiarReglas(
+        reglas({ rigeDesde: dia(5), montoPorFalta: 2000, politicaDeInteres: new InteresFijoPorDia(10) }),
+      );
+
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(ana.estado()).toBe("moroso");
+      expect(ana.deudaAl(dia(12))).toBe(1000);
+    });
+
+    it("no se puede registrar un evento anterior a que rijan las reglas iniciales", () => {
+      const grupo = new Grupo(reglas({ rigeDesde: dia(5) }));
+      grupo.ingresar("beto", dia(1));
+
+      expect(() => {
+        grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      }).toThrow("No hay reglas vigentes en esa fecha");
+      expect(grupo.eventos()).toEqual([]);
+    });
+  });
+
   describe("ingreso", () => {
     it("al ingresar, la persona queda como participante activo", () => {
       const grupo = nuevoGrupo();
