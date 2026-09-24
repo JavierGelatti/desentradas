@@ -2,7 +2,7 @@ import type { NombreDeEstado } from "./estados/Estado.ts";
 
 export type Accion = "voy" | "falto" | "pago" | "reingresar";
 
-export type Disparador = "ingreso" | "reingreso" | "voy" | "falto" | "pago";
+export type Disparador = "ingreso" | Accion;
 
 export class Transicion {
   private _fecha: Date;

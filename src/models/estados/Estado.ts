@@ -9,13 +9,11 @@ export type MotivoDeFinalizacion = "por faltas" | "por pago de morosidad";
 
 const acciones: readonly Accion[] = ["voy", "falto", "pago", "reingresar"];
 
-// Un estado rechaza todo evento salvo los que redefine explícitamente.
 export abstract class Estado {
   abstract nombre(): NombreDeEstado;
 
-  // Las acciones posibles son las que el estado concreto redefine; las demás heredan el rechazo de esta clase.
   accionesPosibles(): readonly Accion[] {
-    return acciones.filter((accion) => this[accion] !== Estado.prototype[accion]);
+    return acciones.filter((accion) => this._redefine(accion));
   }
 
   puede(accion: Accion): boolean {
@@ -60,5 +58,9 @@ export abstract class Estado {
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
     return undefined;
+  }
+
+  private _redefine(accion: Accion): boolean {
+    return this[accion] !== Estado.prototype[accion];
   }
 }

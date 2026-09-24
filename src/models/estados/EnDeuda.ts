@@ -1,43 +1,21 @@
 import type { Evento } from "../Evento.ts";
 import type { Reglas } from "../Reglas.ts";
-import type { Deuda } from "../Deuda.ts";
-import { Estado, type NombreDeEstado } from "./Estado.ts";
+import { ConDeuda } from "./ConDeuda.ts";
+import type { Estado, NombreDeEstado } from "./Estado.ts";
 import { LibreDeDeuda } from "./LibreDeDeuda.ts";
 import { Moroso } from "./Moroso.ts";
 
-export class EnDeuda extends Estado {
-  private _deuda: Deuda;
-
-  constructor(deuda: Deuda) {
-    super();
-    this._deuda = deuda;
-  }
-
+export class EnDeuda extends ConDeuda {
   nombre(): NombreDeEstado {
     return "en deuda";
   }
 
   override falto(evento: Evento, _reglas: Reglas): Estado {
     this._deuda.entrarEnMora(evento.fecha());
-    return new Moroso(this._deuda, this.faltas());
+    return new Moroso(this._deuda);
   }
 
-  override pago(fecha: Date, monto: number, reglas: Reglas): Estado {
-    this._deuda.pagar(fecha, monto);
-    if (!this._deuda.saldada()) return this;
-
+  protected _estadoAlSaldar(reglas: Reglas): Estado {
     return LibreDeDeuda.oFinalizadoPorFaltas(this.faltas(), reglas);
-  }
-
-  override faltas(): number {
-    return 1;
-  }
-
-  override deudaAl(fecha: Date): number {
-    return this._deuda.montoAl(fecha);
-  }
-
-  override eventoAdeudado(): Evento {
-    return this._deuda.eventoFaltado();
   }
 }

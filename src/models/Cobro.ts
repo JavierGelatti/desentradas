@@ -1,7 +1,6 @@
 import type { Credito } from "./Credito.ts";
 import type { Evento } from "./Evento.ts";
 
-// Un cobro es en efectivo o proviene de aplicar un crédito del propio deudor.
 export type OrigenDeCobro = "efectivo" | Credito;
 
 export class Cobro {

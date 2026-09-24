@@ -1,19 +1,10 @@
 import type { Evento } from "../Evento.ts";
 import type { Reglas } from "../Reglas.ts";
-import type { Deuda } from "../Deuda.ts";
-import { Estado, type NombreDeEstado } from "./Estado.ts";
+import { ConDeuda } from "./ConDeuda.ts";
+import type { Estado, NombreDeEstado } from "./Estado.ts";
 import { Finalizado } from "./Finalizado.ts";
 
-export class Moroso extends Estado {
-  private _deuda: Deuda;
-  private _faltas: number;
-
-  constructor(deudaEnMora: Deuda, faltas: number) {
-    super();
-    this._deuda = deudaEnMora;
-    this._faltas = faltas;
-  }
-
+export class Moroso extends ConDeuda {
   nombre(): NombreDeEstado {
     return "moroso";
   }
@@ -22,22 +13,7 @@ export class Moroso extends Estado {
     return this;
   }
 
-  override pago(fecha: Date, monto: number, _reglas: Reglas): Estado {
-    this._deuda.pagar(fecha, monto);
-    if (!this._deuda.saldada()) return this;
-
+  protected _estadoAlSaldar(_reglas: Reglas): Estado {
     return new Finalizado("por pago de morosidad");
-  }
-
-  override faltas(): number {
-    return this._faltas;
-  }
-
-  override deudaAl(fecha: Date): number {
-    return this._deuda.montoAl(fecha);
-  }
-
-  override eventoAdeudado(): Evento {
-    return this._deuda.eventoFaltado();
   }
 }

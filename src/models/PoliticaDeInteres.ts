@@ -3,6 +3,7 @@ export interface PoliticaDeInteres {
 }
 
 const MILISEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+const DIAS_POR_MES = 30;
 
 const diasCompletosEntre = (desde: Date, hasta: Date): number =>
   Math.floor((hasta.getTime() - desde.getTime()) / MILISEGUNDOS_POR_DIA);
@@ -25,7 +26,6 @@ export class InteresFijoPorDia implements PoliticaDeInteres {
   }
 }
 
-// Interés simple: un porcentaje mensual prorrateado por día sobre una base de 30 días.
 export class InteresMensual implements PoliticaDeInteres {
   private _porcentaje: number;
 
@@ -34,7 +34,7 @@ export class InteresMensual implements PoliticaDeInteres {
   }
 
   montoConInteres(monto: number, desde: Date, hasta: Date): number {
-    const interes = (monto * (this._porcentaje / 100) * diasCompletosEntre(desde, hasta)) / 30;
+    const interes = (monto * (this._porcentaje / 100) * diasCompletosEntre(desde, hasta)) / DIAS_POR_MES;
     return Math.round(monto + interes);
   }
 }

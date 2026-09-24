@@ -26,6 +26,7 @@ export const cobroEnEfectivo = ({
   deudor = "ana",
   monto = 1000,
   numero = 3,
-  evento = nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }),
-}: { deudor?: string; monto?: number; numero?: number; evento?: Evento } = {}) =>
+  asistentes = ["beto", "carla"],
+  evento = nuevoEvento({ numero: 2, asistentes }),
+}: { deudor?: string; monto?: number; numero?: number; asistentes?: string[]; evento?: Evento } = {}) =>
   new Cobro(deudor, monto, dia(numero), evento, "efectivo");

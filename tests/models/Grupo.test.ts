@@ -7,6 +7,17 @@ import { dia, nuevoEvento, reglas } from "./factories.ts";
 
 const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo(reglasIniciales, new DesempateAlfabetico());
 
+const grupoConAnaFinalizada = () => {
+  const grupo = nuevoGrupo();
+  const ana = grupo.ingresar("ana", dia(1));
+  const beto = grupo.ingresar("beto", dia(1));
+  grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+  grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+  grupo.registrarPago("ana", 1000, dia(10));
+  expect(ana.estaActivo()).toBe(false);
+  return { grupo, ana, beto };
+};
+
 describe("Grupo", () => {
   describe("reglas", () => {
     it("se crea con sus reglas iniciales, que son la única versión del historial", () => {
@@ -165,13 +176,7 @@ describe("Grupo", () => {
     });
 
     it("una persona que ya participó no puede volver a ingresar: debe reingresar", () => {
-      const grupo = nuevoGrupo();
-      const ana = grupo.ingresar("ana", dia(1));
-      grupo.ingresar("beto", dia(1));
-      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", 1000, dia(10));
-      expect(ana.estaActivo()).toBe(false);
+      const { grupo, ana } = grupoConAnaFinalizada();
 
       expect(() => {
         grupo.ingresar("ana", dia(11));
@@ -209,17 +214,6 @@ describe("Grupo", () => {
   });
 
   describe("reingreso", () => {
-    const grupoConAnaFinalizada = () => {
-      const grupo = nuevoGrupo();
-      const ana = grupo.ingresar("ana", dia(1));
-      const beto = grupo.ingresar("beto", dia(1));
-      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", 1000, dia(10));
-      expect(ana.estaActivo()).toBe(false);
-      return { grupo, ana, beto };
-    };
-
     it("una persona puede reingresar una vez finalizada su participación, con la misma participación", () => {
       const { grupo, ana, beto } = grupoConAnaFinalizada();
 
@@ -317,13 +311,7 @@ describe("Grupo", () => {
     });
 
     it("los participantes finalizados no son afectados por los eventos", () => {
-      const grupo = nuevoGrupo();
-      const ana = grupo.ingresar("ana", dia(1));
-      grupo.ingresar("beto", dia(1));
-      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", 1000, dia(10));
-      expect(ana.estado()).toBe("finalizado");
+      const { grupo, ana } = grupoConAnaFinalizada();
       const transicionesAlFinalizar = ana.historial().length;
 
       grupo.registrarEvento(nuevoEvento({ numero: 16, asistentes: ["beto"] }));

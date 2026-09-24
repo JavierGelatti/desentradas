@@ -1,6 +1,5 @@
 import type { Cobro } from "./Cobro.ts";
 
-// Cobrado: pendiente de entrega. Aplicado: se usó para pagar una deuda de su dueño. Repartido: ya se entregó.
 export type EstadoDeCredito = "cobrado" | "aplicado" | "repartido";
 
 export class Credito {

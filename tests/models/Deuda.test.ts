@@ -6,9 +6,9 @@ import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 const montoPorFalta = 1000;
 const interesDiario = 10;
 
-const reglasConInteresDiario = (montoPorDia: number) =>
-  reglas({ montoPorFalta, politicaDeInteres: new InteresFijoPorDia(montoPorDia) });
-const lasReglas = reglasConInteresDiario(interesDiario);
+const lasReglas = reglas({ montoPorFalta, politicaDeInteres: new InteresFijoPorDia(interesDiario) });
+
+const nuevaDeuda = () => Deuda.porFaltarA(nuevoEvento(), lasReglas);
 
 describe("Deuda", () => {
   it("se origina por faltar a un evento, por el monto por falta de las reglas", () => {
@@ -21,13 +21,13 @@ describe("Deuda", () => {
   });
 
   it("mientras no está en mora, vale el monto original en cualquier fecha", () => {
-    const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+    const deuda = nuevaDeuda();
 
     expect(deuda.montoAl(dia(20))).toBe(montoPorFalta);
   });
 
   it("en mora, acumula interés desde la fecha en que entró en mora", () => {
-    const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+    const deuda = nuevaDeuda();
 
     deuda.entrarEnMora(dia(8));
 
@@ -37,7 +37,7 @@ describe("Deuda", () => {
   });
 
   it("no puede entrar en mora dos veces", () => {
-    const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+    const deuda = nuevaDeuda();
     deuda.entrarEnMora(dia(8));
 
     expect(() => deuda.entrarEnMora(dia(9))).toThrow("La deuda ya está en mora");
@@ -46,7 +46,7 @@ describe("Deuda", () => {
 
   describe("pagos", () => {
     it("un pago parcial reduce la deuda por el monto pagado", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
 
       deuda.pagar(dia(3), 400);
 
@@ -55,7 +55,7 @@ describe("Deuda", () => {
     });
 
     it("pagar el total la salda", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
 
       deuda.pagar(dia(3), montoPorFalta);
 
@@ -64,7 +64,7 @@ describe("Deuda", () => {
     });
 
     it("no se puede pagar más de lo que vale la deuda a esa fecha", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
 
       expect(() => {
         deuda.pagar(dia(3), montoPorFalta + 1);
@@ -73,7 +73,7 @@ describe("Deuda", () => {
     });
 
     it("el monto de un pago debe ser positivo", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
 
       expect(() => {
         deuda.pagar(dia(3), 0);
@@ -85,7 +85,7 @@ describe("Deuda", () => {
     });
 
     it("en mora, el pago se descuenta del valor con interés a esa fecha, y el interés vuelve a correr desde el pago", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
       deuda.entrarEnMora(dia(8));
 
       deuda.pagar(dia(11), 530);
@@ -95,7 +95,7 @@ describe("Deuda", () => {
     });
 
     it("en mora, se puede saldar pagando el valor con interés a esa fecha", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
       deuda.entrarEnMora(dia(8));
 
       deuda.pagar(dia(11), montoPorFalta + 3 * interesDiario);
@@ -105,7 +105,7 @@ describe("Deuda", () => {
     });
 
     it("no se puede pagar en una fecha anterior al último pago", () => {
-      const deuda = Deuda.porFaltarA(nuevoEvento(), lasReglas);
+      const deuda = nuevaDeuda();
       deuda.pagar(dia(5), 400);
 
       expect(() => {

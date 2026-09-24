@@ -28,7 +28,7 @@ export class Participante {
   }
 
   reingresar(fecha: Date): void {
-    this._transicionar("reingreso", fecha, this._estado.reingresar());
+    this._transicionar("reingresar", fecha, this._estado.reingresar());
   }
 
   nombre(): string {

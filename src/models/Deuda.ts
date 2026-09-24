@@ -49,17 +49,21 @@ export class Deuda {
     return this._politicaDeInteres.montoConInteres(this._monto, this._enMoraDesde, fecha);
   }
 
-  // El pago se descuenta del valor de la deuda a esa fecha; el resto pasa a ser la nueva base,
-  // y si está en mora el interés vuelve a correr desde el pago.
+  // El interés devengado se capitaliza: el resto queda como nueva base y, en mora, vuelve a correr desde el pago.
   pagar(fecha: Date, monto: number): void {
     if (monto <= 0) throw new Error("El monto del pago debe ser positivo");
+    this._asertarQueNoEsAnteriorAlUltimoPago(fecha);
+    const montoALaFecha = this.montoAl(fecha);
+    if (monto > montoALaFecha) throw new Error("El pago no puede superar la deuda");
+
+    this._monto = montoALaFecha - monto;
+    if (this.estaEnMora()) this._enMoraDesde = fecha;
+    this._ultimoPago = fecha;
+  }
+
+  private _asertarQueNoEsAnteriorAlUltimoPago(fecha: Date): void {
     if (this._ultimoPago !== undefined && fecha < this._ultimoPago) {
       throw new Error("El pago no puede ser anterior al último pago");
     }
-    if (monto > this.montoAl(fecha)) throw new Error("El pago no puede superar la deuda");
-
-    this._monto = this.montoAl(fecha) - monto;
-    if (this.estaEnMora()) this._enMoraDesde = fecha;
-    this._ultimoPago = fecha;
   }
 }

@@ -24,11 +24,9 @@ export class Grupo {
   }
 
   cambiarReglas(reglas: Reglas): void {
-    if (!this._esPosteriorAlUltimoEvento(reglas.rigeDesde())) {
-      throw new Error("Las nuevas reglas deben regir desde después del último evento registrado");
-    }
+    this._asertarQueRigenDespuesDelUltimoEvento(reglas);
 
-    if (!this._huboEventosDesde(this.reglas().rigeDesde())) this._historialDeReglas.pop();
+    if (this._esPosteriorAlUltimoEvento(this.reglas().rigeDesde())) this._historialDeReglas.pop();
     this._historialDeReglas.push(reglas);
   }
 
@@ -51,9 +49,7 @@ export class Grupo {
     const nombreLimpio = nombre.trim();
     if (nombreLimpio === "") throw new Error("El nombre no puede estar vacío");
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
-    if (this._participanteHistorico(nombreLimpio) !== undefined) {
-      throw new Error(`${nombreLimpio} ya participó del grupo, debe reingresar`);
-    }
+    this._asertarQueNuncaParticipo(nombreLimpio);
 
     const participante = new Participante(nombreLimpio, fecha);
     this._participantes.push(participante);
@@ -62,8 +58,7 @@ export class Grupo {
 
   reingresar(nombre: string, fecha: Date): Participante {
     this._asertarQueNoTieneParticipacionActiva(nombre);
-    const participante = this._participanteHistorico(nombre);
-    if (participante === undefined) throw new Error(`${nombre} nunca ingresó al grupo`);
+    const participante = this._participanteHistoricoLlamado(nombre);
 
     participante.reingresar(fecha);
     this._participantesHistoricos.splice(this._participantesHistoricos.indexOf(participante), 1);
@@ -71,13 +66,11 @@ export class Grupo {
     return participante;
   }
 
-  // El pago se cobra y se reparte en créditos; los créditos de quienes deben se aplican en cascada a sus deudas.
   registrarPago(nombre: string, monto: number, fecha: Date): void {
-    const participante = this.participanteActivo(nombre);
-    if (participante === undefined) throw new Error(`${nombre} no tiene una participación activa`);
+    const participante = this._participanteActivoLlamado(nombre);
     if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El pago no puede ser anterior al último cobro");
 
-    this._cobrarA(participante, monto, fecha, "efectivo");
+    this._cobrarYRepartir(participante, monto, fecha, "efectivo");
     this._archivarFinalizados();
   }
 
@@ -86,9 +79,7 @@ export class Grupo {
   }
 
   registrarEvento(evento: Evento): void {
-    if (!this._esPosteriorAlUltimoEvento(evento.fecha())) {
-      throw new Error("El evento debe ser posterior al último registrado");
-    }
+    this._asertarQueEsPosteriorAlUltimoEvento(evento);
     this._asertarQuePuedenAsistir(evento.asistentes());
     const reglas = this.reglasVigentesAl(evento.fecha());
 
@@ -123,35 +114,32 @@ export class Grupo {
     return this._participantes.find((participante) => participante.nombre() === nombre);
   }
 
+  private _participanteActivoLlamado(nombre: string): Participante {
+    const participante = this.participanteActivo(nombre);
+    if (participante === undefined) throw new Error(`${nombre} no tiene una participación activa`);
+
+    return participante;
+  }
+
   private _participanteHistorico(nombre: string): Participante | undefined {
     return this._participantesHistoricos.find((participante) => participante.nombre() === nombre);
+  }
+
+  private _participanteHistoricoLlamado(nombre: string): Participante {
+    const participante = this._participanteHistorico(nombre);
+    if (participante === undefined) throw new Error(`${nombre} nunca ingresó al grupo`);
+
+    return participante;
   }
 
   private _asertarQueNoTieneParticipacionActiva(nombre: string): void {
     if (this.participanteActivo(nombre) !== undefined) throw new Error(`${nombre} ya tiene una participación activa`);
   }
 
-  private _cobrarA(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
-    const eventoAdeudado = participante.eventoAdeudado();
-    if (eventoAdeudado === undefined) throw new TransicionInvalida("pago", participante.estado());
-
-    participante.pago(fecha, monto, this.reglasVigentesAl(fecha));
-    const cobro = new Cobro(participante.nombre(), monto, fecha, eventoAdeudado, origen);
-    this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiDebe(credito, fecha));
-  }
-
-  private _aplicarSiDebe(credito: Credito, fecha: Date): void {
-    const deudor = this.participanteActivo(credito.nombre());
-    if (deudor === undefined || deudor.deudaAl(fecha) === 0) return;
-
-    const monto = Math.min(credito.monto(), deudor.deudaAl(fecha));
-    this._cobrarA(deudor, monto, fecha, this._caja.aplicar(credito, monto));
-  }
-
-  private _archivarFinalizados(): void {
-    const finalizados = this._participantes.filter((participante) => !participante.estaActivo());
-    this._participantes = this._participantes.filter((participante) => participante.estaActivo());
-    this._participantesHistoricos.push(...finalizados);
+  private _asertarQueNuncaParticipo(nombre: string): void {
+    if (this._participanteHistorico(nombre) !== undefined) {
+      throw new Error(`${nombre} ya participó del grupo, debe reingresar`);
+    }
   }
 
   private _asertarQuePuedenAsistir(nombres: Iterable<string>): void {
@@ -162,12 +150,45 @@ export class Grupo {
     }
   }
 
+  private _asertarQueEsPosteriorAlUltimoEvento(evento: Evento): void {
+    if (!this._esPosteriorAlUltimoEvento(evento.fecha())) {
+      throw new Error("El evento debe ser posterior al último registrado");
+    }
+  }
+
+  private _asertarQueRigenDespuesDelUltimoEvento(reglas: Reglas): void {
+    if (!this._esPosteriorAlUltimoEvento(reglas.rigeDesde())) {
+      throw new Error("Las nuevas reglas deben regir desde después del último evento registrado");
+    }
+  }
+
   private _esPosteriorAlUltimoEvento(fecha: Date): boolean {
     const ultimo = this._eventos.at(-1);
     return ultimo === undefined || fecha > ultimo.fecha();
   }
 
-  private _huboEventosDesde(fecha: Date): boolean {
-    return this._eventos.some((evento) => evento.fecha() >= fecha);
+  private _cobrarYRepartir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
+    const eventoAdeudado = participante.eventoAdeudado();
+    if (eventoAdeudado === undefined) throw new TransicionInvalida("pago", participante.estado());
+
+    participante.pago(fecha, monto, this.reglasVigentesAl(fecha));
+    const cobro = new Cobro(participante.nombre(), monto, fecha, eventoAdeudado, origen);
+    this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiElTitularDebe(credito, fecha));
+  }
+
+  private _aplicarSiElTitularDebe(credito: Credito, fecha: Date): void {
+    const deudor = this.participanteActivo(credito.nombre());
+    if (deudor === undefined) return;
+    const deuda = deudor.deudaAl(fecha);
+    if (deuda === 0) return;
+
+    const monto = Math.min(credito.monto(), deuda);
+    this._cobrarYRepartir(deudor, monto, fecha, this._caja.aplicar(credito, monto));
+  }
+
+  private _archivarFinalizados(): void {
+    const finalizados = this._participantes.filter((participante) => !participante.estaActivo());
+    this._participantes = this._participantes.filter((participante) => participante.estaActivo());
+    this._participantesHistoricos.push(...finalizados);
   }
 }

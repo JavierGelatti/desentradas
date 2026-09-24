@@ -407,7 +407,7 @@ describe("Participante", () => {
 
       const ultima = ana.historial().at(-1)!;
       expect(ana.historial()).toHaveLength(transicionesAlFinalizar + 1);
-      expect(ultima.describir()).toBe("reingreso: finalizado -> participando");
+      expect(ultima.describir()).toBe("reingresar: finalizado -> participando");
       expect(ultima.fecha()).toEqual(dia(20));
     });
 

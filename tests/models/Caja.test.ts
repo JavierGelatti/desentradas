@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Caja } from "../../src/models/Caja.ts";
 import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
-import { cobroEnEfectivo, dia, nuevoEvento } from "./factories.ts";
+import { cobroEnEfectivo, dia } from "./factories.ts";
 
 const nuevaCaja = () => new Caja(new DesempateAlfabetico());
 
@@ -9,7 +9,7 @@ describe("Caja", () => {
   describe("cobros", () => {
     it("un cobro se reparte en créditos iguales entre los asistentes al evento faltado", () => {
       const caja = nuevaCaja();
-      const cobro = cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto", "carla"] }) });
+      const cobro = cobroEnEfectivo({ monto: 1000 });
 
       const creditos = caja.cobrar(cobro);
 
@@ -25,7 +25,7 @@ describe("Caja", () => {
 
     it("cuando el monto no se divide en partes iguales, el sobrante va de a un peso a los primeros según el desempate", () => {
       const caja = nuevaCaja();
-      const cobro = cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["carla", "beto", "ana"] }) });
+      const cobro = cobroEnEfectivo({ monto: 1000, asistentes: ["carla", "beto", "ana"] });
 
       const creditos = caja.cobrar(cobro);
 
@@ -38,7 +38,7 @@ describe("Caja", () => {
 
     it("un cobro menor a la cantidad de asistentes deja sin crédito a los últimos según el desempate", () => {
       const caja = nuevaCaja();
-      const cobro = cobroEnEfectivo({ monto: 2, evento: nuevoEvento({ asistentes: ["carla", "beto", "ana"] }) });
+      const cobro = cobroEnEfectivo({ monto: 2, asistentes: ["carla", "beto", "ana"] });
 
       const creditos = caja.cobrar(cobro);
 
@@ -50,8 +50,8 @@ describe("Caja", () => {
 
     it("conoce los créditos pendientes, y su monto, por nombre y en total", () => {
       const caja = nuevaCaja();
-      caja.cobrar(cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto", "carla"] }) }));
-      caja.cobrar(cobroEnEfectivo({ monto: 300, evento: nuevoEvento({ asistentes: ["beto"] }) }));
+      caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
+      caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
 
       expect(caja.creditosPendientesDe("beto").map((credito) => credito.monto())).toEqual([500, 300]);
       expect(caja.montoPendienteDe("beto")).toBe(800);
@@ -64,7 +64,7 @@ describe("Caja", () => {
   describe("aplicación de créditos", () => {
     it("aplicar un crédito por su monto completo lo deja aplicado", () => {
       const caja = nuevaCaja();
-      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto"] }) }));
+      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
 
       const aplicado = caja.aplicar(credito, 1000);
 
@@ -76,7 +76,7 @@ describe("Caja", () => {
 
     it("aplicar parte de un crédito lo divide en uno aplicado y otro pendiente por el resto", () => {
       const caja = nuevaCaja();
-      const cobro = cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto"] }) });
+      const cobro = cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] });
       const [credito] = caja.cobrar(cobro);
 
       const aplicado = caja.aplicar(credito, 400);
@@ -93,7 +93,7 @@ describe("Caja", () => {
 
     it("no se puede aplicar un crédito que no es de la caja", () => {
       const caja = nuevaCaja();
-      const [credito] = nuevaCaja().cobrar(cobroEnEfectivo({ evento: nuevoEvento({ asistentes: ["beto"] }) }));
+      const [credito] = nuevaCaja().cobrar(cobroEnEfectivo({ asistentes: ["beto"] }));
 
       expect(() => {
         caja.aplicar(credito, 1000);
@@ -102,7 +102,7 @@ describe("Caja", () => {
 
     it("no se puede aplicar más que el monto del crédito", () => {
       const caja = nuevaCaja();
-      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto"] }) }));
+      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
 
       expect(() => {
         caja.aplicar(credito, 1001);
@@ -114,8 +114,8 @@ describe("Caja", () => {
   describe("repartos", () => {
     it("repartir entrega de una vez todos los créditos pendientes de una persona", () => {
       const caja = nuevaCaja();
-      caja.cobrar(cobroEnEfectivo({ monto: 1000, evento: nuevoEvento({ asistentes: ["beto", "carla"] }) }));
-      caja.cobrar(cobroEnEfectivo({ monto: 300, evento: nuevoEvento({ asistentes: ["beto"] }) }));
+      caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
+      caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
       const creditosDeBeto = caja.creditosPendientesDe("beto");
 
       const reparto = caja.repartir("beto", dia(5));
