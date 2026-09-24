@@ -7,7 +7,7 @@ export type NombreDeEstado = "participando" | "en deuda" | "libre de deuda" | "m
 
 export type MotivoDeFinalizacion = "por faltas" | "por pago de morosidad";
 
-const acciones: readonly Accion[] = ["voy", "falto", "pago"];
+const acciones: readonly Accion[] = ["voy", "falto", "pago", "reingresar"];
 
 // Un estado rechaza todo evento salvo los que redefine explícitamente.
 export abstract class Estado {
@@ -30,8 +30,12 @@ export abstract class Estado {
     throw new TransicionInvalida("falto", this.nombre());
   }
 
-  pago(_fecha: Date, _reglas: Reglas): Estado {
+  pago(_fecha: Date, _monto: number, _reglas: Reglas): Estado {
     throw new TransicionInvalida("pago", this.nombre());
+  }
+
+  reingresar(): Estado {
+    throw new TransicionInvalida("reingresar", this.nombre());
   }
 
   puedeAsistir(): boolean {
@@ -48,6 +52,10 @@ export abstract class Estado {
 
   deudaAl(_fecha: Date): number {
     return 0;
+  }
+
+  eventoAdeudado(): Evento | undefined {
+    return undefined;
   }
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {

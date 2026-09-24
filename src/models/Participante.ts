@@ -23,8 +23,12 @@ export class Participante {
     this._transicionar("falto", evento.fecha(), this._estado.falto(evento, reglas));
   }
 
-  pago(fecha: Date, reglas: Reglas): void {
-    this._transicionar("pago", fecha, this._estado.pago(fecha, reglas));
+  pago(fecha: Date, monto: number, reglas: Reglas): void {
+    this._transicionar("pago", fecha, this._estado.pago(fecha, monto, reglas));
+  }
+
+  reingresar(fecha: Date): void {
+    this._transicionar("reingreso", fecha, this._estado.reingresar());
   }
 
   nombre(): string {
@@ -61,6 +65,10 @@ export class Participante {
 
   deudaAl(fecha: Date): number {
     return this._estado.deudaAl(fecha);
+  }
+
+  eventoAdeudado(): Evento | undefined {
+    return this._estado.eventoAdeudado();
   }
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {

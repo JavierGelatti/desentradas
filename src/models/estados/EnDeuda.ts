@@ -22,7 +22,10 @@ export class EnDeuda extends Estado {
     return new Moroso(this._deuda, this.faltas());
   }
 
-  override pago(_fecha: Date, reglas: Reglas): Estado {
+  override pago(fecha: Date, monto: number, reglas: Reglas): Estado {
+    this._deuda.pagar(fecha, monto);
+    if (!this._deuda.saldada()) return this;
+
     return LibreDeDeuda.oFinalizadoPorFaltas(this.faltas(), reglas);
   }
 
@@ -32,5 +35,9 @@ export class EnDeuda extends Estado {
 
   override deudaAl(fecha: Date): number {
     return this._deuda.montoAl(fecha);
+  }
+
+  override eventoAdeudado(): Evento {
+    return this._deuda.eventoFaltado();
   }
 }

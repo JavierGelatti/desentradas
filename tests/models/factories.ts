@@ -1,3 +1,4 @@
+import { Cobro } from "../../src/models/Cobro.ts";
 import { Evento } from "../../src/models/Evento.ts";
 import { Reglas } from "../../src/models/Reglas.ts";
 import { type PoliticaDeInteres, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
@@ -20,3 +21,11 @@ export const reglas = ({
   montoPorFalta?: number;
   politicaDeInteres?: PoliticaDeInteres;
 } = {}) => new Reglas(rigeDesde, toleranciaDeFaltas, montoPorFalta, politicaDeInteres);
+
+export const cobroEnEfectivo = ({
+  deudor = "ana",
+  monto = 1000,
+  numero = 3,
+  evento = nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }),
+}: { deudor?: string; monto?: number; numero?: number; evento?: Evento } = {}) =>
+  new Cobro(deudor, monto, dia(numero), evento, "efectivo");

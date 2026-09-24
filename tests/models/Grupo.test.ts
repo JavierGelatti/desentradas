@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
+import type { Credito } from "../../src/models/Credito.ts";
+import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
 import { Grupo } from "../../src/models/Grupo.ts";
 import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 import { dia, nuevoEvento, reglas } from "./factories.ts";
 
-const nuevoGrupo = (toleranciaDeFaltas = 2) => new Grupo(reglas({ toleranciaDeFaltas }));
+const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo(reglasIniciales, new DesempateAlfabetico());
 
 describe("Grupo", () => {
   describe("reglas", () => {
     it("se crea con sus reglas iniciales, que son la única versión del historial", () => {
       const reglasIniciales = reglas();
 
-      const grupo = new Grupo(reglasIniciales);
+      const grupo = nuevoGrupo(reglasIniciales);
 
       expect(grupo.reglas()).toBe(reglasIniciales);
       expect(grupo.historialDeReglas()).toEqual([reglasIniciales]);
@@ -18,7 +20,7 @@ describe("Grupo", () => {
 
     it("cambiar las reglas después de un evento agrega una versión al historial", () => {
       const reglasIniciales = reglas();
-      const grupo = new Grupo(reglasIniciales);
+      const grupo = nuevoGrupo(reglasIniciales);
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       const nuevasReglas = reglas({ rigeDesde: dia(3) });
@@ -31,7 +33,7 @@ describe("Grupo", () => {
 
     it("las nuevas reglas deben regir desde después del último evento registrado", () => {
       const reglasIniciales = reglas();
-      const grupo = new Grupo(reglasIniciales);
+      const grupo = nuevoGrupo(reglasIniciales);
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
 
@@ -42,7 +44,7 @@ describe("Grupo", () => {
     });
 
     it("las nuevas reglas pueden regir desde una fecha futura", () => {
-      const grupo = new Grupo(reglas());
+      const grupo = nuevoGrupo(reglas());
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       const nuevasReglas = reglas({ rigeDesde: dia(30) });
@@ -54,7 +56,7 @@ describe("Grupo", () => {
 
     it("si no hubo eventos desde que rige la versión actual, las nuevas reglas la reemplazan", () => {
       const reglasIniciales = reglas();
-      const grupo = new Grupo(reglasIniciales);
+      const grupo = nuevoGrupo(reglasIniciales);
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(3) }));
@@ -66,7 +68,7 @@ describe("Grupo", () => {
     });
 
     it("las reglas iniciales también se reemplazan si todavía no hubo eventos", () => {
-      const grupo = new Grupo(reglas());
+      const grupo = nuevoGrupo(reglas());
       const reglasDefinitivas = reglas({ rigeDesde: dia(4) });
 
       grupo.cambiarReglas(reglasDefinitivas);
@@ -75,7 +77,7 @@ describe("Grupo", () => {
     });
 
     it("las faltas a un evento se rigen por las reglas vigentes en su fecha", () => {
-      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["ana", "beto"] }));
@@ -87,7 +89,7 @@ describe("Grupo", () => {
     });
 
     it("un evento anterior a que rijan las nuevas reglas se rige por las anteriores", () => {
-      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["ana", "beto"] }));
@@ -99,11 +101,11 @@ describe("Grupo", () => {
     });
 
     it("la tolerancia de faltas que se aplica en un evento es la de las reglas vigentes en su fecha", () => {
-      const grupo = new Grupo(reglas({ toleranciaDeFaltas: 2 }));
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", dia(3));
+      grupo.registrarPago("ana", 1000, dia(3));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(5), toleranciaDeFaltas: 1 }));
 
       grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
@@ -112,7 +114,7 @@ describe("Grupo", () => {
     });
 
     it("un cambio de reglas no altera las deudas existentes", () => {
-      const grupo = new Grupo(reglas({ montoPorFalta: 1000 }));
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
@@ -127,7 +129,7 @@ describe("Grupo", () => {
     });
 
     it("no se puede registrar un evento anterior a que rijan las reglas iniciales", () => {
-      const grupo = new Grupo(reglas({ rigeDesde: dia(5) }));
+      const grupo = nuevoGrupo(reglas({ rigeDesde: dia(5) }));
       grupo.ingresar("beto", dia(1));
 
       expect(() => {
@@ -161,6 +163,109 @@ describe("Grupo", () => {
         grupo.ingresar("ana", dia(2));
       }).toThrow("ana ya tiene una participación activa");
     });
+
+    it("una persona que ya participó no puede volver a ingresar: debe reingresar", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarPago("ana", 1000, dia(10));
+      expect(ana.estaActivo()).toBe(false);
+
+      expect(() => {
+        grupo.ingresar("ana", dia(11));
+      }).toThrow("ana ya participó del grupo, debe reingresar");
+      expect(grupo.participantesHistoricos()).toEqual([ana]);
+    });
+
+    it("el nombre se guarda sin espacios al principio ni al final", () => {
+      const grupo = nuevoGrupo();
+
+      const ana = grupo.ingresar("  ana ", dia(1));
+
+      expect(ana.nombre()).toBe("ana");
+      expect(grupo.participanteActivo("ana")).toBe(ana);
+    });
+
+    it("el nombre no puede estar vacío", () => {
+      const grupo = nuevoGrupo();
+
+      expect(() => {
+        grupo.ingresar("   ", dia(1));
+      }).toThrow("El nombre no puede estar vacío");
+      expect(grupo.participantes()).toEqual([]);
+    });
+
+    it("los nombres distinguen mayúsculas de minúsculas", () => {
+      const grupo = nuevoGrupo();
+
+      const ana = grupo.ingresar("ana", dia(1));
+      const anaConMayuscula = grupo.ingresar("Ana", dia(1));
+
+      expect(grupo.participanteActivo("ana")).toBe(ana);
+      expect(grupo.participanteActivo("Ana")).toBe(anaConMayuscula);
+    });
+  });
+
+  describe("reingreso", () => {
+    const grupoConAnaFinalizada = () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarPago("ana", 1000, dia(10));
+      expect(ana.estaActivo()).toBe(false);
+      return { grupo, ana, beto };
+    };
+
+    it("una persona puede reingresar una vez finalizada su participación, con la misma participación", () => {
+      const { grupo, ana, beto } = grupoConAnaFinalizada();
+
+      const reingresada = grupo.reingresar("ana", dia(11));
+
+      expect(reingresada).toBe(ana);
+      expect(ana.estado()).toBe("participando");
+      expect(grupo.participanteActivo("ana")).toBe(ana);
+      expect(grupo.participantes()).toEqual([beto, ana]);
+      expect(grupo.participantesHistoricos()).toEqual([]);
+    });
+
+    it("no se puede reingresar a quien tiene una participación activa", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+
+      expect(() => {
+        grupo.reingresar("ana", dia(2));
+      }).toThrow("ana ya tiene una participación activa");
+    });
+
+    it("no se puede reingresar a quien nunca ingresó", () => {
+      const grupo = nuevoGrupo();
+
+      expect(() => {
+        grupo.reingresar("ana", dia(2));
+      }).toThrow("ana nunca ingresó al grupo");
+    });
+
+    it("quien reingresa conserva los créditos pendientes a su nombre", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["ana", "carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] }));
+      grupo.registrarPago("ana", 1000, dia(17));
+      expect(ana.estaActivo()).toBe(false);
+      grupo.registrarPago("beto", 1000, dia(18));
+      expect(grupo.caja().montoPendienteDe("ana")).toBe(500);
+
+      grupo.reingresar("ana", dia(19));
+
+      expect(grupo.caja().montoPendienteDe("ana")).toBe(500);
+    });
   });
 
   describe("finalización", () => {
@@ -171,7 +276,7 @@ describe("Grupo", () => {
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
 
-      grupo.registrarPago("ana", dia(10));
+      grupo.registrarPago("ana", 1000, dia(10));
 
       expect(ana.estaActivo()).toBe(false);
       expect(grupo.participanteActivo("ana")).toBeUndefined();
@@ -179,28 +284,12 @@ describe("Grupo", () => {
       expect(grupo.participantesHistoricos()).toEqual([ana]);
     });
 
-    it("una persona puede volver a ingresar una vez finalizada su participación", () => {
-      const grupo = nuevoGrupo();
-      const primeraParticipacion = grupo.ingresar("ana", dia(1));
-      const beto = grupo.ingresar("beto", dia(1));
-      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", dia(10));
-      expect(primeraParticipacion.estaActivo()).toBe(false);
-
-      const segundaParticipacion = grupo.ingresar("ana", dia(11));
-
-      expect(grupo.participanteActivo("ana")).toBe(segundaParticipacion);
-      expect(grupo.participantes()).toEqual([beto, segundaParticipacion]);
-      expect(grupo.participantesHistoricos()).toEqual([primeraParticipacion]);
-    });
-
     it("quien queda finalizado por faltas al registrar un evento pasa a los participantes históricos", () => {
-      const grupo = nuevoGrupo(2);
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", dia(3));
+      grupo.registrarPago("ana", 1000, dia(3));
       grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
       expect(ana.estaActivo()).toBe(true);
 
@@ -233,7 +322,7 @@ describe("Grupo", () => {
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      grupo.registrarPago("ana", dia(10));
+      grupo.registrarPago("ana", 1000, dia(10));
       expect(ana.estado()).toBe("finalizado");
       const transicionesAlFinalizar = ana.historial().length;
 
@@ -298,7 +387,7 @@ describe("Grupo", () => {
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ asistentes: ["beto"] }));
 
-      grupo.registrarPago("ana", dia(3));
+      grupo.registrarPago("ana", 1000, dia(3));
 
       expect(ana.estado()).toBe("libre de deuda");
     });
@@ -307,7 +396,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
 
       expect(() => {
-        grupo.registrarPago("ana", dia(3));
+        grupo.registrarPago("ana", 1000, dia(3));
       }).toThrow("ana no tiene una participación activa");
     });
 
@@ -318,10 +407,173 @@ describe("Grupo", () => {
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       const siguienteEvento = nuevoEvento({ numero: 9, asistentes: ["ana", "beto"] });
 
-      grupo.registrarPago("ana", siguienteEvento.fecha());
+      grupo.registrarPago("ana", 1000, siguienteEvento.fecha());
       grupo.registrarEvento(siguienteEvento);
 
       expect(ana.estado()).toBe("participando");
+    });
+  });
+
+  describe("caja", () => {
+    it("registrar un pago lo cobra en efectivo y reparte créditos entre los asistentes al evento faltado", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      const evento = nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] });
+      grupo.registrarEvento(evento);
+
+      grupo.registrarPago("ana", 1000, dia(3));
+
+      const caja = grupo.caja();
+      expect(caja.cobros()).toHaveLength(1);
+      const [cobro] = caja.cobros();
+      expect(cobro.deudor()).toBe("ana");
+      expect(cobro.monto()).toBe(1000);
+      expect(cobro.fecha()).toEqual(dia(3));
+      expect(cobro.eventoFaltado()).toBe(evento);
+      expect(cobro.esEnEfectivo()).toBe(true);
+      expect(caja.montoPendienteDe("beto")).toBe(500);
+      expect(caja.montoPendienteDe("carla")).toBe(500);
+    });
+
+    it("un pago parcial también se cobra y se reparte", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+
+      grupo.registrarPago("ana", 400, dia(3));
+
+      expect(ana.estado()).toBe("en deuda");
+      expect(ana.deudaAl(dia(3))).toBe(600);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(200);
+      expect(grupo.caja().montoPendienteDe("carla")).toBe(200);
+    });
+
+    it("el crédito de quien debe se aplica de inmediato a su deuda como un nuevo cobro, que se vuelve a repartir", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      const eventoQueDebeBeto = nuevoEvento({ numero: 9, asistentes: ["carla"] });
+      grupo.registrarEvento(eventoQueDebeBeto);
+
+      grupo.registrarPago("ana", 1000, dia(10));
+
+      expect(beto.deudaAl(dia(10))).toBe(500);
+      const caja = grupo.caja();
+      expect(caja.montoPendienteDe("beto")).toBe(0);
+      expect(caja.montoPendienteDe("carla")).toBe(1000);
+      expect(caja.cobros()).toHaveLength(2);
+      const [cobroAAna, cobroABeto] = caja.cobros();
+      expect(cobroABeto.deudor()).toBe("beto");
+      expect(cobroABeto.monto()).toBe(500);
+      expect(cobroABeto.fecha()).toEqual(dia(10));
+      expect(cobroABeto.eventoFaltado()).toBe(eventoQueDebeBeto);
+      const creditoAplicado = cobroABeto.origen() as Credito;
+      expect(creditoAplicado.nombre()).toBe("beto");
+      expect(creditoAplicado.estado()).toBe("aplicado");
+      expect(creditoAplicado.cobro()).toBe(cobroAAna);
+    });
+
+    it("si el crédito supera la deuda, se aplica sólo hasta saldarla y el excedente queda pendiente", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarPago("beto", 600, dia(9));
+
+      grupo.registrarPago("ana", 1000, dia(10));
+
+      expect(beto.estado()).toBe("libre de deuda");
+      expect(beto.deudaAl(dia(10))).toBe(0);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(100);
+      expect(grupo.caja().montoPendienteDe("carla")).toBe(600 + 500 + 400);
+    });
+
+    it("saldar la deuda de un moroso con un crédito finaliza su participación por pago de morosidad", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] }));
+      grupo.registrarPago("beto", 500, dia(16));
+      expect(beto.estado()).toBe("moroso");
+
+      grupo.registrarPago("ana", 1000, dia(17));
+
+      expect(beto.estado()).toBe("finalizado");
+      expect(beto.motivoDeFinalizacion()).toBe("por pago de morosidad");
+      expect(grupo.participantesHistoricos()).toEqual([ana, beto]);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
+      expect(grupo.caja().montoPendienteDe("carla")).toBe(500 + 500 + 500);
+    });
+
+    it("quien debe no queda con créditos pendientes", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.ingresar("dario", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla", "dario"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla", "dario"] }));
+
+      grupo.registrarPago("ana", 300, dia(10));
+
+      expect(beto.deudaAl(dia(10))).toBe(900);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
+      expect(grupo.caja().totalPendiente()).toBe(300);
+    });
+
+    it("los créditos de quien ya no participa quedan pendientes a su nombre", () => {
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarPago("beto", 1000, dia(10));
+      grupo.registrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] }));
+      expect(beto.estaActivo()).toBe(false);
+
+      grupo.registrarPago("ana", 1000, dia(17));
+
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(500);
+    });
+
+    it("no se puede registrar un pago anterior al último cobro", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarPago("ana", 400, dia(5));
+
+      expect(() => {
+        grupo.registrarPago("ana", 100, dia(4));
+      }).toThrow("El pago no puede ser anterior al último cobro");
+      expect(ana.deudaAl(dia(5))).toBe(600);
+      expect(grupo.caja().cobros()).toHaveLength(1);
+    });
+
+    it("repartir entrega los créditos pendientes de una persona y queda registrado en la caja", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarPago("ana", 1000, dia(3));
+
+      const reparto = grupo.repartir("beto", dia(4));
+
+      expect(reparto.monto()).toBe(1000);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
+      expect(grupo.caja().repartos()).toEqual([reparto]);
     });
   });
 });

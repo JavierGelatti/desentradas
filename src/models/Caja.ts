@@ -1,0 +1,93 @@
+import type { Cobro } from "./Cobro.ts";
+import { Credito } from "./Credito.ts";
+import type { Desempate } from "./Desempate.ts";
+import { Reparto } from "./Reparto.ts";
+
+export class Caja {
+  private _desempate: Desempate;
+  private _cobros: Cobro[];
+  private _creditos: Credito[];
+  private _repartos: Reparto[];
+
+  constructor(desempate: Desempate) {
+    this._desempate = desempate;
+    this._cobros = [];
+    this._creditos = [];
+    this._repartos = [];
+  }
+
+  // Cada cobro se reparte de inmediato, en pesos enteros, entre los asistentes al evento faltado.
+  cobrar(cobro: Cobro): readonly Credito[] {
+    const creditos = this._creditosPorCobrar(cobro);
+    this._cobros.push(cobro);
+    this._creditos.push(...creditos);
+    return creditos;
+  }
+
+  // Aplica el crédito, o la parte indicada de él, a una deuda de su dueño; devuelve el crédito aplicado.
+  aplicar(credito: Credito, monto: number): Credito {
+    if (!this._creditos.includes(credito)) throw new Error("El crédito no es de esta caja");
+    if (monto > credito.monto()) throw new Error("El monto a aplicar no puede superar el del crédito");
+
+    const aplicado = monto === credito.monto() ? credito : this._dividir(credito, monto);
+    aplicado.aplicar();
+    return aplicado;
+  }
+
+  repartir(nombre: string, fecha: Date): Reparto {
+    const creditos = this.creditosPendientesDe(nombre);
+    if (creditos.length === 0) throw new Error(`${nombre} no tiene créditos pendientes`);
+
+    creditos.forEach((credito) => credito.repartir());
+    const reparto = new Reparto(fecha, nombre, creditos);
+    this._repartos.push(reparto);
+    return reparto;
+  }
+
+  cobros(): readonly Cobro[] {
+    return this._cobros;
+  }
+
+  huboCobrosDespuesDe(fecha: Date): boolean {
+    return this._cobros.some((cobro) => cobro.fecha() > fecha);
+  }
+
+  creditos(): readonly Credito[] {
+    return this._creditos;
+  }
+
+  repartos(): readonly Reparto[] {
+    return this._repartos;
+  }
+
+  creditosPendientesDe(nombre: string): Credito[] {
+    return this._creditos.filter((credito) => credito.estaPendiente() && credito.nombre() === nombre);
+  }
+
+  montoPendienteDe(nombre: string): number {
+    return this._sumar(this.creditosPendientesDe(nombre));
+  }
+
+  totalPendiente(): number {
+    return this._sumar(this._creditos.filter((credito) => credito.estaPendiente()));
+  }
+
+  private _creditosPorCobrar(cobro: Cobro): Credito[] {
+    const asistentes = this._desempate.ordenar([...cobro.eventoFaltado().asistentes()], cobro);
+    const parte = Math.floor(cobro.monto() / asistentes.length);
+    const sobrante = cobro.monto() % asistentes.length;
+    return asistentes
+      .map((nombre, posicion) => new Credito(nombre, parte + (posicion < sobrante ? 1 : 0), cobro))
+      .filter((credito) => credito.monto() > 0);
+  }
+
+  private _dividir(credito: Credito, monto: number): Credito {
+    const partes = credito.dividir(monto);
+    this._creditos.splice(this._creditos.indexOf(credito), 1, ...partes);
+    return partes[0];
+  }
+
+  private _sumar(creditos: readonly Credito[]): number {
+    return creditos.reduce((total, credito) => total + credito.monto(), 0);
+  }
+}

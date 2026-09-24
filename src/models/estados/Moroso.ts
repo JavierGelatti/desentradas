@@ -22,7 +22,10 @@ export class Moroso extends Estado {
     return this;
   }
 
-  override pago(_fecha: Date, _reglas: Reglas): Estado {
+  override pago(fecha: Date, monto: number, _reglas: Reglas): Estado {
+    this._deuda.pagar(fecha, monto);
+    if (!this._deuda.saldada()) return this;
+
     return new Finalizado("por pago de morosidad");
   }
 
@@ -32,5 +35,9 @@ export class Moroso extends Estado {
 
   override deudaAl(fecha: Date): number {
     return this._deuda.montoAl(fecha);
+  }
+
+  override eventoAdeudado(): Evento {
+    return this._deuda.eventoFaltado();
   }
 }

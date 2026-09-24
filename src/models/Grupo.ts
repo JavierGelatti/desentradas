@@ -1,18 +1,26 @@
+import { Caja } from "./Caja.ts";
+import { Cobro, type OrigenDeCobro } from "./Cobro.ts";
+import type { Credito } from "./Credito.ts";
+import type { Desempate } from "./Desempate.ts";
 import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
+import type { Reparto } from "./Reparto.ts";
 import { Participante } from "./Participante.ts";
+import { TransicionInvalida } from "./estados/TransicionInvalida.ts";
 
 export class Grupo {
   private _historialDeReglas: Reglas[];
   private _eventos: Evento[];
   private _participantes: Participante[];
   private _participantesHistoricos: Participante[];
+  private _caja: Caja;
 
-  constructor(reglasIniciales: Reglas) {
+  constructor(reglasIniciales: Reglas, desempate: Desempate) {
     this._historialDeReglas = [reglasIniciales];
     this._eventos = [];
     this._participantes = [];
     this._participantesHistoricos = [];
+    this._caja = new Caja(desempate);
   }
 
   cambiarReglas(reglas: Reglas): void {
@@ -40,21 +48,41 @@ export class Grupo {
   }
 
   ingresar(nombre: string, fecha: Date): Participante {
-    if (this.participanteActivo(nombre) !== undefined) {
-      throw new Error(`${nombre} ya tiene una participación activa`);
+    const nombreLimpio = nombre.trim();
+    if (nombreLimpio === "") throw new Error("El nombre no puede estar vacío");
+    this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
+    if (this._participanteHistorico(nombreLimpio) !== undefined) {
+      throw new Error(`${nombreLimpio} ya participó del grupo, debe reingresar`);
     }
 
-    const participante = new Participante(nombre, fecha);
+    const participante = new Participante(nombreLimpio, fecha);
     this._participantes.push(participante);
     return participante;
   }
 
-  registrarPago(nombre: string, fecha: Date): void {
+  reingresar(nombre: string, fecha: Date): Participante {
+    this._asertarQueNoTieneParticipacionActiva(nombre);
+    const participante = this._participanteHistorico(nombre);
+    if (participante === undefined) throw new Error(`${nombre} nunca ingresó al grupo`);
+
+    participante.reingresar(fecha);
+    this._participantesHistoricos.splice(this._participantesHistoricos.indexOf(participante), 1);
+    this._participantes.push(participante);
+    return participante;
+  }
+
+  // El pago se cobra y se reparte en créditos; los créditos de quienes deben se aplican en cascada a sus deudas.
+  registrarPago(nombre: string, monto: number, fecha: Date): void {
     const participante = this.participanteActivo(nombre);
     if (participante === undefined) throw new Error(`${nombre} no tiene una participación activa`);
+    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El pago no puede ser anterior al último cobro");
 
-    participante.pago(fecha, this.reglasVigentesAl(fecha));
+    this._cobrarA(participante, monto, fecha, "efectivo");
     this._archivarFinalizados();
+  }
+
+  repartir(nombre: string, fecha: Date): Reparto {
+    return this._caja.repartir(nombre, fecha);
   }
 
   registrarEvento(evento: Evento): void {
@@ -79,6 +107,10 @@ export class Grupo {
     return this._eventos;
   }
 
+  caja(): Caja {
+    return this._caja;
+  }
+
   participantes(): readonly Participante[] {
     return this._participantes;
   }
@@ -89,6 +121,31 @@ export class Grupo {
 
   participanteActivo(nombre: string): Participante | undefined {
     return this._participantes.find((participante) => participante.nombre() === nombre);
+  }
+
+  private _participanteHistorico(nombre: string): Participante | undefined {
+    return this._participantesHistoricos.find((participante) => participante.nombre() === nombre);
+  }
+
+  private _asertarQueNoTieneParticipacionActiva(nombre: string): void {
+    if (this.participanteActivo(nombre) !== undefined) throw new Error(`${nombre} ya tiene una participación activa`);
+  }
+
+  private _cobrarA(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
+    const eventoAdeudado = participante.eventoAdeudado();
+    if (eventoAdeudado === undefined) throw new TransicionInvalida("pago", participante.estado());
+
+    participante.pago(fecha, monto, this.reglasVigentesAl(fecha));
+    const cobro = new Cobro(participante.nombre(), monto, fecha, eventoAdeudado, origen);
+    this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiDebe(credito, fecha));
+  }
+
+  private _aplicarSiDebe(credito: Credito, fecha: Date): void {
+    const deudor = this.participanteActivo(credito.nombre());
+    if (deudor === undefined || deudor.deudaAl(fecha) === 0) return;
+
+    const monto = Math.min(credito.monto(), deudor.deudaAl(fecha));
+    this._cobrarA(deudor, monto, fecha, this._caja.aplicar(credito, monto));
   }
 
   private _archivarFinalizados(): void {
