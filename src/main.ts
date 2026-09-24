@@ -1,1 +1,1 @@
-import './ui/style.css'
+import "./ui/style.css";
