@@ -1,6 +1,8 @@
 import type { NombreDeEstado } from "./estados/Estado.ts";
 
-export type Disparador = "ingreso" | "voy" | "falto" | "pago";
+export type Accion = "voy" | "falto" | "pago";
+
+export type Disparador = "ingreso" | Accion;
 
 export class Transicion {
   private _fecha: Date;

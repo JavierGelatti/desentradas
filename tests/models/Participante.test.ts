@@ -65,6 +65,14 @@ describe("Participante", () => {
       expect(ana.deudaAl(dia(3))).toBe(1000);
     });
 
+    it("puede ir o faltar, pero no pagar", () => {
+      const ana = nuevoParticipante();
+
+      expect(ana.accionesPosibles()).toEqual(["voy", "falto"]);
+      expect(ana.puede("voy")).toBe(true);
+      expect(ana.puede("pago")).toBe(false);
+    });
+
     it("un participante que no debe nada no puede pagar", () => {
       const ana = nuevoParticipante();
 
@@ -75,6 +83,12 @@ describe("Participante", () => {
   });
 
   describe("en deuda", () => {
+    it("puede faltar o pagar, pero no ir", () => {
+      const ana = enDeuda();
+
+      expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
+    });
+
     it("no puede ir a un evento mientras deba", () => {
       const ana = enDeuda();
 
@@ -128,6 +142,12 @@ describe("Participante", () => {
   });
 
   describe("libre de deuda", () => {
+    it("puede ir o faltar, pero no pagar", () => {
+      const ana = libreDeDeuda();
+
+      expect(ana.accionesPosibles()).toEqual(["voy", "falto"]);
+    });
+
     it("no puede pagar porque no debe nada", () => {
       const ana = libreDeDeuda();
 
@@ -176,6 +196,12 @@ describe("Participante", () => {
   });
 
   describe("moroso", () => {
+    it("puede faltar o pagar, pero no ir", () => {
+      const ana = moroso();
+
+      expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
+    });
+
     it("no puede ir a un evento", () => {
       const ana = moroso();
 
@@ -219,6 +245,12 @@ describe("Participante", () => {
   });
 
   describe("finalizado", () => {
+    it("no tiene acciones posibles", () => {
+      const ana = finalizado();
+
+      expect(ana.accionesPosibles()).toEqual([]);
+    });
+
     it("no puede ir a un evento", () => {
       const ana = finalizado();
 

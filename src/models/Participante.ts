@@ -2,7 +2,7 @@ import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Estado, MotivoDeFinalizacion, NombreDeEstado } from "./estados/Estado.ts";
 import { Participando } from "./estados/Participando.ts";
-import { Transicion, type Disparador } from "./Transicion.ts";
+import { Transicion, type Accion, type Disparador } from "./Transicion.ts";
 
 export class Participante {
   private _nombre: string;
@@ -39,6 +39,14 @@ export class Participante {
 
   historial(): readonly Transicion[] {
     return this._historial;
+  }
+
+  puede(accion: Accion): boolean {
+    return this._estado.puede(accion);
+  }
+
+  accionesPosibles(): readonly Accion[] {
+    return this._estado.accionesPosibles();
   }
 
   puedeAsistir(): boolean {
