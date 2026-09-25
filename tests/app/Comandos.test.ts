@@ -62,7 +62,7 @@ describe("CrearGrupo", () => {
 });
 
 describe("Ingresar", () => {
-  it("ingresar hace ingresar a la persona al grupo en la fecha indicada", () => {
+  it("ingresar deja a la persona como participante activo desde la fecha indicada", () => {
     const grupo = nuevoGrupo();
     const comando = new Ingresar("ana", dia(1));
 
@@ -101,7 +101,7 @@ describe("Ingresar", () => {
 });
 
 describe("Reingresar", () => {
-  it("reingresar hace reingresar a la persona al grupo en la fecha indicada", () => {
+  it("reingresar vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -211,7 +211,7 @@ describe("Repartir", () => {
 });
 
 describe("CambiarReglas", () => {
-  it("cambiar las reglas cambia las reglas del grupo", () => {
+  it("cambiar reglas deja vigentes las nuevas reglas", () => {
     const grupo = nuevoGrupo();
     const nuevasReglas = reglas({ rigeDesde: dia(4) });
     const comando = new CambiarReglas(nuevasReglas);

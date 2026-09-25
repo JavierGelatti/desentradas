@@ -105,7 +105,7 @@ describe("Aplicacion", () => {
   });
 
   describe("comandos", () => {
-    it("ingresar hace ingresar a la persona al grupo", () => {
+    it("ingresar deja a la persona como participante activo del grupo", () => {
       const aplicacion = aplicacionConGrupo();
 
       aplicacion.ingresar("ana", dia(1));
@@ -142,7 +142,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.grupo().caja().repartos()).toHaveLength(1);
     });
 
-    it("reingresar hace reingresar a la persona al grupo", () => {
+    it("reingresar vuelve a dejar como participante activo a quien ya participó", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.cerrarEvento(dia(9), ["beto"]);
       aplicacion.cobrar("ana", 1000, dia(10));
@@ -153,7 +153,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
     });
 
-    it("cambiar reglas cambia las reglas del grupo", () => {
+    it("cambiar reglas deja vigentes las nuevas reglas en el grupo", () => {
       const aplicacion = aplicacionConGrupo();
       const nuevasReglas = reglas({ rigeDesde: dia(4) });
 
