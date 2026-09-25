@@ -1,4 +1,5 @@
 import type { Aplicacion } from "../Aplicacion.ts";
+import type { Asistencia } from "../Comando.ts";
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import { Evento } from "../../models/Evento.ts";
 import type { Grupo } from "../../models/Grupo.ts";
@@ -42,6 +43,11 @@ export class CerrarEvento extends ComandoSobreElGrupo {
     if (this._ausentes === undefined) return presentes === 1 ? "1 presente" : `${presentes} presentes`;
 
     return `${presentes}/${presentes + this._ausentes.length} presentes`;
+  }
+
+  // Con ausentes desconocidos, porque el cierre se guardó antes de recordarlos, sólo se sabe quiénes vinieron.
+  asistencia(): Asistencia {
+    return { presentes: this._asistentes, ausentes: this._ausentes ?? [] };
   }
 
   aJson(): ComandoJson {

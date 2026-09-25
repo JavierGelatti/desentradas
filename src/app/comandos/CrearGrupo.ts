@@ -1,5 +1,5 @@
 import type { Aplicacion } from "../Aplicacion.ts";
-import type { Comando } from "../Comando.ts";
+import type { Asistencia, Comando } from "../Comando.ts";
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import type { Desempate } from "../../models/Desempate.ts";
 import { Grupo } from "../../models/Grupo.ts";
@@ -44,6 +44,10 @@ export class CrearGrupo implements Comando {
 
   describir(): string {
     return `Creación del grupo "${this._nombreDelGrupo}"`;
+  }
+
+  asistencia(): Asistencia | undefined {
+    return undefined;
   }
 
   aJson(): ComandoJson {

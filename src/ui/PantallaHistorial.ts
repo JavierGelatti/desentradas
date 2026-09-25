@@ -1,8 +1,9 @@
-import type { Comando } from "../app/Comando.ts";
+import type { Asistencia, Comando } from "../app/Comando.ts";
 import { Dialogo } from "./Dialogo.ts";
-import { alerta, anexar, boton, crear, fila, intentar, tabla } from "./dom.ts";
+import { abrirDialogo, alerta, anexar, boton, crear, fila, intentar, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora } from "./Formato.ts";
+import { alfabetico } from "./Orden.ts";
 
 // La bitácora, del último comando al primero. Sólo el último se puede deshacer.
 // Exportar descarga la bitácora como JSON e importar reemplaza todo lo de este dispositivo por un JSON.
@@ -80,11 +81,26 @@ export class PantallaHistorial {
   }
 
   private _filaDe(comando: Comando, esElUltimo: boolean): HTMLTableRowElement {
-    return fila(
-      fechaYHora(comando.fecha()),
-      comando.describir(),
+    return fila(fechaYHora(comando.fecha()), comando.describir(), this._accionesSobre(comando, esElUltimo));
+  }
+
+  private _accionesSobre(comando: Comando, esElUltimo: boolean): HTMLElement {
+    const asistencia = comando.asistencia();
+    return crear(
+      "span",
+      {},
+      asistencia !== undefined && boton("Ver", () => this._verAsistencia(comando.fecha(), asistencia)),
+      " ",
       esElUltimo && boton("Deshacer", () => this._deshacer()),
     );
+  }
+
+  private _verAsistencia(fecha: Date, asistencia: Asistencia): void {
+    const presentes = new Set(asistencia.presentes);
+    const filas = [...asistencia.presentes, ...asistencia.ausentes]
+      .toSorted(alfabetico)
+      .map((nombre) => fila(nombre, presentes.has(nombre) ? "Presente" : "Ausente"));
+    abrirDialogo(this._seccion, `Evento del ${fechaYHora(fecha)}`, tabla(undefined, ["Nombre", "Asistencia"], filas));
   }
 
   private _deshacer(): void {

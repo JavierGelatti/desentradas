@@ -57,6 +57,23 @@ export const desplegable = (
 export const fila = (...celdas: Hijo[]): HTMLTableRowElement =>
   crear("tr", {}, ...celdas.map((celda) => crear("td", {}, celda)));
 
+// Un <dialog> sólo para mirar: se cierra con un botón y, al cerrarse, sale del documento.
+export const abrirDialogo = (contenedor: HTMLElement, titulo: string, ...contenido: Hijo[]): void => {
+  const dialogo = crear(
+    "dialog",
+    { onclose: () => dialogo.remove() },
+    crear("h3", {}, titulo),
+    ...contenido,
+    crear(
+      "p",
+      {},
+      boton("Cerrar", () => dialogo.close()),
+    ),
+  );
+  contenedor.append(dialogo);
+  dialogo.showModal();
+};
+
 export const alerta = (): HTMLOutputElement => crear("output", { role: "alert" });
 
 // Ejecuta la acción y muestra en la alerta el mensaje del error si falla. Devuelve si salió bien.

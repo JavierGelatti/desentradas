@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
-import { aEntradaDeFecha } from "../../src/ui/Formato.ts";
+import { aEntradaDeFecha, fechaYHora } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
 import { ahora, nuevaPlanillaDeAsistencia } from "../app/factories.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
@@ -136,6 +136,9 @@ const dialogoAbierto = () => {
 
   return dialogo;
 };
+
+const filasDe = (raiz: ParentNode) =>
+  [...raiz.querySelectorAll("tbody tr")].map((fila) => [...fila.querySelectorAll("td")].map(textoDe));
 
 describe("VistaPrincipal", () => {
   beforeEach(() => {
@@ -449,6 +452,24 @@ describe("VistaPrincipal", () => {
       hacerClic("Deshacer");
 
       expect(pantallaActual()).toBe("Historial");
+    });
+
+    it("un evento cerrado dice cuántos vinieron de los posibles asistentes, y su detalle quién estuvo presente y quién ausente", async () => {
+      montar(almacenamientosConGrupo());
+      await navegarA("Historial");
+
+      hacerClic("Ver", fila("3/4 presentes"));
+      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe(`Evento del ${fechaYHora(dia(2))}`);
+      expect([...dialogoAbierto().querySelectorAll("th")].map(textoDe)).toEqual(["Nombre", "Asistencia"]);
+      expect(filasDe(dialogoAbierto())).toEqual([
+        ["ana", "Ausente"],
+        ["beto", "Presente"],
+        ["carla", "Presente"],
+        ["dani", "Presente"],
+      ]);
+      hacerClic("Cerrar", dialogoAbierto());
+
+      expect(document.querySelector("dialog")).toBeNull();
     });
 
     it("importar en un dispositivo nuevo lo exportado en otro reproduce los mismos participantes", async () => {
