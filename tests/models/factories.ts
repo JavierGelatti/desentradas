@@ -26,7 +26,7 @@ export const reglas = ({
 
 export const desempate = new DesempateAlfabetico();
 
-export const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo(reglasIniciales, desempate);
+export const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo("Fútbol de los jueves", reglasIniciales, desempate);
 
 export const cobroEnEfectivo = ({
   deudor = "ana",

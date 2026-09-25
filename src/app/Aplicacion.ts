@@ -35,10 +35,6 @@ export class Aplicacion {
     return this._bitacora.tieneGrupo();
   }
 
-  nombreDelGrupo(): string {
-    return this._bitacora.nombreDelGrupo();
-  }
-
   grupo(): Grupo {
     return this._bitacora.grupo();
   }

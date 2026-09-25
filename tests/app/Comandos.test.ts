@@ -11,12 +11,13 @@ import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "../models/factories.ts";
 
 describe("CrearGrupo", () => {
-  it("crear grupo crea el grupo con sus reglas iniciales", () => {
+  it("crear grupo crea el grupo con su nombre y sus reglas iniciales", () => {
     const reglasIniciales = reglas();
     const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
 
     const grupo = comando.ejecutar(undefined, desempate);
 
+    expect(grupo.nombre()).toBe("Fútbol de los jueves");
     expect(grupo.reglas()).toBe(reglasIniciales);
     expect(grupo.participantes()).toEqual([]);
   });
@@ -42,15 +43,11 @@ describe("CrearGrupo", () => {
     expect(comando.reglas()).toBe(reglasIniciales);
   });
 
-  it("el nombre del grupo se guarda sin espacios al principio ni al final", () => {
-    const comando = new CrearGrupo("  Fútbol de los jueves ", reglas());
+  it("no se puede crear un grupo con el nombre vacío", () => {
+    const comando = new CrearGrupo("   ", reglas());
 
-    expect(comando.nombreDelGrupo()).toBe("Fútbol de los jueves");
-  });
-
-  it("el nombre del grupo no puede estar vacío", () => {
     expect(() => {
-      new CrearGrupo("   ", reglas());
+      comando.ejecutar(undefined, desempate);
     }).toThrow("El nombre del grupo no puede estar vacío");
   });
 

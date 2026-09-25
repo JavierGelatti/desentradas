@@ -41,7 +41,7 @@ export class PantallaHistorial {
   private _exportar(): void {
     const contenido = new Blob([this._entorno.aplicacion().exportar()], { type: "application/json" });
     const url = URL.createObjectURL(contenido);
-    const enlace = crear("a", { href: url, download: `${this._entorno.aplicacion().nombreDelGrupo()}.json` });
+    const enlace = crear("a", { href: url, download: `${this._entorno.grupo().nombre()}.json` });
     this._seccion.append(enlace);
     enlace.click();
     enlace.remove();

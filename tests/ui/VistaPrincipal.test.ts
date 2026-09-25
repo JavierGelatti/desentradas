@@ -149,7 +149,7 @@ describe("VistaPrincipal", () => {
     completar("Monto por falta", "1000");
     hacerClic("Crear");
 
-    expect(aplicacion.nombreDelGrupo()).toBe("Fútbol de los jueves");
+    expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
     expect(aplicacion.grupo().reglas().toleranciaDeFaltas()).toBe(2);
     expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1000);
     expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
@@ -373,7 +373,7 @@ describe("VistaPrincipal", () => {
     expect(textoDe(dialogoAbierto())).toContain("reemplazar");
     hacerClic("Reemplazar", dialogoAbierto());
 
-    expect(aplicacion.nombreDelGrupo()).toBe("Fútbol de los jueves");
+    expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
     expect(nombresDeParticipantes(aplicacion)).toEqual(nombresDeParticipantes(original));
     expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
     expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");

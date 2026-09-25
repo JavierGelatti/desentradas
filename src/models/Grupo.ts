@@ -9,18 +9,27 @@ import { Participante } from "./Participante.ts";
 import { TransicionInvalida } from "./estados/TransicionInvalida.ts";
 
 export class Grupo {
+  private _nombre: string;
   private _historialDeReglas: Reglas[];
   private _eventos: Evento[];
   private _participantes: Participante[];
   private _participantesHistoricos: Participante[];
   private _caja: Caja;
 
-  constructor(reglasIniciales: Reglas, desempate: Desempate) {
+  constructor(nombre: string, reglasIniciales: Reglas, desempate: Desempate) {
+    const nombreLimpio = nombre.trim();
+    if (nombreLimpio === "") throw new Error("El nombre del grupo no puede estar vacío");
+
+    this._nombre = nombreLimpio;
     this._historialDeReglas = [reglasIniciales];
     this._eventos = [];
     this._participantes = [];
     this._participantesHistoricos = [];
     this._caja = new Caja(desempate);
+  }
+
+  nombre(): string {
+    return this._nombre;
   }
 
   cambiarReglas(reglas: Reglas): void {

@@ -1,5 +1,4 @@
 import type { Comando } from "./Comando.ts";
-import { CrearGrupo } from "./comandos/CrearGrupo.ts";
 import { comandoDesdeJson, type ComandoJson } from "./json/ComandoJson.ts";
 import { formatoInvalido, lista, numero, objeto } from "./json/Campos.ts";
 import type { Desempate } from "../models/Desempate.ts";
@@ -60,13 +59,6 @@ export class Bitacora {
 
   tieneGrupo(): boolean {
     return this._grupo !== undefined;
-  }
-
-  nombreDelGrupo(): string {
-    const creacion = this._comandos[0];
-    if (!(creacion instanceof CrearGrupo)) throw new Error("El grupo no está creado");
-
-    return creacion.nombreDelGrupo();
   }
 
   grupo(): Grupo {

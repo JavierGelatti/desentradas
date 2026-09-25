@@ -15,17 +15,14 @@ export class CrearGrupo implements Comando {
   }
 
   constructor(nombreDelGrupo: string, reglas: Reglas) {
-    const nombreLimpio = nombreDelGrupo.trim();
-    if (nombreLimpio === "") throw new Error("El nombre del grupo no puede estar vacío");
-
-    this._nombreDelGrupo = nombreLimpio;
+    this._nombreDelGrupo = nombreDelGrupo;
     this._reglas = reglas;
   }
 
   ejecutar(grupo: Grupo | undefined, desempate: Desempate): Grupo {
     if (grupo !== undefined) throw new Error("El grupo ya fue creado");
 
-    return new Grupo(this._reglas, desempate);
+    return new Grupo(this._nombreDelGrupo, this._reglas, desempate);
   }
 
   nombreDelGrupo(): string {

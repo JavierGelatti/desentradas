@@ -40,7 +40,7 @@ describe("Aplicacion", () => {
       aplicacion.crearGrupo("Fútbol de los jueves", reglasIniciales);
 
       expect(aplicacion.tieneGrupo()).toBe(true);
-      expect(aplicacion.nombreDelGrupo()).toBe("Fútbol de los jueves");
+      expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
       expect(aplicacion.grupo().reglas()).toBe(reglasIniciales);
     });
   });
@@ -62,7 +62,7 @@ describe("Aplicacion", () => {
       const aplicacion = nuevaAplicacion(almacenamiento);
 
       expect(aplicacion.tieneGrupo()).toBe(true);
-      expect(aplicacion.nombreDelGrupo()).toBe("Fútbol de los jueves");
+      expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
       expect(aplicacion.avisoDeInicio()).toBeUndefined();
     });
 

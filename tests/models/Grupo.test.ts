@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Credito } from "../../src/models/Credito.ts";
+import { Grupo } from "../../src/models/Grupo.ts";
 import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
-import { dia, nuevoEvento, nuevoGrupo, reglas } from "./factories.ts";
+import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "./factories.ts";
 
 const grupoConAnaFinalizada = () => {
   const grupo = nuevoGrupo();
@@ -15,6 +16,30 @@ const grupoConAnaFinalizada = () => {
 };
 
 describe("Grupo", () => {
+  describe("nombre", () => {
+    it("se crea con su nombre", () => {
+      const grupo = new Grupo("Fútbol de los jueves", reglas(), desempate);
+
+      const nombre = grupo.nombre();
+
+      expect(nombre).toBe("Fútbol de los jueves");
+    });
+
+    it("el nombre del grupo se guarda sin espacios al principio ni al final", () => {
+      const grupo = new Grupo("  Fútbol de los jueves ", reglas(), desempate);
+
+      const nombre = grupo.nombre();
+
+      expect(nombre).toBe("Fútbol de los jueves");
+    });
+
+    it("el nombre del grupo no puede estar vacío", () => {
+      expect(() => {
+        new Grupo("   ", reglas(), desempate);
+      }).toThrow("El nombre del grupo no puede estar vacío");
+    });
+  });
+
   describe("reglas", () => {
     it("se crea con sus reglas iniciales, que son la única versión del historial", () => {
       const reglasIniciales = reglas();

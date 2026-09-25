@@ -29,7 +29,7 @@ describe("Bitacora", () => {
       bitacora.ejecutar(crearGrupo);
 
       expect(bitacora.tieneGrupo()).toBe(true);
-      expect(bitacora.nombreDelGrupo()).toBe("Fútbol de los jueves");
+      expect(bitacora.grupo().nombre()).toBe("Fútbol de los jueves");
       expect(bitacora.grupo().reglas()).toBe(reglasIniciales);
       expect(bitacora.comandos()).toEqual([crearGrupo]);
     });
@@ -124,7 +124,7 @@ describe("Bitacora", () => {
         version: 1,
         comandos: [new CrearGrupo("Fútbol de los jueves", reglas()).aJson(), ingresar.aJson()],
       });
-      expect(leida.nombreDelGrupo()).toBe("Fútbol de los jueves");
+      expect(leida.grupo().nombre()).toBe("Fútbol de los jueves");
       expect(leida.grupo().participanteActivo("ana")).toBeDefined();
       expect(leida.aJson()).toEqual(json);
     });
