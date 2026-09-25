@@ -27,11 +27,15 @@ export const crear = <Etiqueta extends keyof HTMLElementTagNameMap>(
 export const boton = (texto: string, alHacerClic: () => void): HTMLButtonElement =>
   crear("button", { type: "button", onclick: alHacerClic }, texto);
 
-export const tabla = (titulo: string, encabezados: readonly string[], filas: HTMLTableRowElement[]): HTMLTableElement =>
+export const tabla = (
+  titulo: string | undefined,
+  encabezados: readonly string[],
+  filas: HTMLTableRowElement[],
+): HTMLTableElement =>
   crear(
     "table",
     {},
-    crear("caption", {}, titulo),
+    titulo !== undefined && crear("caption", {}, titulo),
     crear("thead", {}, crear("tr", {}, ...encabezados.map((texto) => crear("th", {}, texto)))),
     crear("tbody", {}, ...filas),
   );

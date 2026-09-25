@@ -74,7 +74,7 @@ export class PantallaHistorial {
   private _tabla(): HTMLTableElement {
     const comandos = this._entorno.aplicacion().comandos().toReversed();
     return tabla(
-      "Lo que pasó, de lo más reciente a lo más antiguo",
+      undefined,
       ["Fecha", "Qué pasó", ""],
       comandos.map((comando, posicion) => this._filaDe(comando, posicion === 0)),
     );

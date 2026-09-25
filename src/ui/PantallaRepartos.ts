@@ -52,7 +52,7 @@ export class PantallaRepartos {
   private _tablaDeRepartos(): HTMLTableElement {
     const repartos = this._entorno.grupo().caja().repartos().toReversed();
     return tabla(
-      "Del más reciente al más antiguo",
+      undefined,
       ["Fecha", "Nombre", "Monto"],
       repartos.map((reparto) => this._filaDeReparto(reparto)),
     );

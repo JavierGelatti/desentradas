@@ -64,7 +64,7 @@ export class PantallaReglas {
   private _tablaDeVersiones(): HTMLTableElement {
     const anteriores = this._entorno.grupo().historialDeReglas().slice(0, -1).reverse();
     return tabla(
-      "De la más reciente a la más antigua",
+      undefined,
       ["Rigieron desde", "Tolerancia", "Monto por falta", "Interés"],
       anteriores.map((reglas) => this._filaDeVersion(reglas)),
     );
