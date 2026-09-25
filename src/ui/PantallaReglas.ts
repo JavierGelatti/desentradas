@@ -1,5 +1,5 @@
 import type { Reglas } from "../models/Reglas.ts";
-import { alerta, crear, fila, intentar, tabla } from "./dom.ts";
+import { alerta, crear, desplegable, fila, intentar, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, describirInteres, reglasDesde } from "./FormularioDeReglas.ts";
 import { fechaYHora, monto } from "./Formato.ts";
@@ -21,7 +21,7 @@ export class PantallaReglas {
       crear("h2", {}, "Reglas"),
       this._reglasVigentes(),
       this._formularioDeCambio(),
-      crear("details", {}, crear("summary", {}, "Versiones anteriores"), this._tablaDeVersiones()),
+      desplegable("Versiones anteriores", this._tablaDeVersiones()),
     );
   }
 
@@ -61,7 +61,7 @@ export class PantallaReglas {
     if (cambiadas) this._entorno.refrescar();
   }
 
-  private _tablaDeVersiones(): HTMLTableElement {
+  private _tablaDeVersiones(): HTMLTableElement | undefined {
     const anteriores = this._entorno.grupo().historialDeReglas().slice(0, -1).reverse();
     return tabla(
       undefined,

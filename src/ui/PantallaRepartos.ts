@@ -1,7 +1,7 @@
 import type { Reparto } from "../models/Reparto.ts";
 import { campoDeFecha } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
-import { boton, crear, fila, tabla, valorDe } from "./dom.ts";
+import { anexar, boton, crear, desplegable, fila, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { desdeEntradaDeFecha, fechaYHora, monto } from "./Formato.ts";
 
@@ -16,10 +16,11 @@ export class PantallaRepartos {
   }
 
   elemento(): HTMLElement {
-    this._seccion.append(
+    anexar(
+      this._seccion,
       crear("h2", {}, "Repartos"),
       this._tablaDePendientes(),
-      crear("details", {}, crear("summary", {}, "Repartos hechos"), this._tablaDeRepartos()),
+      desplegable("Repartos hechos", this._tablaDeRepartos()),
     );
     return this._seccion;
   }
@@ -34,7 +35,7 @@ export class PantallaRepartos {
     return [...new Set(nombres)].sort((uno, otro) => uno.localeCompare(otro));
   }
 
-  private _tablaDePendientes(): HTMLTableElement {
+  private _tablaDePendientes(): HTMLTableElement | undefined {
     const caja = this._entorno.grupo().caja();
     return tabla(
       "Créditos pendientes",
@@ -49,7 +50,7 @@ export class PantallaRepartos {
     );
   }
 
-  private _tablaDeRepartos(): HTMLTableElement {
+  private _tablaDeRepartos(): HTMLTableElement | undefined {
     const repartos = this._entorno.grupo().caja().repartos().toReversed();
     return tabla(
       undefined,

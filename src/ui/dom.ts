@@ -19,26 +19,40 @@ export const crear = <Etiqueta extends keyof HTMLElementTagNameMap>(
       elemento.setAttribute(nombre, valor === true ? "" : String(valor));
     }
   }
-  elemento.append(...hijos.filter((hijo) => hijo !== false && hijo !== undefined));
+  anexar(elemento, ...hijos);
   return elemento;
+};
+
+export const anexar = (elemento: HTMLElement, ...hijos: Hijo[]): void => {
+  elemento.append(...hijos.filter((hijo) => hijo !== false && hijo !== undefined));
 };
 
 // Un botón que no envía el formulario en el que está.
 export const boton = (texto: string, alHacerClic: () => void): HTMLButtonElement =>
   crear("button", { type: "button", onclick: alHacerClic }, texto);
 
+// Una tabla sin filas no se muestra.
 export const tabla = (
   titulo: string | undefined,
   encabezados: readonly string[],
   filas: HTMLTableRowElement[],
-): HTMLTableElement =>
-  crear(
-    "table",
-    {},
-    titulo !== undefined && crear("caption", {}, titulo),
-    crear("thead", {}, crear("tr", {}, ...encabezados.map((texto) => crear("th", {}, texto)))),
-    crear("tbody", {}, ...filas),
-  );
+): HTMLTableElement | undefined =>
+  filas.length === 0
+    ? undefined
+    : crear(
+        "table",
+        {},
+        titulo !== undefined && crear("caption", {}, titulo),
+        crear("thead", {}, crear("tr", {}, ...encabezados.map((texto) => crear("th", {}, texto)))),
+        crear("tbody", {}, ...filas),
+      );
+
+// Un desplegable sin contenido no se muestra. La alerta acompaña al contenido, pero no decide si se muestra.
+export const desplegable = (
+  titulo: string,
+  contenido: HTMLElement | undefined,
+  alerta?: HTMLOutputElement,
+): HTMLElement | undefined => contenido && crear("details", {}, crear("summary", {}, titulo), contenido, alerta);
 
 export const fila = (...celdas: Hijo[]): HTMLTableRowElement =>
   crear("tr", {}, ...celdas.map((celda) => crear("td", {}, celda)));

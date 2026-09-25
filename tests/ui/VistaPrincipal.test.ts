@@ -51,6 +51,9 @@ const elementoConTexto = <T extends Element>(selector: string, texto: string, ra
   return encontrado;
 };
 
+const hayElementoConTexto = (selector: string, texto: string, raiz: ParentNode = document) =>
+  [...raiz.querySelectorAll(selector)].some((elemento) => textoDe(elemento) === texto);
+
 const boton = (texto: string, raiz: ParentNode = document) =>
   elementoConTexto<HTMLButtonElement>("button", texto, raiz);
 
@@ -108,6 +111,8 @@ const nombresDeParticipantes = (aplicacion: Aplicacion) =>
     .map((participante) => participante.nombre());
 
 const pantallaActual = () => textoDe(document.querySelector("main h2")!);
+
+const hayDesplegable = (titulo: string) => hayElementoConTexto("summary", titulo);
 
 // El cambio de hash se avisa en una tarea aparte, como en el navegador.
 const navegarA = async (pestania: string) => {
@@ -197,6 +202,27 @@ describe("VistaPrincipal", () => {
 
     expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1500);
     expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
+  });
+
+  it("las tablas sin filas no se muestran, ni el desplegable que las contiene, hasta que tienen algo que mostrar", async () => {
+    const almacenamientos = almacenamientosConGrupo();
+    montar(almacenamientos);
+    await navegarA("Participantes");
+    expect(hayDesplegable("Participaciones finalizadas")).toBe(false);
+    await navegarA("Repartos");
+    expect(document.querySelector("table")).toBeNull();
+    expect(hayDesplegable("Repartos hechos")).toBe(false);
+    await navegarA("Reglas");
+    expect(hayDesplegable("Versiones anteriores")).toBe(false);
+
+    const preparacion = nuevaAplicacion(almacenamientos);
+    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+    preparacion.cobrar("ana", 1000, dia(4));
+    document.body.replaceChildren();
+    montar(almacenamientos);
+    await navegarA("Participantes");
+    expect(hayDesplegable("Participaciones finalizadas")).toBe(true);
+    expect(fila("ana")).toBeDefined();
   });
 
   it("registrar un participante y reingresar a uno finalizado desde la pantalla de participantes se hacen con la fecha actual, y el reingreso sin confirmación", async () => {

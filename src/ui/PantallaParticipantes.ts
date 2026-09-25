@@ -2,7 +2,7 @@ import type { Participante } from "../models/Participante.ts";
 import { campoDeTexto } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { alerta, boton, crear, fila, intentar, tabla, valorDe } from "./dom.ts";
+import { alerta, anexar, boton, crear, desplegable, fila, intentar, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { monto } from "./Formato.ts";
 import { porNombre } from "./Orden.ts";
@@ -34,7 +34,8 @@ export class PantallaParticipantes {
   }
 
   elemento(): HTMLElement {
-    this._seccion.append(
+    anexar(
+      this._seccion,
       crear("h2", {}, "Participantes"),
       this._tablaDeActivos(),
       crear(
@@ -42,18 +43,12 @@ export class PantallaParticipantes {
         {},
         boton("Registrar participante", () => this._abrirIngreso()),
       ),
-      crear(
-        "details",
-        {},
-        crear("summary", {}, "Participaciones finalizadas"),
-        this._tablaDeFinalizados(),
-        this._erroresDeReingreso,
-      ),
+      desplegable("Participaciones finalizadas", this._tablaDeFinalizados(), this._erroresDeReingreso),
     );
     return this._seccion;
   }
 
-  private _tablaDeActivos(): HTMLTableElement {
+  private _tablaDeActivos(): HTMLTableElement | undefined {
     const activos = this._entorno.grupo().participantes().toSorted(porAtencionYNombre);
     return tabla(
       "Participaciones activas",
@@ -75,7 +70,7 @@ export class PantallaParticipantes {
     );
   }
 
-  private _tablaDeFinalizados(): HTMLTableElement {
+  private _tablaDeFinalizados(): HTMLTableElement | undefined {
     const finalizados = this._entorno.grupo().participantesHistoricos().toSorted(porNombre);
     return tabla(
       "Quienes ya no participan",

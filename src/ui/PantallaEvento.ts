@@ -46,7 +46,7 @@ export class PantallaEvento {
     return campo;
   }
 
-  private _tablaDeAsistencia(): HTMLTableElement {
+  private _tablaDeAsistencia(): HTMLTableElement | undefined {
     return tabla(
       "Asistencia",
       ["Asiste", "Nombre", "Estado", ""],

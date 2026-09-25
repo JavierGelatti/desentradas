@@ -1,6 +1,6 @@
 import type { Comando } from "../app/Comando.ts";
 import { Dialogo } from "./Dialogo.ts";
-import { alerta, boton, crear, fila, intentar, tabla } from "./dom.ts";
+import { alerta, anexar, boton, crear, fila, intentar, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora } from "./Formato.ts";
 
@@ -18,7 +18,7 @@ export class PantallaHistorial {
   }
 
   elemento(): HTMLElement {
-    this._seccion.append(crear("h2", {}, "Historial"), this._errores, this._tabla(), this._copiaDeSeguridad());
+    anexar(this._seccion, crear("h2", {}, "Historial"), this._errores, this._tabla(), this._copiaDeSeguridad());
     return this._seccion;
   }
 
@@ -71,7 +71,7 @@ export class PantallaHistorial {
     }).abrirEn(this._seccion);
   }
 
-  private _tabla(): HTMLTableElement {
+  private _tabla(): HTMLTableElement | undefined {
     const comandos = this._entorno.aplicacion().comandos().toReversed();
     return tabla(
       undefined,
