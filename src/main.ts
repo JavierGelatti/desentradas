@@ -9,7 +9,7 @@ const ahora = () => new Date();
 const aplicacion = new Aplicacion(
   new AlmacenamientoEnStorage(localStorage, "bitacora"),
   new DesempateAleatorioReproducible(),
-  new PlanillaDeAsistencia(new AlmacenamientoEnStorage(localStorage, "planilla"), ahora),
+  new PlanillaDeAsistencia(new AlmacenamientoEnStorage(localStorage, "planilla")),
 );
 const vista = new VistaPrincipal(aplicacion, new AlmacenamientoEnStorage(localStorage, "pantalla"), ahora);
 vista.montarEn(document.querySelector<HTMLElement>("#app")!);

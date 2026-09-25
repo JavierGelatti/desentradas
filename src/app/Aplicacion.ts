@@ -63,9 +63,8 @@ export class Aplicacion {
     this._ejecutar(new CerrarEvento(fecha, asistentes, ausentes));
   }
 
-  ingresarAsistente(nombre: string): void {
+  ingresarAsistente(nombre: string, fecha: Date): void {
     const nombreLimpio = nombre.trim();
-    const fecha = this._planillaDeAsistencia.fecha();
     if (this.grupo().yaParticipo(nombreLimpio)) {
       this.reingresar(nombreLimpio, fecha);
     } else {
@@ -82,12 +81,8 @@ export class Aplicacion {
       .filter((nombre) => !this._planillaDeAsistencia.asiste(nombre));
   }
 
-  cerrarEventoSegunPlanillaDeAsistencia(): void {
-    this.cerrarEvento(
-      this._planillaDeAsistencia.fecha(),
-      this._planillaDeAsistencia.asistentes(),
-      this.ausentesEnPlanillaDeAsistencia(),
-    );
+  cerrarEventoSegunPlanillaDeAsistencia(fecha: Date): void {
+    this.cerrarEvento(fecha, this._planillaDeAsistencia.asistentes(), this.ausentesEnPlanillaDeAsistencia());
     this._planillaDeAsistencia.descartar();
   }
 

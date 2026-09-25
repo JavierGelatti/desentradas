@@ -4,5 +4,5 @@ import { dia } from "../models/factories.ts";
 
 export const ahora = () => dia(5);
 
-export const nuevaPlanillaDeAsistencia = (almacenamiento = new AlmacenamientoEnMemoria(), reloj = ahora) =>
-  new PlanillaDeAsistencia(almacenamiento, reloj);
+export const nuevaPlanillaDeAsistencia = (almacenamiento = new AlmacenamientoEnMemoria()) =>
+  new PlanillaDeAsistencia(almacenamiento);

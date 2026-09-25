@@ -4,49 +4,86 @@ import { dia } from "../models/factories.ts";
 import { nuevaPlanillaDeAsistencia } from "./factories.ts";
 
 describe("PlanillaDeAsistencia", () => {
-  it("mientras no empezó, su fecha es la de ahora y no tiene asistentes", () => {
+  it("mientras no empezó, no tiene asistentes", () => {
     const planilla = nuevaPlanillaDeAsistencia();
 
     expect(planilla.existe()).toBe(false);
-    expect(planilla.fecha()).toEqual(dia(5));
     expect(planilla.asistentes()).toEqual([]);
   });
 
-  it("marcar a alguien como presente empieza la planilla con la fecha que mostraba", () => {
+  it("empezar la planilla la deja empezada, sin asistentes y guardada", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
-    let momento = dia(5);
-    const planilla = nuevaPlanillaDeAsistencia(almacenamiento, () => momento);
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
 
-    planilla.marcarComoPresente("ana");
-    momento = dia(6);
+    planilla.empezar();
 
     expect(planilla.existe()).toBe(true);
-    expect(planilla.fecha()).toEqual(dia(5));
+    expect(planilla.asistentes()).toEqual([]);
+    expect(JSON.parse(almacenamiento.leer()!)).toEqual({ asistentes: [] });
+  });
+
+  it("marcar a alguien como presente lo deja entre los asistentes", () => {
+    const planilla = nuevaPlanillaDeAsistencia();
+    planilla.empezar();
+
+    planilla.marcarComoPresente("ana");
+
     expect(planilla.asistentes()).toEqual(["ana"]);
     expect(planilla.asiste("ana")).toBe(true);
   });
 
-  it("la planilla empezada queda guardada", () => {
-    const almacenamiento = new AlmacenamientoEnMemoria();
-    let momento = dia(5);
-    const planilla = nuevaPlanillaDeAsistencia(almacenamiento, () => momento);
-
+  it("no se puede empezar una planilla ya empezada", () => {
+    const planilla = nuevaPlanillaDeAsistencia();
+    planilla.empezar();
     planilla.marcarComoPresente("ana");
-    momento = dia(6);
 
-    expect(JSON.parse(almacenamiento.leer()!)).toEqual({ fecha: dia(5).toISOString(), asistentes: ["ana"] });
+    expect(() => {
+      planilla.empezar();
+    }).toThrow("Ya hay una planilla de asistencia empezada");
+    expect(planilla.asistentes()).toEqual(["ana"]);
   });
 
-  it("una planilla nueva sobre el mismo almacenamiento recupera la fecha y los asistentes guardados", () => {
+  it("no se puede marcar a alguien como presente sin empezar la planilla", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+
+    expect(() => {
+      planilla.marcarComoPresente("ana");
+    }).toThrow("No hay una planilla de asistencia empezada");
+    expect(planilla.existe()).toBe(false);
+    expect(almacenamiento.leer()).toBeUndefined();
+  });
+
+  it("no se puede desmarcar a alguien como presente sin empezar la planilla", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+
+    expect(() => {
+      planilla.desmarcarComoPresente("ana");
+    }).toThrow("No hay una planilla de asistencia empezada");
+    expect(planilla.existe()).toBe(false);
+    expect(almacenamiento.leer()).toBeUndefined();
+  });
+
+  it("una planilla nueva sobre el mismo almacenamiento recupera la planilla empezada con sus asistentes", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
     const anterior = nuevaPlanillaDeAsistencia(almacenamiento);
+    anterior.empezar();
     anterior.marcarComoPresente("ana");
-    anterior.cambiarFecha(dia(6));
 
     const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
 
     expect(planilla.existe()).toBe(true);
-    expect(planilla.fecha()).toEqual(dia(6));
+    expect(planilla.asistentes()).toEqual(["ana"]);
+  });
+
+  it("una planilla guardada por la versión anterior, que tenía fecha, se recupera con sus asistentes", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    almacenamiento.guardar(JSON.stringify({ fecha: dia(3).toISOString(), asistentes: ["ana"] }));
+
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+
+    expect(planilla.existe()).toBe(true);
     expect(planilla.asistentes()).toEqual(["ana"]);
   });
 
@@ -63,21 +100,20 @@ describe("PlanillaDeAsistencia", () => {
   it("descartar la planilla la vuelve a dejar sin empezar", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
     const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+    planilla.empezar();
     planilla.marcarComoPresente("ana");
-    planilla.cambiarFecha(dia(6));
 
     planilla.descartar();
 
     expect(planilla.existe()).toBe(false);
-    expect(planilla.fecha()).toEqual(dia(5));
     expect(planilla.asistentes()).toEqual([]);
   });
 
   it("descartar la planilla borra lo guardado", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
     const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+    planilla.empezar();
     planilla.marcarComoPresente("ana");
-    planilla.cambiarFecha(dia(6));
 
     planilla.descartar();
 

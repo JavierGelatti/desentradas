@@ -1,14 +1,14 @@
 import type { PlanillaDeAsistencia } from "../app/PlanillaDeAsistencia.ts";
 import type { Participante } from "../models/Participante.ts";
-import { campoDeFecha, campoDeTexto, controlDe } from "./Campos.ts";
+import { campoDeTexto } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { alerta, boton, crear, fila, intentar, tabla, valorDe } from "./dom.ts";
+import { alerta, boton, crear, fila, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { desdeEntradaDeFecha, monto } from "./Formato.ts";
+import { fechaYHora, monto } from "./Formato.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
 
-// La pantalla de la noche: se marca quién vino y se cierra el evento.
+// La pantalla de la noche: se empieza el evento, se marca quién vino y se cierra o se cancela.
 export class PantallaEvento {
   private _entorno: Entorno;
   private _seccion: HTMLElement;
@@ -21,10 +21,23 @@ export class PantallaEvento {
   }
 
   elemento(): HTMLElement {
-    const formulario = crear(
+    this._seccion.append(
+      crear("h2", {}, "Evento"),
+      this._planillaDeAsistencia().existe()
+        ? this._formulario()
+        : crear(
+            "p",
+            {},
+            boton("Empezar evento", () => this._empezar()),
+          ),
+    );
+    return this._seccion;
+  }
+
+  private _formulario(): HTMLFormElement {
+    return crear(
       "form",
       { onsubmit: (evento: Event) => this._pedirConfirmacion(evento) },
-      this._campoDeFecha(),
       this._tablaDeAsistencia() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
         "p",
@@ -32,21 +45,34 @@ export class PantallaEvento {
         boton("Vino alguien nuevo", () => this._abrirIngreso()),
       ),
       this._errores,
-      crear("p", {}, crear("button", { type: "submit" }, "Cerrar evento")),
+      crear(
+        "p",
+        {},
+        boton("Cancelar", () => this._cancelar()),
+        " ",
+        crear("button", { type: "submit" }, "Cerrar evento"),
+      ),
     );
-    this._seccion.append(crear("h2", {}, "Evento"), formulario);
-    return this._seccion;
   }
 
-  private _campoDeFecha(): HTMLLabelElement {
-    const campo = campoDeFecha("Fecha y hora", "fecha", this._planillaDeAsistencia().fecha());
-    controlDe(campo).addEventListener("change", () => {
-      intentar(
-        () => this._planillaDeAsistencia().cambiarFecha(desdeEntradaDeFecha(controlDe(campo).value)),
-        this._errores,
-      );
-    });
-    return campo;
+  private _empezar(): void {
+    this._planillaDeAsistencia().empezar();
+    this._entorno.refrescar();
+  }
+
+  private _cancelar(): void {
+    if (this._planillaDeAsistencia().asistentes().length === 0) {
+      this._planillaDeAsistencia().descartar();
+      this._entorno.refrescar();
+    } else {
+      new Dialogo(
+        this._entorno,
+        "Cancelar evento",
+        [crear("p", {}, "Se van a perder las marcas de asistencia.")],
+        "Descartar",
+        () => this._planillaDeAsistencia().descartar(),
+      ).abrirEn(this._seccion);
+    }
   }
 
   private _tablaDeAsistencia(): HTMLTableElement | undefined {
@@ -101,21 +127,21 @@ export class PantallaEvento {
   }
 
   private _abrirCobro(nombre: string): void {
-    new DialogoDeCobro(this._entorno, nombre, this._planillaDeAsistencia().fecha(), (monto, fecha) =>
+    new DialogoDeCobro(this._entorno, nombre, this._entorno.ahora(), (monto, fecha) =>
       this._entorno.aplicacion().cobrarEnLaPuerta(nombre, monto, fecha),
     ).abrirEn(this._seccion);
   }
 
   private _repartir(nombre: string): void {
     this._entorno.intentarYRefrescar(
-      () => this._entorno.aplicacion().repartir(nombre, this._planillaDeAsistencia().fecha()),
+      () => this._entorno.aplicacion().repartir(nombre, this._entorno.ahora()),
       this._errores,
     );
   }
 
   private _abrirIngreso(): void {
     new Dialogo(this._entorno, "Vino alguien nuevo", [campoDeTexto("Nombre", "nombre")], "Registrar", (formulario) => {
-      this._entorno.aplicacion().ingresarAsistente(valorDe(formulario, "nombre"));
+      this._entorno.aplicacion().ingresarAsistente(valorDe(formulario, "nombre"), this._entorno.ahora());
     }).abrirEn(this._seccion);
   }
 
@@ -123,8 +149,15 @@ export class PantallaEvento {
     evento.preventDefault();
     const ausentes = this._entorno.aplicacion().ausentesEnPlanillaDeAsistencia().toSorted(alfabetico);
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
-    new Dialogo(this._entorno, "Cerrar evento", [crear("p", {}, aviso)], "Confirmar", () =>
-      this._entorno.aplicacion().cerrarEventoSegunPlanillaDeAsistencia(),
+    new Dialogo(
+      this._entorno,
+      "Cerrar evento",
+      [
+        crear("p", {}, `Se va a registrar el evento con fecha ${fechaYHora(this._entorno.ahora())}.`),
+        crear("p", {}, aviso),
+      ],
+      "Confirmar",
+      () => this._entorno.aplicacion().cerrarEventoSegunPlanillaDeAsistencia(this._entorno.ahora()),
     ).abrirEn(this._seccion);
   }
 }

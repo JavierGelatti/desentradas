@@ -250,14 +250,14 @@ describe("Aplicacion", () => {
   });
 
   describe("planilla de asistencia", () => {
-    it("cerrar el evento según la planilla lo registra con su fecha y sus asistentes", () => {
+    it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
 
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia();
+      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
       const [evento] = aplicacion.grupo().eventos();
       expect(evento.fecha()).toEqual(dia(3));
@@ -267,10 +267,10 @@ describe("Aplicacion", () => {
     it("cerrar el evento según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
       const aplicacion = aplicacionConGrupo();
       ["ana", "beto", "carla"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
 
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia();
+      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
       const cierre = aplicacion.comandos().at(-1) as CerrarEvento;
       expect(cierre.ausentes()).toEqual(["ana", "carla"]);
@@ -280,28 +280,28 @@ describe("Aplicacion", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
 
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia();
+      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
       expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
     });
 
     it("un cierre que el grupo rechaza deja la planilla como estaba", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(2));
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
 
       expect(() => {
-        aplicacion.cerrarEventoSegunPlanillaDeAsistencia();
+        aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(2));
       }).toThrow("El evento debe ser posterior al último registrado");
-      expect(aplicacion.planillaDeAsistencia().fecha()).toEqual(dia(2));
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
     it("cobrar en la puerta toda la deuda deja a la persona marcada como presente", () => {
       const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.planillaDeAsistencia().empezar();
 
       aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
 
@@ -311,6 +311,7 @@ describe("Aplicacion", () => {
 
     it("un pago parcial en la puerta no marca a la persona, porque sigue sin poder asistir", () => {
       const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.planillaDeAsistencia().empezar();
 
       aplicacion.cobrarEnLaPuerta("ana", 400, dia(3));
 
@@ -335,22 +336,22 @@ describe("Aplicacion", () => {
       }).toThrow("Pagar en la puerta no habilita a ana");
     });
 
-    it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha de la planilla y marcado como presente", () => {
+    it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha del ingreso y marcado como presente", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().empezar();
 
-      aplicacion.ingresarAsistente("carla");
+      aplicacion.ingresarAsistente("carla", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")?.historial().at(0)?.fecha()).toEqual(dia(3));
       expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
     });
 
-    it("ingresar como asistente a quien ya participó lo reingresa desde la fecha de la planilla y lo deja marcado como presente", () => {
+    it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del ingreso y lo deja marcado como presente", () => {
       const aplicacion = aplicacionConAnaMorosa();
       aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(5));
+      aplicacion.planillaDeAsistencia().empezar();
 
-      aplicacion.ingresarAsistente("ana");
+      aplicacion.ingresarAsistente("ana", dia(5));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
       expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(5));
@@ -359,9 +360,9 @@ describe("Aplicacion", () => {
 
     it("ingresar como asistente toma el nombre sin espacios al principio ni al final", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().empezar();
 
-      aplicacion.ingresarAsistente(" carla ");
+      aplicacion.ingresarAsistente(" carla ", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")).toBeDefined();
       expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
@@ -369,6 +370,7 @@ describe("Aplicacion", () => {
 
     it("quedan ausentes los posibles asistentes sin marcar, incluso quien está en deuda", () => {
       const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
 
       expect(aplicacion.ausentesEnPlanillaDeAsistencia()).toEqual(["ana"]);
@@ -386,13 +388,13 @@ describe("Aplicacion", () => {
       aplicacion.deshacer();
 
       expect(aplicacion.planillaDeAsistencia().existe()).toBe(true);
-      expect(aplicacion.planillaDeAsistencia().fecha()).toEqual(dia(2));
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
     it("importar una bitácora descarta la planilla", () => {
       const exportado = aplicacionConDeudaDeAna().exportar();
       const aplicacion = aplicacionConGrupo();
+      aplicacion.planillaDeAsistencia().empezar();
       aplicacion.planillaDeAsistencia().marcarComoPresente("carla");
 
       aplicacion.importar(exportado);

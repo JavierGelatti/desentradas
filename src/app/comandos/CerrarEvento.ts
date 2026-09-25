@@ -35,7 +35,7 @@ export class CerrarEvento extends ComandoSobreElGrupo {
   }
 
   alDeshacerse(aplicacion: Aplicacion): void {
-    aplicacion.planillaDeAsistencia().restaurar(this._fecha, this._asistentes);
+    aplicacion.planillaDeAsistencia().restaurar(this._asistentes);
   }
 
   describir(): string {
