@@ -223,7 +223,7 @@ describe("VistaPrincipal", () => {
     const almacenamientos = almacenamientosConGrupo();
     const preparacion = nuevaAplicacion(almacenamientos);
     preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por faltas
+    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
     const { aplicacion } = montar(almacenamientos);
     await navegarA("Participantes");
 

@@ -260,7 +260,7 @@ describe("Aplicacion", () => {
     it("registrar como asistente a quien ya participó la reingresa con la fecha del borrador y la deja marcada", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.cerrarEvento(dia(9), ["beto"]);
-      aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por faltas
+      aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por pago de morosidad
       aplicacion.borrador().cambiarFecha(dia(11));
 
       aplicacion.ingresarAsistente(" ana ");
