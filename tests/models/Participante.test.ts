@@ -21,6 +21,13 @@ const libreDeDeuda = () => {
   return ana;
 };
 
+const finalizadoPorFaltas = () => {
+  const ana = libreDeDeuda();
+  ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
+  ana.falto(nuevoEvento({ numero: 16 }), lasReglas);
+  return ana;
+};
+
 const moroso = () => {
   const ana = enDeuda();
   ana.falto(nuevoEvento(), lasReglas);
@@ -424,6 +431,16 @@ describe("Participante", () => {
       expect(ana.estado()).toBe("participando");
       expect(ana.faltas()).toBe(0);
       expect(ana.deudaAl(dia(21))).toBe(0);
+      expect(ana.motivoDeFinalizacion()).toBeUndefined();
+    });
+
+    it("reingresar después de finalizar por faltas también lo devuelve a participando", () => {
+      const ana = finalizadoPorFaltas();
+
+      ana.reingresar(dia(20));
+
+      expect(ana.estado()).toBe("participando");
+      expect(ana.faltas()).toBe(0);
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
     });
 
