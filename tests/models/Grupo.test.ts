@@ -611,7 +611,7 @@ describe("Grupo", () => {
       expect(grupo.caja().totalPendiente()).toBe(300);
     });
 
-    it("los créditos de quien ya no participa quedan pendientes a su nombre", () => {
+    it("los créditos de quien está finalizado quedan pendientes a su nombre", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
