@@ -24,7 +24,7 @@ describe("Crédito", () => {
     expect(credito.estaPendiente()).toBe(false);
   });
 
-  it("aplicarlo a una deuda de su dueño lo deja aplicado y ya no está pendiente", () => {
+  it("aplicarlo lo deja aplicado y ya no está pendiente", () => {
     const credito = new Credito("beto", 500, cobroEnEfectivo());
 
     credito.aplicar();

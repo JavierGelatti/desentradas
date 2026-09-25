@@ -263,11 +263,21 @@ describe("Aplicacion", () => {
       aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por pago de morosidad
       aplicacion.borrador().cambiarFecha(dia(11));
 
-      aplicacion.ingresarAsistente(" ana ");
+      aplicacion.ingresarAsistente("ana");
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
       expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(11));
       expect(aplicacion.borrador().asiste("ana")).toBe(true);
+    });
+
+    it("registrar como asistente toma el nombre sin espacios al principio ni al final", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.borrador().cambiarFecha(dia(3));
+
+      aplicacion.ingresarAsistente(" carla ");
+
+      expect(aplicacion.grupo().participanteActivo("carla")).toBeDefined();
+      expect(aplicacion.borrador().asiste("carla")).toBe(true);
     });
 
     it("quedan ausentes los posibles asistentes sin marcar, incluso quien está en deuda", () => {

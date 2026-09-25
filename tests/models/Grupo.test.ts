@@ -455,7 +455,7 @@ describe("Grupo", () => {
       }).toThrow("ana no tiene una participación activa");
     });
 
-    it("quien debe puede pagar en la puerta y asistir al mismo evento", () => {
+    it("quien está en deuda puede pagar en la puerta y asistir al mismo evento", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));

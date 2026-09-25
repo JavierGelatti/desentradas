@@ -283,7 +283,7 @@ describe("Descripción de los comandos", () => {
     expect(comando.describir()).toBe("Reparto a beto");
   });
 
-  it("cambiar reglas refiere a la fecha desde la que rigen las nuevas reglas", () => {
+  it("cambiar reglas refiere a la fecha desde la que rigen las nuevas reglas y se describe sin más datos", () => {
     const comando = new CambiarReglas(reglas({ rigeDesde: dia(4) }));
 
     expect(comando.fecha()).toEqual(dia(4));
