@@ -20,7 +20,7 @@ export class CerrarEvento extends ComandoSobreElGrupo {
   }
 
   protected ejecutarEn(grupo: Grupo): void {
-    grupo.registrarEvento(new Evento(this._fecha, this._asistentes));
+    grupo.cerrarEvento(new Evento(this._fecha, this._asistentes));
   }
 
   fecha(): Date {

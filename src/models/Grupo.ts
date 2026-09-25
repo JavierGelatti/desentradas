@@ -91,7 +91,7 @@ export class Grupo {
     return this._caja.repartir(nombre, fecha);
   }
 
-  registrarEvento(evento: Evento): void {
+  cerrarEvento(evento: Evento): void {
     this._asertarQueEsPosteriorAlUltimoEvento(evento);
     this._asertarQuePuedenAsistir(evento.asistentes());
     const reglas = this.reglasVigentesAl(evento.fecha());

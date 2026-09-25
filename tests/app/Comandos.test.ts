@@ -107,8 +107,8 @@ describe("Reingresar", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
-    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-    grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
     grupo.cobrar("ana", 1000, dia(10));
     expect(ana.estaActivo()).toBe(false);
     const comando = new Reingresar("ana", dia(11));
@@ -159,7 +159,7 @@ describe("Cobrar", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
-    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
     const comando = new Cobrar("ana", 400, dia(3));
 
     comando.ejecutar(grupo, desempate);
@@ -184,7 +184,7 @@ describe("Repartir", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
-    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
     grupo.cobrar("ana", 1000, dia(3));
     const comando = new Repartir("beto", dia(4));
 
