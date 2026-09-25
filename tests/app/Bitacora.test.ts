@@ -36,13 +36,21 @@ describe("Bitacora", () => {
   });
 
   describe("comandos", () => {
-    it("ejecutar un comando lo agrega a la bitácora y modifica el grupo", () => {
+    it("ejecutar un comando lo agrega a la bitácora", () => {
       const bitacora = bitacoraConGrupo();
       const ingresar = new Ingresar("ana", dia(1));
 
       bitacora.ejecutar(ingresar);
 
       expect(bitacora.comandos().at(-1)).toBe(ingresar);
+    });
+
+    it("ejecutar un comando modifica el grupo", () => {
+      const bitacora = bitacoraConGrupo();
+      const ingresar = new Ingresar("ana", dia(1));
+
+      bitacora.ejecutar(ingresar);
+
       expect(bitacora.grupo().participanteActivo("ana")).toBeDefined();
     });
 
@@ -59,7 +67,19 @@ describe("Bitacora", () => {
   });
 
   describe("deshacer", () => {
-    it("deshacer el último comando reconstruye el grupo sin él y lo devuelve", () => {
+    it("deshacer deja el grupo como estaba antes del último comando", () => {
+      const bitacora = bitacoraConGrupo();
+      bitacora.ejecutar(new Ingresar("ana", dia(1)));
+      bitacora.ejecutar(new Ingresar("beto", dia(1)));
+
+      bitacora.deshacer();
+
+      expect(bitacora.comandos()).toHaveLength(2);
+      expect(bitacora.grupo().participanteActivo("ana")).toBeDefined();
+      expect(bitacora.grupo().participanteActivo("beto")).toBeUndefined();
+    });
+
+    it("deshacer devuelve el comando deshecho", () => {
       const bitacora = bitacoraConGrupo();
       bitacora.ejecutar(new Ingresar("ana", dia(1)));
       const ingresarABeto = new Ingresar("beto", dia(1));
@@ -68,9 +88,6 @@ describe("Bitacora", () => {
       const deshecho = bitacora.deshacer();
 
       expect(deshecho).toBe(ingresarABeto);
-      expect(bitacora.comandos()).toHaveLength(2);
-      expect(bitacora.grupo().participanteActivo("ana")).toBeDefined();
-      expect(bitacora.grupo().participanteActivo("beto")).toBeUndefined();
     });
 
     it("deshacer la creación del grupo deja la bitácora sin grupo", () => {
