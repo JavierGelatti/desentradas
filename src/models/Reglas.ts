@@ -13,6 +13,7 @@ export class Reglas {
     politicaDeInteres: PoliticaDeInteres,
   ) {
     if (toleranciaDeFaltas < 1) throw new Error("La tolerancia de faltas debe ser al menos 1");
+    if (montoPorFalta <= 0) throw new Error("El monto por falta debe ser positivo");
 
     this._rigeDesde = rigeDesde;
     this._toleranciaDeFaltas = toleranciaDeFaltas;
