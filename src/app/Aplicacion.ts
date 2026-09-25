@@ -78,6 +78,14 @@ export class Aplicacion {
     this._borrador.marcar(nombre.trim());
   }
 
+  // Quienes se esperaban y no están marcados. El modelo igual registra la falta a todos los activos.
+  ausentesDelBorrador(): string[] {
+    return this.grupo()
+      .posiblesAsistentes()
+      .map((participante) => participante.nombre())
+      .filter((nombre) => !this._borrador.asiste(nombre));
+  }
+
   cerrarElBorrador(): void {
     this.cerrarEvento(this._borrador.fecha(), this._borrador.asistentes());
     this._borrador.descartar();

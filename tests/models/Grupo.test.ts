@@ -381,6 +381,21 @@ describe("Grupo", () => {
     });
   });
 
+  describe("posibles asistentes", () => {
+    it("son los participantes activos que pueden asistir o podrían si pagan, sin los morosos", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      const carla = grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+      expect(grupo.participanteActivo("ana")?.estado()).toBe("moroso");
+      expect(carla.estado()).toBe("en deuda");
+
+      expect(grupo.posiblesAsistentes()).toEqual([beto, carla]);
+    });
+  });
+
   describe("pagos", () => {
     it("registrar un pago hace pagar al participante", () => {
       const grupo = nuevoGrupo();

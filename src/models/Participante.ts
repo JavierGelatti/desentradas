@@ -55,6 +55,10 @@ export class Participante {
     return this._estado.puedeAsistir();
   }
 
+  podriaAsistir(): boolean {
+    return this._estado.podriaAsistir();
+  }
+
   estaActivo(): boolean {
     return this._estado.estaActivo();
   }

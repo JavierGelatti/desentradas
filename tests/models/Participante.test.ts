@@ -46,6 +46,12 @@ describe("Participante", () => {
       expect(ana.deudaAl(dia(2))).toBe(0);
     });
 
+    it("podría asistir, porque ya puede", () => {
+      const ana = nuevoParticipante();
+
+      expect(ana.podriaAsistir()).toBe(true);
+    });
+
     it("ir a un evento lo mantiene participando", () => {
       const ana = nuevoParticipante();
 
@@ -110,6 +116,13 @@ describe("Participante", () => {
       const ana = enDeuda();
 
       expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
+    });
+
+    it("podría asistir si paga", () => {
+      const ana = enDeuda();
+
+      expect(ana.puedeAsistir()).toBe(false);
+      expect(ana.podriaAsistir()).toBe(true);
     });
 
     it("no puede ir a un evento mientras deba", () => {
@@ -271,6 +284,12 @@ describe("Participante", () => {
       expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
     });
 
+    it("no podría asistir ni pagando", () => {
+      const ana = moroso();
+
+      expect(ana.podriaAsistir()).toBe(false);
+    });
+
     it("no puede ir a un evento", () => {
       const ana = moroso();
 
@@ -350,6 +369,12 @@ describe("Participante", () => {
       expect(ana.faltas()).toBe(0);
       expect(ana.deudaAl(dia(21))).toBe(0);
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
+    });
+
+    it("no podría asistir", () => {
+      const ana = finalizado();
+
+      expect(ana.podriaAsistir()).toBe(false);
     });
 
     it("no puede ir a un evento", () => {

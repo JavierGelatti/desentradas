@@ -54,13 +54,8 @@ export class PantallaEvento {
     );
   }
 
-  // Los morosos no pueden asistir ni pagando, así que no se listan ni cuentan como ausentes.
   private _listados(): Participante[] {
-    return this._entorno
-      .grupo()
-      .participantes()
-      .filter((participante) => participante.estado() !== "moroso")
-      .sort(porNombre);
+    return this._entorno.grupo().posiblesAsistentes().toSorted(porNombre);
   }
 
   private _filaDe(participante: Participante): HTMLTableRowElement {
@@ -122,13 +117,12 @@ export class PantallaEvento {
     }).abrirEn(this._seccion);
   }
 
-  // Al confirmar se nombra a todos los activos sin marcar salvo los morosos, que ya no pueden volver a asistir.
-  // El modelo igual les registra la falta a todos.
   private _pedirConfirmacion(evento: Event): void {
     evento.preventDefault();
-    const ausentes = this._listados()
-      .filter((participante) => !this._borrador().asiste(participante.nombre()))
-      .map((participante) => participante.nombre());
+    const ausentes = this._entorno
+      .aplicacion()
+      .ausentesDelBorrador()
+      .toSorted((uno, otro) => uno.localeCompare(otro));
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
     new Dialogo(this._entorno, "Cerrar evento", [crear("p", {}, aviso)], "Confirmar", () =>
       this._entorno.aplicacion().cerrarElBorrador(),

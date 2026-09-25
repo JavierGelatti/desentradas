@@ -15,6 +15,10 @@ export class EnDeuda extends ConDeuda {
     return new Moroso(this._deuda);
   }
 
+  override podriaAsistir(): boolean {
+    return true;
+  }
+
   protected _estadoAlSaldar(reglas: Reglas): Estado {
     return LibreDeDeuda.oFinalizadoPorFaltas(this.faltas(), reglas);
   }

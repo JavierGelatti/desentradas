@@ -275,6 +275,21 @@ describe("Aplicacion", () => {
       expect(aplicacion.borrador().asiste("ana")).toBe(true);
     });
 
+    it("quedan ausentes los posibles asistentes sin marcar, incluso quien está en deuda", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.borrador().marcar("beto");
+
+      expect(aplicacion.ausentesDelBorrador()).toEqual(["ana"]);
+    });
+
+    it("un moroso nunca queda ausente, porque no puede asistir ni pagando", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.cerrarEvento(dia(3), ["beto"]);
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("moroso");
+
+      expect(aplicacion.ausentesDelBorrador()).toEqual(["beto"]);
+    });
+
     it("deshacer el cierre de un evento lo restaura como borrador", () => {
       const aplicacion = aplicacionConDeudaDeAna();
 

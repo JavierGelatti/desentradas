@@ -40,6 +40,11 @@ export abstract class Estado {
     return false;
   }
 
+  // Puede asistir ahora, o podría después de pagar.
+  podriaAsistir(): boolean {
+    return this.puedeAsistir();
+  }
+
   estaActivo(): boolean {
     return true;
   }

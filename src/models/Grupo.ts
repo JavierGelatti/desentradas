@@ -107,6 +107,11 @@ export class Grupo {
     return this._participantes;
   }
 
+  // Quienes se esperan en el próximo evento: los morosos no pueden asistir ni pagando.
+  posiblesAsistentes(): readonly Participante[] {
+    return this._participantes.filter((participante) => participante.podriaAsistir());
+  }
+
   participantesHistoricos(): readonly Participante[] {
     return this._participantesHistoricos;
   }
