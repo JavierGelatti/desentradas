@@ -59,7 +59,7 @@ export class Caja {
   }
 
   creditosPendientesDe(nombre: string): Credito[] {
-    return this._creditos.filter((credito) => credito.estaPendiente() && credito.nombre() === nombre);
+    return this._creditosPendientes().filter((credito) => credito.nombre() === nombre);
   }
 
   montoPendienteDe(nombre: string): number {
@@ -67,12 +67,11 @@ export class Caja {
   }
 
   totalPendiente(): number {
-    return this._sumar(this._creditos.filter((credito) => credito.estaPendiente()));
+    return this._sumar(this._creditosPendientes());
   }
 
   nombresConCreditosPendientes(): string[] {
-    const nombres = this._creditos.filter((credito) => credito.estaPendiente()).map((credito) => credito.nombre());
-    return [...new Set(nombres)];
+    return [...new Set(this._creditosPendientes().map((credito) => credito.nombre()))];
   }
 
   private _repartirEnCreditos(cobro: Cobro): Credito[] {
@@ -88,6 +87,10 @@ export class Caja {
     const partes = credito.dividir(monto);
     this._creditos.splice(this._creditos.indexOf(credito), 1, ...partes);
     return partes[0];
+  }
+
+  private _creditosPendientes(): Credito[] {
+    return this._creditos.filter((credito) => credito.estaPendiente());
   }
 
   private _sumar(creditos: readonly Credito[]): number {

@@ -1,3 +1,5 @@
 import type { Participante } from "../models/Participante.ts";
 
-export const porNombre = (uno: Participante, otro: Participante): number => uno.nombre().localeCompare(otro.nombre());
+export const alfabetico = (uno: string, otro: string): number => uno.localeCompare(otro);
+
+export const porNombre = (uno: Participante, otro: Participante): number => alfabetico(uno.nombre(), otro.nombre());

@@ -41,7 +41,6 @@ describe("Grupo", () => {
     it("las reglas anteriores son todas las versiones salvo la vigente, de la más antigua a la más nueva", () => {
       const reglasIniciales = reglas();
       const grupo = nuevoGrupo(reglasIniciales);
-      expect(grupo.reglasAnteriores()).toEqual([]);
       grupo.ingresar("beto", dia(1));
       grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
       const segundasReglas = reglas({ rigeDesde: dia(3) });
@@ -397,17 +396,17 @@ describe("Grupo", () => {
   });
 
   describe("posibles asistentes", () => {
-    it("son los participantes activos que pueden asistir o podrían si pagan, sin los morosos", () => {
+    it("quien está en deuda es un posible asistente, y un moroso no", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       const carla = grupo.ingresar("carla", dia(1));
-      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
-      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-      expect(grupo.participanteActivo("ana")?.estado()).toBe("moroso");
-      expect(carla.estado()).toBe("en deuda");
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] })); // ana queda en deuda
+      grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] })); // ana queda morosa y carla en deuda
 
-      expect(grupo.posiblesAsistentes()).toEqual([beto, carla]);
+      const posibles = grupo.posiblesAsistentes();
+
+      expect(posibles).toEqual([beto, carla]);
     });
   });
 

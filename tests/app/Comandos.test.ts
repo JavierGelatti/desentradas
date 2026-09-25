@@ -117,7 +117,7 @@ describe("Reingresar", () => {
     comando.ejecutar(grupo, desempate);
 
     expect(grupo.participanteActivo("ana")).toBe(ana);
-    expect(ana.historial().at(-1)?.fecha()).toEqual(dia(11));
+    expect(ana.fechaDelUltimoCambio()).toEqual(dia(11));
   });
 
   it("reingresar se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {

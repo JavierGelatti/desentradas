@@ -2,7 +2,7 @@ import type { Almacenamiento } from "./Almacenamiento.ts";
 import { fecha as leerFecha, objeto, textos } from "./json/Campos.ts";
 
 // El evento que se está armando: su fecha y quiénes ya están marcados como asistentes.
-// Mientras no empezó, la fecha es la de ahora. Se guarda después de cada cambio para sobrevivir a una recarga.
+// Se guarda después de cada cambio para sobrevivir a una recarga.
 export class BorradorDeEvento {
   private _almacenamiento: Almacenamiento;
   private _ahora: () => Date;
@@ -62,7 +62,6 @@ export class BorradorDeEvento {
     this._almacenamiento.borrar();
   }
 
-  // El primer cambio empieza el borrador con la fecha que venía mostrando.
   private _empezarSiHaceFalta(): void {
     if (!this.existe()) this._fecha = this._ahora();
   }

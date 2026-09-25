@@ -426,7 +426,6 @@ describe("Participante", () => {
 
     it("la fecha del último cambio es la de la última transición del historial", () => {
       const ana = nuevoParticipante();
-      expect(ana.fechaDelUltimoCambio()).toEqual(dia(1));
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
 

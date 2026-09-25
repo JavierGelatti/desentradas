@@ -67,18 +67,18 @@ export class Aplicacion {
     this._ejecutar(new CerrarEvento(fecha, asistentes));
   }
 
-  // Quien vino sin estar registrado se registra con la fecha del borrador y queda marcado como asistente.
-  // Si ya participó, reingresa; si no, ingresa.
   ingresarAsistente(nombre: string): void {
-    if (this.grupo().yaParticipo(nombre)) {
-      this.reingresar(nombre, this._borrador.fecha());
+    const nombreLimpio = nombre.trim();
+    const fecha = this._borrador.fecha();
+    if (this.grupo().yaParticipo(nombreLimpio)) {
+      this.reingresar(nombreLimpio, fecha);
     } else {
-      this.ingresar(nombre, this._borrador.fecha());
+      this.ingresar(nombreLimpio, fecha);
     }
-    this._borrador.marcar(nombre.trim());
+    this._borrador.marcar(nombreLimpio);
   }
 
-  // Quienes se esperaban y no están marcados. El modelo igual registra la falta a todos los activos.
+  // Solo para avisar: el modelo igual registra la falta a todos los activos, morosos incluidos.
   ausentesDelBorrador(): string[] {
     return this.grupo()
       .posiblesAsistentes()
@@ -95,7 +95,6 @@ export class Aplicacion {
     this._ejecutar(new Cobrar(nombre, monto, fecha));
   }
 
-  // Quien paga en la puerta queda marcado como asistente si el pago lo habilitó.
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
     this.cobrar(nombre, monto, fecha);
     if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._borrador.marcar(nombre);
@@ -109,7 +108,6 @@ export class Aplicacion {
     this._ejecutar(new CambiarReglas(reglas));
   }
 
-  // Deshacer un cierre de evento devuelve ese evento al borrador, para retocarlo y volver a cerrarlo.
   deshacer(): Comando {
     const deshecho = this._bitacora.deshacer();
     this._guardar();

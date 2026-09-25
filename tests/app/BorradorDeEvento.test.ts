@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
-import { BorradorDeEvento } from "../../src/app/BorradorDeEvento.ts";
 import { dia } from "../models/factories.ts";
-
-const ahora = () => dia(5);
-
-const nuevoBorrador = (almacenamiento = new AlmacenamientoEnMemoria(), reloj = ahora) =>
-  new BorradorDeEvento(almacenamiento, reloj);
+import { nuevoBorrador } from "./factories.ts";
 
 describe("BorradorDeEvento", () => {
   it("mientras no empezó, su fecha es la de ahora y no tiene asistentes", () => {

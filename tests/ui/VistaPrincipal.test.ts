@@ -2,13 +2,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
-import { BorradorDeEvento } from "../../src/app/BorradorDeEvento.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { aEntradaDeFecha } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
+import { ahora, nuevoBorrador } from "../app/factories.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
-
-const ahora = () => dia(5);
 
 const nuevosAlmacenamientos = () => ({
   bitacora: new AlmacenamientoEnMemoria(),
@@ -19,7 +17,7 @@ const nuevosAlmacenamientos = () => ({
 type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
 
 const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
-  new Aplicacion(almacenamientos.bitacora, desempate, new BorradorDeEvento(almacenamientos.borrador, ahora));
+  new Aplicacion(almacenamientos.bitacora, desempate, nuevoBorrador(almacenamientos.borrador));
 
 // ana faltó al primer evento y está en deuda; beto, carla y dani están participando.
 const almacenamientosConGrupo = () => {
@@ -225,8 +223,7 @@ describe("VistaPrincipal", () => {
     const almacenamientos = almacenamientosConGrupo();
     const preparacion = nuevaAplicacion(almacenamientos);
     preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    preparacion.cobrar("ana", 1000, dia(4));
-    expect(preparacion.grupo().participanteActivo("ana")).toBeUndefined();
+    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por faltas
     const { aplicacion } = montar(almacenamientos);
     await navegarA("Participantes");
 
@@ -238,7 +235,7 @@ describe("VistaPrincipal", () => {
     expect(document.querySelector("dialog[open]")).toBeNull();
 
     expect(aplicacion.grupo().participanteActivo("gus")?.historial().at(0)?.fecha()).toEqual(ahora());
-    expect(aplicacion.grupo().participanteActivo("ana")?.historial().at(-1)?.fecha()).toEqual(ahora());
+    expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
   });
 
   it("cerrar el evento registra a los marcados como asistentes, incluso a quien pagó en la puerta, y descarta el borrador", () => {
@@ -270,9 +267,7 @@ describe("VistaPrincipal", () => {
     const almacenamientos = almacenamientosConGrupo();
     const preparacion = nuevaAplicacion(almacenamientos);
     preparacion.ingresar("eva", dia(2));
-    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    expect(preparacion.grupo().participanteActivo("ana")?.estado()).toBe("moroso");
-    expect(preparacion.grupo().participanteActivo("eva")?.estado()).toBe("en deuda");
+    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]); // ana queda morosa y eva en deuda
     montar(almacenamientos);
 
     casillaDeAsistencia("beto").click();

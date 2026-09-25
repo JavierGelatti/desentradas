@@ -67,13 +67,13 @@ export class VistaPrincipal implements Entorno {
     this._raiz.replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
   }
 
-  // Si la acción falla, el mensaje queda en la alerta de la pantalla y no se vuelve a dibujar nada.
+  // Si falla no se refresca, para que la alerta siga a la vista.
   intentarYRefrescar(accion: () => void, errores: HTMLOutputElement): void {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // Deshacer un cierre de evento lleva a la pantalla del evento, donde queda restaurado como borrador,
-  // y deshacer la creación del grupo vuelve al formulario inicial con lo que se había cargado.
+  // El cierre deshecho quedó como borrador, así que se muestra la pantalla del evento;
+  // la creación deshecha vuelve al formulario inicial con lo que se había cargado.
   deshacer(): void {
     const deshecho = this._aplicacion.deshacer();
     if (deshecho instanceof CerrarEvento) {

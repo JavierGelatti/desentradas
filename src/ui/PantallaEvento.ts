@@ -6,9 +6,9 @@ import { DialogoDeCobro } from "./DialogoDeCobro.ts";
 import { alerta, boton, crear, fila, intentar, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { desdeEntradaDeFecha, monto } from "./Formato.ts";
-import { porNombre } from "./Orden.ts";
+import { alfabetico, porNombre } from "./Orden.ts";
 
-// La pantalla de la noche: se marca quién vino y se cierra el evento. Lo marcado vive en el borrador de la aplicación.
+// La pantalla de la noche: se marca quién vino y se cierra el evento.
 export class PantallaEvento {
   private _entorno: Entorno;
   private _seccion: HTMLElement;
@@ -118,10 +118,7 @@ export class PantallaEvento {
 
   private _pedirConfirmacion(evento: Event): void {
     evento.preventDefault();
-    const ausentes = this._entorno
-      .aplicacion()
-      .ausentesDelBorrador()
-      .toSorted((uno, otro) => uno.localeCompare(otro));
+    const ausentes = this._entorno.aplicacion().ausentesDelBorrador().toSorted(alfabetico);
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
     new Dialogo(this._entorno, "Cerrar evento", [crear("p", {}, aviso)], "Confirmar", () =>
       this._entorno.aplicacion().cerrarElBorrador(),

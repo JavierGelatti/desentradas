@@ -4,6 +4,7 @@ import { Dialogo } from "./Dialogo.ts";
 import { anexar, boton, crear, desplegable, fila, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { desdeEntradaDeFecha, fechaYHora, monto } from "./Formato.ts";
+import { alfabetico } from "./Orden.ts";
 
 // Quiénes tienen plata por recibir, y lo que ya se les entregó.
 export class PantallaRepartos {
@@ -26,11 +27,7 @@ export class PantallaRepartos {
   }
 
   private _nombresConCreditosPendientes(): string[] {
-    return this._entorno
-      .grupo()
-      .caja()
-      .nombresConCreditosPendientes()
-      .toSorted((uno, otro) => uno.localeCompare(otro));
+    return this._entorno.grupo().caja().nombresConCreditosPendientes().toSorted(alfabetico);
   }
 
   private _tablaDePendientes(): HTMLTableElement | undefined {

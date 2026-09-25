@@ -1,16 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
-import { BorradorDeEvento } from "../../src/app/BorradorDeEvento.ts";
 import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
-
-const ahora = () => dia(5);
-
-const nuevoBorrador = () => new BorradorDeEvento(new AlmacenamientoEnMemoria(), ahora);
+import { nuevoBorrador } from "./factories.ts";
 
 const nuevaAplicacion = (almacenamiento = new AlmacenamientoEnMemoria()) =>
   new Aplicacion(almacenamiento, desempate, nuevoBorrador());
@@ -264,14 +260,13 @@ describe("Aplicacion", () => {
     it("registrar como asistente a quien ya participó la reingresa con la fecha del borrador y la deja marcada", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.cerrarEvento(dia(9), ["beto"]);
-      aplicacion.cobrar("ana", 1000, dia(10));
-      expect(aplicacion.grupo().participanteActivo("ana")).toBeUndefined();
+      aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por faltas
       aplicacion.borrador().cambiarFecha(dia(11));
 
       aplicacion.ingresarAsistente(" ana ");
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
-      expect(aplicacion.grupo().participanteActivo("ana")?.historial().at(-1)?.fecha()).toEqual(dia(11));
+      expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(11));
       expect(aplicacion.borrador().asiste("ana")).toBe(true);
     });
 
