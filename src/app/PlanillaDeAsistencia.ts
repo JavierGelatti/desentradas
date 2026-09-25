@@ -51,6 +51,13 @@ export class PlanillaDeAsistencia {
     this._guardar();
   }
 
+  conservarSoloA(criterio: (nombre: string) => boolean): void {
+    this._asertarQueEstaEmpezada();
+
+    this._asistentes = new Set(this.asistentes().filter(criterio));
+    this._guardar();
+  }
+
   descartar(): void {
     this._empezada = false;
     this._asistentes = new Set();

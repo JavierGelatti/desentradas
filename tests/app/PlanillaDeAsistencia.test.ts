@@ -31,6 +31,18 @@ describe("PlanillaDeAsistencia", () => {
     expect(planilla.asiste("ana")).toBe(true);
   });
 
+  it("conservar solo a quienes cumplen un criterio desmarca al resto y deja guardada la planilla", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+    planilla.empezar();
+    ["ana", "beto", "carla"].forEach((nombre) => planilla.marcarComoPresente(nombre));
+
+    planilla.conservarSoloA((nombre) => nombre !== "beto");
+
+    expect(planilla.asistentes()).toEqual(["ana", "carla"]);
+    expect(JSON.parse(almacenamiento.leer()!)).toEqual({ asistentes: ["ana", "carla"] });
+  });
+
   it("no se puede empezar una planilla ya empezada", () => {
     const planilla = nuevaPlanillaDeAsistencia();
     planilla.empezar();
@@ -59,6 +71,17 @@ describe("PlanillaDeAsistencia", () => {
 
     expect(() => {
       planilla.desmarcarComoPresente("ana");
+    }).toThrow("No hay una planilla de asistencia empezada");
+    expect(planilla.existe()).toBe(false);
+    expect(almacenamiento.leer()).toBeUndefined();
+  });
+
+  it("no se puede conservar solo a algunos asistentes sin empezar la planilla", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
+
+    expect(() => {
+      planilla.conservarSoloA(() => true);
     }).toThrow("No hay una planilla de asistencia empezada");
     expect(planilla.existe()).toBe(false);
     expect(almacenamiento.leer()).toBeUndefined();

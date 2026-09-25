@@ -94,7 +94,7 @@ export class Aplicacion {
     this._asertarQueSoloLeFaltaPagar(nombre);
 
     this.cobrar(nombre, monto, fecha);
-    if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._planillaDeAsistencia.marcarComoPresente(nombre);
+    if (this._puedeAsistir(nombre)) this._planillaDeAsistencia.marcarComoPresente(nombre);
   }
 
   repartir(nombre: string, fecha: Date): void {
@@ -109,6 +109,7 @@ export class Aplicacion {
     const deshecho = this._bitacora.deshacer();
     this._guardar();
     deshecho.alDeshacerse(this);
+    this._desmarcarAQuienesNoPuedenAsistir();
   }
 
   recordarCreacionDeshecha(creacion: CrearGrupo): void {
@@ -143,6 +144,17 @@ export class Aplicacion {
     this._bitacora.ejecutar(comando);
     this._creacionDeshecha = undefined;
     this._guardar();
+  }
+
+  // La planilla no está en la bitácora: al deshacer puede quedar marcado quien ya no puede asistir.
+  private _desmarcarAQuienesNoPuedenAsistir(): void {
+    if (!this._planillaDeAsistencia.existe()) return;
+
+    this._planillaDeAsistencia.conservarSoloA((nombre) => this._puedeAsistir(nombre));
+  }
+
+  private _puedeAsistir(nombre: string): boolean {
+    return this.grupo().participanteActivo(nombre)?.puedeAsistir() ?? false;
   }
 
   private _asertarQueSoloLeFaltaPagar(nombre: string): void {

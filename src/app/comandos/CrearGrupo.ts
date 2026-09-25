@@ -28,6 +28,7 @@ export class CrearGrupo implements Comando {
 
   alDeshacerse(aplicacion: Aplicacion): void {
     aplicacion.recordarCreacionDeshecha(this);
+    aplicacion.planillaDeAsistencia().descartar();
   }
 
   nombreDelGrupo(): string {

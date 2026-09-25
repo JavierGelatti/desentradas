@@ -391,6 +391,59 @@ describe("Aplicacion", () => {
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
+    it("deshacer un cobro en la puerta desmarca a la persona, que vuelve a no poder asistir", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
+    });
+
+    it("deshacer el ingreso de un asistente desmarca a la persona, que ya no es participante", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.ingresarAsistente("carla", dia(3));
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(false);
+    });
+
+    it("deshacer un cobro desmarca a quien dejó de estar habilitado por el crédito aplicado", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.ingresar("carla", dia(2));
+      aplicacion.cerrarEvento(dia(3), ["carla"], ["ana", "beto"]);
+      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.cobrar("ana", 1000, dia(4)); // el crédito de beto por la falta de ana salda su deuda
+      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.planillaDeAsistencia().asiste("beto")).toBe(false);
+    });
+
+    it("deshacer no toca las marcas de quienes siguen pudiendo asistir", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.ingresarAsistente("carla", dia(3));
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
+    });
+
+    it("deshacer la creación del grupo descarta la planilla de asistencia", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.planillaDeAsistencia().empezar();
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+    });
+
     it("importar una bitácora descarta la planilla", () => {
       const exportado = aplicacionConDeudaDeAna().exportar();
       const aplicacion = aplicacionConGrupo();
