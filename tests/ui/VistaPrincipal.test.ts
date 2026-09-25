@@ -219,7 +219,7 @@ describe("VistaPrincipal", () => {
     expect(fila("ana")).toBeDefined();
   });
 
-  it("registrar un participante y reingresar a uno finalizado desde la pantalla de participantes se hacen con la fecha actual, y el reingreso sin confirmación", async () => {
+  it("registrar un participante y reingresar a uno finalizado desde la pantalla de participantes se hacen con la fecha actual", async () => {
     const almacenamientos = almacenamientosConGrupo();
     const preparacion = nuevaAplicacion(almacenamientos);
     preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
@@ -232,10 +232,23 @@ describe("VistaPrincipal", () => {
     completar("Nombre", "gus", dialogoAbierto());
     hacerClic("Registrar", dialogoAbierto());
     hacerClic("Reingresar", fila("ana"));
-    expect(document.querySelector("dialog[open]")).toBeNull();
 
     expect(aplicacion.grupo().participanteActivo("gus")?.historial().at(0)?.fecha()).toEqual(ahora());
     expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
+  });
+
+  it("reingresar desde la pantalla de participantes no pide confirmación", async () => {
+    const almacenamientos = almacenamientosConGrupo();
+    const preparacion = nuevaAplicacion(almacenamientos);
+    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+    const { aplicacion } = montar(almacenamientos);
+    await navegarA("Participantes");
+
+    hacerClic("Reingresar", fila("ana"));
+
+    expect(document.querySelector("dialog[open]")).toBeNull();
+    expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
   });
 
   it("cerrar el evento registra a los marcados como asistentes, incluso a quien pagó en la puerta, y descarta el borrador", () => {
