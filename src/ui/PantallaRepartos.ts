@@ -20,7 +20,7 @@ export class PantallaRepartos {
     anexar(
       this._seccion,
       crear("h2", {}, "Repartos"),
-      this._tablaDePendientes(),
+      this._tablaDePendientes() ?? crear("p", {}, "Todavía no hay nada que repartir"),
       desplegable("Repartos hechos", this._tablaDeRepartos()),
     );
     return this._seccion;

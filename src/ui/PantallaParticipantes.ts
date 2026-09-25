@@ -37,7 +37,7 @@ export class PantallaParticipantes {
     anexar(
       this._seccion,
       crear("h2", {}, "Participantes"),
-      this._tablaDeActivos(),
+      this._tablaDeActivos() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
         "p",
         {},

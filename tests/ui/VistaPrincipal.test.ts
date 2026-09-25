@@ -29,6 +29,12 @@ const almacenamientosConGrupo = () => {
   return almacenamientos;
 };
 
+const almacenamientosConGrupoSinParticipantes = () => {
+  const almacenamientos = nuevosAlmacenamientos();
+  nuevaAplicacion(almacenamientos).crearGrupo("Fútbol de los jueves", reglas());
+  return almacenamientos;
+};
+
 const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   const aplicacion = nuevaAplicacion(almacenamientos);
   const vista = new VistaPrincipal(aplicacion, almacenamientos.pantalla, ahora);
@@ -279,6 +285,26 @@ describe("VistaPrincipal", () => {
       expect(textoDe(fila("ana"))).toContain("moroso");
       expect(boton("Cobrar", fila("ana"))).toBeDefined();
     });
+
+    it("sin participaciones activas dice que todavía no hay nadie", async () => {
+      montar(almacenamientosConGrupoSinParticipantes());
+
+      await navegarA("Participantes");
+
+      expect(hayElementoConTexto("p", "Todavía no hay nadie")).toBe(true);
+      expect(document.querySelector("table")).toBeNull();
+    });
+  });
+
+  describe("pantalla de repartos", () => {
+    it("sin créditos pendientes dice que todavía no hay nada que repartir", async () => {
+      montar(almacenamientosConGrupoSinParticipantes());
+
+      await navegarA("Repartos");
+
+      expect(hayElementoConTexto("p", "Todavía no hay nada que repartir")).toBe(true);
+      expect(document.querySelector("table")).toBeNull();
+    });
   });
 
   describe("pantalla del evento", () => {
@@ -344,6 +370,15 @@ describe("VistaPrincipal", () => {
       expect(pantallaActual()).toBe("Evento");
       expect(casillaDeAsistencia("beto").checked).toBe(true);
       expect(casillaDeAsistencia("carla").checked).toBe(false);
+    });
+
+    it("sin posibles asistentes dice que todavía no hay nadie", async () => {
+      montar(almacenamientosConGrupoSinParticipantes());
+
+      await navegarA("Evento");
+
+      expect(hayElementoConTexto("p", "Todavía no hay nadie")).toBe(true);
+      expect(document.querySelector("table")).toBeNull();
     });
   });
 

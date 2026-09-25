@@ -25,7 +25,7 @@ export class PantallaEvento {
       "form",
       { onsubmit: (evento: Event) => this._pedirConfirmacion(evento) },
       this._campoDeFecha(),
-      this._tablaDeAsistencia(),
+      this._tablaDeAsistencia() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
         "p",
         {},
