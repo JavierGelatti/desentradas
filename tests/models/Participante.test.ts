@@ -17,7 +17,7 @@ const enDeuda = () => {
 
 const libreDeDeuda = () => {
   const ana = enDeuda();
-  ana.pago(dia(3), ana.deudaAl(dia(3)), lasReglas);
+  ana.pago(dia(3), ana.deudaAl(dia(3)), lasReglas, "efectivo");
   return ana;
 };
 
@@ -36,7 +36,7 @@ const moroso = () => {
 
 const finalizado = () => {
   const ana = moroso();
-  ana.pago(dia(16), ana.deudaAl(dia(16)), lasReglas);
+  ana.pago(dia(16), ana.deudaAl(dia(16)), lasReglas, "efectivo");
   return ana;
 };
 
@@ -119,7 +119,7 @@ describe("Participante", () => {
       const ana = nuevoParticipante();
 
       expect(() => {
-        ana.pago(dia(2), 1000, lasReglas);
+        ana.pago(dia(2), 1000, lasReglas, "efectivo");
       }).toThrow(TransicionInvalida);
     });
 
@@ -183,16 +183,30 @@ describe("Participante", () => {
     it("pagar el total lo deja libre de deuda", () => {
       const ana = enDeuda();
 
-      ana.pago(dia(3), 1000, lasReglas);
+      ana.pago(dia(3), 1000, lasReglas, "efectivo");
 
       expect(ana.estado()).toBe("libre de deuda");
       expect(ana.deudaAl(dia(4))).toBe(0);
     });
 
+    it("pagar produce un cobro a su nombre por el evento adeudado", () => {
+      const ana = nuevoParticipante();
+      const evento = nuevoEvento();
+      ana.falto(evento, lasReglas);
+
+      const cobro = ana.pago(dia(3), 400, lasReglas, "efectivo");
+
+      expect(cobro.deudor()).toBe("ana");
+      expect(cobro.monto()).toBe(400);
+      expect(cobro.fecha()).toEqual(dia(3));
+      expect(cobro.eventoFaltado()).toBe(evento);
+      expect(cobro.origen()).toBe("efectivo");
+    });
+
     it("pagar conserva la falta que originó la deuda", () => {
       const ana = enDeuda();
 
-      ana.pago(dia(3), 1000, lasReglas);
+      ana.pago(dia(3), 1000, lasReglas, "efectivo");
 
       expect(ana.faltas()).toBe(1);
     });
@@ -200,7 +214,7 @@ describe("Participante", () => {
     it("un pago parcial lo deja en deuda por el resto", () => {
       const ana = enDeuda();
 
-      ana.pago(dia(3), 400, lasReglas);
+      ana.pago(dia(3), 400, lasReglas, "efectivo");
 
       expect(ana.estado()).toBe("en deuda");
       expect(ana.deudaAl(dia(4))).toBe(600);
@@ -210,7 +224,7 @@ describe("Participante", () => {
       const ana = enDeuda();
 
       expect(() => {
-        ana.pago(dia(3), 1001, lasReglas);
+        ana.pago(dia(3), 1001, lasReglas, "efectivo");
       }).toThrow("El pago no puede superar la deuda");
       expect(ana.estado()).toBe("en deuda");
       expect(ana.historial()).toHaveLength(2);
@@ -253,7 +267,7 @@ describe("Participante", () => {
       const ana = enDeuda();
       const siguienteEvento = nuevoEvento({ asistentes: ["ana"] });
 
-      ana.pago(siguienteEvento.fecha(), 1000, lasReglas);
+      ana.pago(siguienteEvento.fecha(), 1000, lasReglas, "efectivo");
       ana.voy(siguienteEvento, lasReglas);
 
       expect(ana.estado()).toBe("participando");
@@ -291,7 +305,7 @@ describe("Participante", () => {
       const ana = libreDeDeuda();
 
       expect(() => {
-        ana.pago(dia(4), 1000, lasReglas);
+        ana.pago(dia(4), 1000, lasReglas, "efectivo");
       }).toThrow(TransicionInvalida);
     });
 
@@ -335,7 +349,7 @@ describe("Participante", () => {
       const ana = nuevoParticipante();
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
-      ana.pago(dia(10), 1000, lasReglas);
+      ana.pago(dia(10), 1000, lasReglas, "efectivo");
       ana.falto(nuevoEvento({ numero: 16 }), lasReglas);
       expect(ana.faltas()).toBe(2);
 
@@ -434,7 +448,7 @@ describe("Participante", () => {
     it("un pago parcial lo mantiene moroso por el resto", () => {
       const ana = moroso();
 
-      ana.pago(dia(16), 400, lasReglas);
+      ana.pago(dia(16), 400, lasReglas, "efectivo");
 
       expect(ana.estado()).toBe("moroso");
       expect(ana.deudaAl(dia(17))).toBe(600);
@@ -443,7 +457,7 @@ describe("Participante", () => {
     it("saldar la deuda finaliza la participación por pago de morosidad", () => {
       const ana = moroso();
 
-      ana.pago(dia(16), 1000, lasReglas);
+      ana.pago(dia(16), 1000, lasReglas, "efectivo");
 
       expect(ana.estado()).toBe("finalizado");
       expect(ana.motivoDeFinalizacion()).toBe("por pago de morosidad");
@@ -530,7 +544,7 @@ describe("Participante", () => {
       const ana = finalizado();
 
       expect(() => {
-        ana.pago(dia(23), 1000, lasReglas);
+        ana.pago(dia(23), 1000, lasReglas, "efectivo");
       }).toThrow(TransicionInvalida);
     });
   });
@@ -540,7 +554,7 @@ describe("Participante", () => {
       const ana = nuevoParticipante();
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
-      ana.pago(dia(10), 1000, lasReglas);
+      ana.pago(dia(10), 1000, lasReglas, "efectivo");
 
       const historial = ana.historial();
 
@@ -562,7 +576,7 @@ describe("Participante", () => {
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
 
-      ana.pago(dia(10), 1000, lasReglas);
+      ana.pago(dia(10), 1000, lasReglas, "efectivo");
 
       expect(ana.fechaDelUltimoCambio()).toEqual(dia(10));
     });
@@ -582,7 +596,7 @@ describe("Participante", () => {
     it("un pago parcial se registra como una transición al mismo estado", () => {
       const ana = enDeuda();
 
-      ana.pago(dia(3), 400, lasReglas);
+      ana.pago(dia(3), 400, lasReglas, "efectivo");
 
       expect(ana.historial().at(-1)!.describir()).toBe("pago: en deuda -> en deuda");
     });
@@ -591,7 +605,7 @@ describe("Participante", () => {
       const ana = nuevoParticipante();
 
       expect(() => {
-        ana.pago(dia(2), 1000, lasReglas);
+        ana.pago(dia(2), 1000, lasReglas, "efectivo");
       }).toThrow(TransicionInvalida);
 
       expect(ana.historial()).toHaveLength(1);

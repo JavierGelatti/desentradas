@@ -1,12 +1,11 @@
 import { Caja } from "./Caja.ts";
-import { Cobro, type OrigenDeCobro } from "./Cobro.ts";
+import type { OrigenDeCobro } from "./Cobro.ts";
 import type { Credito } from "./Credito.ts";
 import type { Desempate } from "./Desempate.ts";
 import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Reparto } from "./Reparto.ts";
 import { Participante } from "./Participante.ts";
-import { TransicionInvalida } from "./estados/TransicionInvalida.ts";
 
 export class Grupo {
   private _nombre: string;
@@ -191,11 +190,7 @@ export class Grupo {
   }
 
   private _cobrarYRepartir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
-    const eventoAdeudado = participante.eventoAdeudado();
-    if (eventoAdeudado === undefined) throw new TransicionInvalida("pago", participante.estado());
-
-    participante.pago(fecha, monto, this.reglasVigentesAl(fecha));
-    const cobro = new Cobro(participante.nombre(), monto, fecha, eventoAdeudado, origen);
+    const cobro = participante.pago(fecha, monto, this.reglasVigentesAl(fecha), origen);
     this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiElTitularDebe(credito, fecha));
   }
 

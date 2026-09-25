@@ -1,3 +1,4 @@
+import { Cobro, type OrigenDeCobro } from "../Cobro.ts";
 import type { Evento } from "../Evento.ts";
 import type { Reglas } from "../Reglas.ts";
 import type { Deuda } from "../Deuda.ts";
@@ -16,6 +17,10 @@ export abstract class ConDeuda extends Estado {
     if (!this._deuda.saldada()) return this;
 
     return this._estadoAlSaldar(reglas);
+  }
+
+  override cobroA(deudor: string, monto: number, fecha: Date, origen: OrigenDeCobro): Cobro {
+    return new Cobro(deudor, monto, fecha, this._deuda.eventoFaltado(), origen);
   }
 
   override faltas(): number {
