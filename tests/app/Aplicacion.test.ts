@@ -188,7 +188,7 @@ describe("Aplicacion", () => {
       aplicacion.deshacer();
 
       expect(aplicacion.grupo().eventos()).toEqual([]);
-      expect(aplicacion.ultimoComando()).toBeInstanceOf(Ingresar);
+      expect(aplicacion.comandos().at(-1)).toBeInstanceOf(Ingresar);
     });
 
     it("deshacer la creación del grupo la deja disponible para volver a cargarla", () => {
@@ -244,7 +244,7 @@ describe("Aplicacion", () => {
 
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(aplicacion.puedeDeshacer()).toBe(false);
-      expect(aplicacion.ultimoComando()).toBeUndefined();
+      expect(aplicacion.comandos()).toEqual([]);
     });
   });
 

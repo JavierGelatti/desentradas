@@ -130,10 +130,6 @@ export class Aplicacion {
     return this._bitacora.comandos();
   }
 
-  ultimoComando(): Comando | undefined {
-    return this._bitacora.ultimoComando();
-  }
-
   exportar(): string {
     return JSON.stringify(this._bitacora.aJson(), null, 2);
   }
