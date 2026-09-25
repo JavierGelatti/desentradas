@@ -1,4 +1,4 @@
-import type { BorradorDeEvento } from "../app/BorradorDeEvento.ts";
+import type { PlanillaDeAsistencia } from "../app/PlanillaDeAsistencia.ts";
 import type { Participante } from "../models/Participante.ts";
 import { campoDeFecha, campoDeTexto, controlDe } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
@@ -39,9 +39,12 @@ export class PantallaEvento {
   }
 
   private _campoDeFecha(): HTMLLabelElement {
-    const campo = campoDeFecha("Fecha y hora", "fecha", this._borrador().fecha());
+    const campo = campoDeFecha("Fecha y hora", "fecha", this._planillaDeAsistencia().fecha());
     controlDe(campo).addEventListener("change", () => {
-      intentar(() => this._borrador().cambiarFecha(desdeEntradaDeFecha(controlDe(campo).value)), this._errores);
+      intentar(
+        () => this._planillaDeAsistencia().cambiarFecha(desdeEntradaDeFecha(controlDe(campo).value)),
+        this._errores,
+      );
     });
     return campo;
   }
@@ -65,7 +68,7 @@ export class PantallaEvento {
       name: "asistentes",
       value: nombre,
       "aria-label": `Asiste ${nombre}`,
-      checked: this._borrador().asiste(nombre),
+      checked: this._planillaDeAsistencia().asiste(nombre),
       disabled: !participante.puedeAsistir(),
       onchange: () => this._marcar(nombre, casilla.checked),
     });
@@ -77,35 +80,35 @@ export class PantallaEvento {
     if (participante.necesitaPagarParaAsistir()) return boton("Cobrar y habilitar", () => this._abrirCobro(nombre));
 
     const pendiente = this._entorno.grupo().caja().montoPendienteDe(nombre);
-    if (this._borrador().asiste(nombre) && pendiente > 0) {
+    if (this._planillaDeAsistencia().asiste(nombre) && pendiente > 0) {
       return boton(`Repartir ${monto(pendiente)}`, () => this._repartir(nombre));
     }
 
     return false;
   }
 
-  private _borrador(): BorradorDeEvento {
-    return this._entorno.aplicacion().borrador();
+  private _planillaDeAsistencia(): PlanillaDeAsistencia {
+    return this._entorno.aplicacion().planillaDeAsistencia();
   }
 
   private _marcar(nombre: string, asiste: boolean): void {
     if (asiste) {
-      this._borrador().marcar(nombre);
+      this._planillaDeAsistencia().marcarComoPresente(nombre);
     } else {
-      this._borrador().desmarcar(nombre);
+      this._planillaDeAsistencia().desmarcarComoPresente(nombre);
     }
     this._entorno.refrescar();
   }
 
   private _abrirCobro(nombre: string): void {
-    new DialogoDeCobro(this._entorno, nombre, this._borrador().fecha(), (monto, fecha) =>
+    new DialogoDeCobro(this._entorno, nombre, this._planillaDeAsistencia().fecha(), (monto, fecha) =>
       this._entorno.aplicacion().cobrarEnLaPuerta(nombre, monto, fecha),
     ).abrirEn(this._seccion);
   }
 
   private _repartir(nombre: string): void {
     this._entorno.intentarYRefrescar(
-      () => this._entorno.aplicacion().repartir(nombre, this._borrador().fecha()),
+      () => this._entorno.aplicacion().repartir(nombre, this._planillaDeAsistencia().fecha()),
       this._errores,
     );
   }
@@ -118,10 +121,10 @@ export class PantallaEvento {
 
   private _pedirConfirmacion(evento: Event): void {
     evento.preventDefault();
-    const ausentes = this._entorno.aplicacion().ausentesDelBorrador().toSorted(alfabetico);
+    const ausentes = this._entorno.aplicacion().ausentesEnPlanillaDeAsistencia().toSorted(alfabetico);
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
     new Dialogo(this._entorno, "Cerrar evento", [crear("p", {}, aviso)], "Confirmar", () =>
-      this._entorno.aplicacion().cerrarElBorrador(),
+      this._entorno.aplicacion().cerrarEventoSegunPlanillaDeAsistencia(),
     ).abrirEn(this._seccion);
   }
 }

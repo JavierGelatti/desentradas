@@ -5,19 +5,19 @@ import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { aEntradaDeFecha } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
-import { ahora, nuevoBorrador } from "../app/factories.ts";
+import { ahora, nuevaPlanillaDeAsistencia } from "../app/factories.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
 
 const nuevosAlmacenamientos = () => ({
   bitacora: new AlmacenamientoEnMemoria(),
-  borrador: new AlmacenamientoEnMemoria(),
+  planilla: new AlmacenamientoEnMemoria(),
   pantalla: new AlmacenamientoEnMemoria(),
 });
 
 type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
 
 const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
-  new Aplicacion(almacenamientos.bitacora, desempate, nuevoBorrador(almacenamientos.borrador));
+  new Aplicacion(almacenamientos.bitacora, desempate, nuevaPlanillaDeAsistencia(almacenamientos.planilla));
 
 // ana faltó al primer evento y está en deuda; beto, carla y dani están participando.
 const almacenamientosConGrupo = () => {
@@ -282,7 +282,7 @@ describe("VistaPrincipal", () => {
   });
 
   describe("pantalla del evento", () => {
-    it("cerrar el evento registra a los marcados como asistentes, incluso a quien pagó en la puerta, y descarta el borrador", () => {
+    it("cerrar el evento registra a los marcados como presentes, incluso a quien pagó en la puerta, y descarta la planilla de asistencia", () => {
       const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
       expect(pantallaActual()).toBe("Evento");
 
@@ -303,7 +303,7 @@ describe("VistaPrincipal", () => {
       expect(evento.fecha()).toEqual(ahora());
       expect(evento.asistentes()).toEqual(new Set(["beto", "carla", "ana"]));
       expect(aplicacion.grupo().participanteActivo("dani")?.estado()).toBe("en deuda");
-      expect(almacenamientos.borrador.leer()).toBeUndefined();
+      expect(almacenamientos.planilla.leer()).toBeUndefined();
       expect(casillaDeAsistencia("beto").checked).toBe(false);
     });
 
@@ -332,7 +332,7 @@ describe("VistaPrincipal", () => {
       expect(textoDe(dialogoAbierto())).toContain("Nadie queda ausente.");
     });
 
-    it("el borrador del evento sobrevive a una recarga y vuelve a abrir la pantalla del evento", () => {
+    it("la planilla de asistencia sobrevive a una recarga y vuelve a abrir la pantalla del evento", () => {
       const almacenamientos = almacenamientosConGrupo();
       montar(almacenamientos);
       casillaDeAsistencia("beto").click();
@@ -375,7 +375,7 @@ describe("VistaPrincipal", () => {
   });
 
   describe("pantalla del historial", () => {
-    it("deshacer el cierre de un evento lo restaura como borrador", async () => {
+    it("deshacer el cierre de un evento restaura su planilla de asistencia", async () => {
       const { aplicacion } = montar(almacenamientosConGrupo());
       await navegarA("Historial");
       expect(pantallaActual()).toBe("Historial");
@@ -396,7 +396,7 @@ describe("VistaPrincipal", () => {
     it("deshacer otro comando mientras se arma un evento deja la pantalla del historial", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.borrador().marcar("beto");
+      preparacion.planillaDeAsistencia().marcarComoPresente("beto");
       preparacion.cobrar("ana", 500, dia(3));
       montar(almacenamientos);
       await navegarA("Historial");

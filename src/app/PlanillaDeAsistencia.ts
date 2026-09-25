@@ -1,9 +1,7 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { fecha as leerFecha, objeto, textos } from "./json/Campos.ts";
 
-// El evento que se está armando: su fecha y quiénes ya están marcados como asistentes.
-// Se guarda después de cada cambio para sobrevivir a una recarga.
-export class BorradorDeEvento {
+export class PlanillaDeAsistencia {
   private _almacenamiento: Almacenamiento;
   private _ahora: () => Date;
   private _fecha: Date | undefined;
@@ -44,13 +42,13 @@ export class BorradorDeEvento {
     this._guardar();
   }
 
-  marcar(nombre: string): void {
+  marcarComoPresente(nombre: string): void {
     this._empezarSiHaceFalta();
     this._asistentes.add(nombre);
     this._guardar();
   }
 
-  desmarcar(nombre: string): void {
+  desmarcarComoPresente(nombre: string): void {
     this._empezarSiHaceFalta();
     this._asistentes.delete(nombre);
     this._guardar();
@@ -70,13 +68,12 @@ export class BorradorDeEvento {
     this._almacenamiento.guardar(JSON.stringify({ fecha: this.fecha().toISOString(), asistentes: this.asistentes() }));
   }
 
-  // Un borrador guardado que no se puede leer se ignora: no vale la pena avisar por algo que se rehace en minutos.
   private _cargar(): void {
     const texto = this._almacenamiento.leer();
     if (texto === undefined) return;
 
     try {
-      const campos = objeto(JSON.parse(texto), "El borrador");
+      const campos = objeto(JSON.parse(texto), "La planilla de asistencia");
       this._fecha = leerFecha(campos, "fecha");
       this._asistentes = new Set(textos(campos, "asistentes"));
     } catch {

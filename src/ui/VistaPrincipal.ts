@@ -67,13 +67,13 @@ export class VistaPrincipal implements Entorno {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // Si lo deshecho dejó un evento en armado que antes no estaba (el cierre deshecho vuelve a ser borrador),
+  // Si lo deshecho dejó una planilla de asistencia que antes no había (deshacer un cierre la restaura),
   // se muestra la pantalla del evento; si no, se queda donde está.
   // La creación deshecha vuelve al formulario inicial con lo que se había cargado.
   deshacer(): void {
-    const habiaBorrador = this._aplicacion.borrador().existe();
+    const habiaPlanillaDeAsistencia = this._aplicacion.planillaDeAsistencia().existe();
     this._aplicacion.deshacer();
-    if (!habiaBorrador && this._aplicacion.borrador().existe()) {
+    if (!habiaPlanillaDeAsistencia && this._aplicacion.planillaDeAsistencia().existe()) {
       this._irA("evento");
     } else {
       this.refrescar();
@@ -81,7 +81,7 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _pantallaInicial(): NombreDePantalla {
-    if (this._aplicacion.borrador().existe()) return "evento";
+    if (this._aplicacion.planillaDeAsistencia().existe()) return "evento";
 
     const delHash = location.hash.slice(1);
     if (esNombreDePantalla(delHash)) return delHash;

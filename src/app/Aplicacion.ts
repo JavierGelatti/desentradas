@@ -1,6 +1,6 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { Bitacora } from "./Bitacora.ts";
-import type { BorradorDeEvento } from "./BorradorDeEvento.ts";
+import type { PlanillaDeAsistencia } from "./PlanillaDeAsistencia.ts";
 import type { Comando } from "./Comando.ts";
 import { CrearGrupo } from "./comandos/CrearGrupo.ts";
 import { Ingresar } from "./comandos/Ingresar.ts";
@@ -13,20 +13,18 @@ import type { Desempate } from "../models/Desempate.ts";
 import type { Grupo } from "../models/Grupo.ts";
 import type { Reglas } from "../models/Reglas.ts";
 
-// Fachada para la interfaz: las reglas viven en el modelo, el orden de los comandos en la bitácora
-// y el evento que se está armando en el borrador.
 export class Aplicacion {
   private _almacenamiento: Almacenamiento;
   private _desempate: Desempate;
-  private _borrador: BorradorDeEvento;
+  private _planillaDeAsistencia: PlanillaDeAsistencia;
   private _bitacora: Bitacora;
   private _avisoDeInicio: string | undefined;
   private _creacionDeshecha: CrearGrupo | undefined;
 
-  constructor(almacenamiento: Almacenamiento, desempate: Desempate, borrador: BorradorDeEvento) {
+  constructor(almacenamiento: Almacenamiento, desempate: Desempate, planillaDeAsistencia: PlanillaDeAsistencia) {
     this._almacenamiento = almacenamiento;
     this._desempate = desempate;
-    this._borrador = borrador;
+    this._planillaDeAsistencia = planillaDeAsistencia;
     this._bitacora = new Bitacora(desempate);
     this._avisoDeInicio = undefined;
     this._creacionDeshecha = undefined;
@@ -45,8 +43,8 @@ export class Aplicacion {
     return this._avisoDeInicio;
   }
 
-  borrador(): BorradorDeEvento {
-    return this._borrador;
+  planillaDeAsistencia(): PlanillaDeAsistencia {
+    return this._planillaDeAsistencia;
   }
 
   crearGrupo(nombreDelGrupo: string, reglasIniciales: Reglas): void {
@@ -67,26 +65,26 @@ export class Aplicacion {
 
   ingresarAsistente(nombre: string): void {
     const nombreLimpio = nombre.trim();
-    const fecha = this._borrador.fecha();
+    const fecha = this._planillaDeAsistencia.fecha();
     if (this.grupo().yaParticipo(nombreLimpio)) {
       this.reingresar(nombreLimpio, fecha);
     } else {
       this.ingresar(nombreLimpio, fecha);
     }
-    this._borrador.marcar(nombreLimpio);
+    this._planillaDeAsistencia.marcarComoPresente(nombreLimpio);
   }
 
-  // Solo para avisar: el modelo igual registra la falta a todos los activos, morosos incluidos.
-  ausentesDelBorrador(): string[] {
+  // Nota: el modelo igual registra la falta a todos los participantes activos, morosos incluidos.
+  ausentesEnPlanillaDeAsistencia(): string[] {
     return this.grupo()
       .posiblesAsistentes()
       .map((participante) => participante.nombre())
-      .filter((nombre) => !this._borrador.asiste(nombre));
+      .filter((nombre) => !this._planillaDeAsistencia.asiste(nombre));
   }
 
-  cerrarElBorrador(): void {
-    this.cerrarEvento(this._borrador.fecha(), this._borrador.asistentes());
-    this._borrador.descartar();
+  cerrarEventoSegunPlanillaDeAsistencia(): void {
+    this.cerrarEvento(this._planillaDeAsistencia.fecha(), this._planillaDeAsistencia.asistentes());
+    this._planillaDeAsistencia.descartar();
   }
 
   cobrar(nombre: string, monto: number, fecha: Date): void {
@@ -97,7 +95,7 @@ export class Aplicacion {
     this._asertarQueEstaEnDeuda(nombre);
 
     this.cobrar(nombre, monto, fecha);
-    if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._borrador.marcar(nombre);
+    if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._planillaDeAsistencia.marcarComoPresente(nombre);
   }
 
   repartir(nombre: string, fecha: Date): void {
@@ -135,11 +133,11 @@ export class Aplicacion {
   }
 
   // Se lee y ejecuta completa antes de reemplazar la bitácora actual: si falla, no cambia nada.
-  // El borrador era de otro grupo, así que se descarta.
+  // La planilla de asistencia era de otro grupo, así que se descarta.
   importar(texto: string): void {
     this._bitacora = this._bitacoraDesde(texto);
     this._guardar();
-    this._borrador.descartar();
+    this._planillaDeAsistencia.descartar();
   }
 
   private _ejecutar(comando: Comando): void {
