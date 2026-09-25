@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Credito } from "../../src/models/Credito.ts";
-import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
-import { Grupo } from "../../src/models/Grupo.ts";
 import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
-import { dia, nuevoEvento, reglas } from "./factories.ts";
-
-const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo(reglasIniciales, new DesempateAlfabetico());
+import { dia, nuevoEvento, nuevoGrupo, reglas } from "./factories.ts";
 
 const grupoConAnaFinalizada = () => {
   const grupo = nuevoGrupo();

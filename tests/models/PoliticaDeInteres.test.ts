@@ -11,6 +11,12 @@ describe("SinInteres", () => {
 });
 
 describe("InteresFijoPorDia", () => {
+  it("conoce su monto por día", () => {
+    const politica = new InteresFijoPorDia(10);
+
+    expect(politica.montoPorDia()).toBe(10);
+  });
+
   it("suma un monto fijo por cada día completo transcurrido", () => {
     const politica = new InteresFijoPorDia(10);
 
@@ -27,6 +33,12 @@ describe("InteresFijoPorDia", () => {
 });
 
 describe("InteresMensual", () => {
+  it("conoce su porcentaje", () => {
+    const politica = new InteresMensual(30);
+
+    expect(politica.porcentaje()).toBe(30);
+  });
+
   it("aplica un porcentaje mensual simple, prorrateado por día completo sobre una base de 30 días", () => {
     const politica = new InteresMensual(30);
 

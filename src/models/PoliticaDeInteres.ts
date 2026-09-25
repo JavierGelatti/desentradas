@@ -21,6 +21,10 @@ export class InteresFijoPorDia implements PoliticaDeInteres {
     this._montoPorDia = montoPorDia;
   }
 
+  montoPorDia(): number {
+    return this._montoPorDia;
+  }
+
   montoConInteres(monto: number, desde: Date, hasta: Date): number {
     return monto + diasCompletosEntre(desde, hasta) * this._montoPorDia;
   }
@@ -31,6 +35,10 @@ export class InteresMensual implements PoliticaDeInteres {
 
   constructor(porcentaje: number) {
     this._porcentaje = porcentaje;
+  }
+
+  porcentaje(): number {
+    return this._porcentaje;
   }
 
   montoConInteres(monto: number, desde: Date, hasta: Date): number {

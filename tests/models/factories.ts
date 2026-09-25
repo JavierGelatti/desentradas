@@ -1,5 +1,7 @@
 import { Cobro } from "../../src/models/Cobro.ts";
+import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
 import { Evento } from "../../src/models/Evento.ts";
+import { Grupo } from "../../src/models/Grupo.ts";
 import { Reglas } from "../../src/models/Reglas.ts";
 import { type PoliticaDeInteres, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
 
@@ -21,6 +23,10 @@ export const reglas = ({
   montoPorFalta?: number;
   politicaDeInteres?: PoliticaDeInteres;
 } = {}) => new Reglas(rigeDesde, toleranciaDeFaltas, montoPorFalta, politicaDeInteres);
+
+export const desempate = new DesempateAlfabetico();
+
+export const nuevoGrupo = (reglasIniciales = reglas()) => new Grupo(reglasIniciales, desempate);
 
 export const cobroEnEfectivo = ({
   deudor = "ana",

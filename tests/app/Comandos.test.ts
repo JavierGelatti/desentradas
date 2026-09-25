@@ -1,0 +1,224 @@
+import { describe, expect, it } from "vitest";
+import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
+import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
+import { Reingresar } from "../../src/app/comandos/Reingresar.ts";
+import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
+import { Cobrar } from "../../src/app/comandos/Cobrar.ts";
+import { Repartir } from "../../src/app/comandos/Repartir.ts";
+import { CambiarReglas } from "../../src/app/comandos/CambiarReglas.ts";
+import { comandoDesdeJson } from "../../src/app/json/ComandoJson.ts";
+import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
+import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "../models/factories.ts";
+
+describe("CrearGrupo", () => {
+  it("crear grupo crea el grupo con sus reglas iniciales", () => {
+    const reglasIniciales = reglas();
+    const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
+
+    const grupo = comando.ejecutar(undefined, desempate);
+
+    expect(grupo.reglas()).toBe(reglasIniciales);
+    expect(grupo.participantes()).toEqual([]);
+  });
+
+  it("crear grupo se convierte a JSON con el nombre del grupo y las reglas, y vuelve igual", () => {
+    const comando = new CrearGrupo("Fútbol de los jueves", reglas());
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({
+      tipo: "crear grupo",
+      nombreDelGrupo: "Fútbol de los jueves",
+      reglas: reglasAJson(reglas()),
+    });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+
+  it("no se puede crear el grupo si ya fue creado", () => {
+    const grupo = nuevoGrupo();
+    const comando = new CrearGrupo("Fútbol de los jueves", reglas());
+
+    expect(() => {
+      comando.ejecutar(grupo, desempate);
+    }).toThrow("El grupo ya fue creado");
+  });
+});
+
+describe("Ingresar", () => {
+  it("ingresar hace ingresar a la persona al grupo en la fecha indicada", () => {
+    const grupo = nuevoGrupo();
+    const comando = new Ingresar("ana", dia(1));
+
+    comando.ejecutar(grupo, desempate);
+
+    const ana = grupo.participanteActivo("ana");
+    expect(ana?.historial().at(0)?.fecha()).toEqual(dia(1));
+  });
+
+  it("ejecutar un comando sobre el grupo creado lo modifica y lo devuelve", () => {
+    const grupo = nuevoGrupo();
+    const comando = new Ingresar("ana", dia(1));
+
+    const resultado = comando.ejecutar(grupo, desempate);
+
+    expect(resultado).toBe(grupo);
+    expect(grupo.participanteActivo("ana")).toBeDefined();
+  });
+
+  it("ingresar se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+    const comando = new Ingresar("ana", dia(1));
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "ingresar", nombre: "ana", fecha: dia(1).toISOString() });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+
+  it("no se puede ejecutar un comando antes de crear el grupo", () => {
+    const comando = new Ingresar("ana", dia(1));
+
+    expect(() => {
+      comando.ejecutar(undefined, desempate);
+    }).toThrow("El grupo no está creado");
+  });
+});
+
+describe("Reingresar", () => {
+  it("reingresar hace reingresar a la persona al grupo en la fecha indicada", () => {
+    const grupo = nuevoGrupo();
+    const ana = grupo.ingresar("ana", dia(1));
+    grupo.ingresar("beto", dia(1));
+    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+    grupo.registrarPago("ana", 1000, dia(10));
+    expect(ana.estaActivo()).toBe(false);
+    const comando = new Reingresar("ana", dia(11));
+
+    comando.ejecutar(grupo, desempate);
+
+    expect(grupo.participanteActivo("ana")).toBe(ana);
+    expect(ana.historial().at(-1)?.fecha()).toEqual(dia(11));
+  });
+
+  it("reingresar se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+    const comando = new Reingresar("ana", dia(11));
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "reingresar", nombre: "ana", fecha: dia(11).toISOString() });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+});
+
+describe("CerrarEvento", () => {
+  it("cerrar un evento lo registra en el grupo con su fecha y sus asistentes", () => {
+    const grupo = nuevoGrupo();
+    grupo.ingresar("ana", dia(1));
+    grupo.ingresar("beto", dia(1));
+    const comando = new CerrarEvento(dia(2), ["beto"]);
+
+    comando.ejecutar(grupo, desempate);
+
+    const [evento] = grupo.eventos();
+    expect(evento.fecha()).toEqual(dia(2));
+    expect(evento.asistentes()).toEqual(new Set(["beto"]));
+    expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
+  });
+
+  it("un cierre de evento conoce su fecha y sus asistentes, para poder rearmar el borrador si se deshace", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
+
+    expect(comando.fecha()).toEqual(dia(2));
+    expect(comando.asistentes()).toEqual(["beto", "carla"]);
+  });
+
+  it("cerrar evento se convierte a JSON con la fecha en formato ISO y los asistentes, y vuelve igual", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "cerrar evento", fecha: dia(2).toISOString(), asistentes: ["beto", "carla"] });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+});
+
+describe("Cobrar", () => {
+  it("cobrar registra el pago de la persona por el monto y en la fecha indicados", () => {
+    const grupo = nuevoGrupo();
+    const ana = grupo.ingresar("ana", dia(1));
+    grupo.ingresar("beto", dia(1));
+    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    const comando = new Cobrar("ana", 400, dia(3));
+
+    comando.ejecutar(grupo, desempate);
+
+    expect(ana.deudaAl(dia(3))).toBe(600);
+    const [cobro] = grupo.caja().cobros();
+    expect(cobro.fecha()).toEqual(dia(3));
+  });
+
+  it("cobrar se convierte a JSON con el nombre, el monto y la fecha en formato ISO, y vuelve igual", () => {
+    const comando = new Cobrar("ana", 400, dia(3));
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "cobrar", nombre: "ana", monto: 400, fecha: dia(3).toISOString() });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+});
+
+describe("Repartir", () => {
+  it("repartir entrega los créditos pendientes de la persona en la fecha indicada", () => {
+    const grupo = nuevoGrupo();
+    grupo.ingresar("ana", dia(1));
+    grupo.ingresar("beto", dia(1));
+    grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    grupo.registrarPago("ana", 1000, dia(3));
+    const comando = new Repartir("beto", dia(4));
+
+    comando.ejecutar(grupo, desempate);
+
+    expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
+    const [reparto] = grupo.caja().repartos();
+    expect(reparto.fecha()).toEqual(dia(4));
+  });
+
+  it("repartir se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+    const comando = new Repartir("beto", dia(4));
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "repartir", nombre: "beto", fecha: dia(4).toISOString() });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+});
+
+describe("CambiarReglas", () => {
+  it("cambiar las reglas cambia las reglas del grupo", () => {
+    const grupo = nuevoGrupo();
+    const nuevasReglas = reglas({ rigeDesde: dia(4) });
+    const comando = new CambiarReglas(nuevasReglas);
+
+    comando.ejecutar(grupo, desempate);
+
+    expect(grupo.reglas()).toBe(nuevasReglas);
+  });
+
+  it("cambiar reglas se convierte a JSON con las reglas y vuelve igual", () => {
+    const nuevasReglas = reglas({ rigeDesde: dia(4) });
+    const comando = new CambiarReglas(nuevasReglas);
+
+    const json = comando.aJson();
+
+    expect(json).toEqual({ tipo: "cambiar reglas", reglas: reglasAJson(nuevasReglas) });
+    expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+});
+
+describe("Comandos en JSON", () => {
+  it("no se puede leer un comando de tipo desconocido", () => {
+    expect(() => {
+      comandoDesdeJson({ tipo: "expulsar", nombre: "ana" });
+    }).toThrow('Formato inválido: comando desconocido "expulsar"');
+  });
+});
