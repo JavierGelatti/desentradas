@@ -3,7 +3,7 @@ import type { Aplicacion } from "../app/Aplicacion.ts";
 import { CerrarEvento } from "../app/comandos/CerrarEvento.ts";
 import { CrearGrupo } from "../app/comandos/CrearGrupo.ts";
 import type { Grupo } from "../models/Grupo.ts";
-import { crear } from "./dom.ts";
+import { crear, intentar } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { PantallaDeInicio } from "./PantallaDeInicio.ts";
 import { PantallaEvento } from "./PantallaEvento.ts";
@@ -65,6 +65,11 @@ export class VistaPrincipal implements Entorno {
 
     if (this._aplicacion.tieneGrupo()) this._creacionDeshecha = undefined;
     this._raiz.replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
+  }
+
+  // Si la acción falla, el mensaje queda en la alerta de la pantalla y no se vuelve a dibujar nada.
+  intentarYRefrescar(accion: () => void, errores: HTMLOutputElement): void {
+    if (intentar(accion, errores)) this.refrescar();
   }
 
   // Deshacer un cierre de evento lleva a la pantalla del evento, donde queda restaurado como borrador,

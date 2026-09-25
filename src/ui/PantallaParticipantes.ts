@@ -2,7 +2,7 @@ import type { Participante } from "../models/Participante.ts";
 import { campoDeTexto } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { alerta, anexar, boton, crear, desplegable, fila, intentar, tabla, valorDe } from "./dom.ts";
+import { alerta, anexar, boton, crear, desplegable, fila, tabla, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { monto } from "./Formato.ts";
 import { porNombre } from "./Orden.ts";
@@ -110,9 +110,8 @@ export class PantallaParticipantes {
 
   // El reingreso no se confirma: se hace en el momento, y si el modelo lo rechaza se avisa junto a la tabla.
   private _reingresar(nombre: string): void {
-    const reingresado = intentar(() => {
+    this._entorno.intentarYRefrescar(() => {
       this._entorno.aplicacion().reingresar(nombre, this._entorno.ahora());
     }, this._erroresDeReingreso);
-    if (reingresado) this._entorno.refrescar();
   }
 }

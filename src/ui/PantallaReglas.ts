@@ -1,5 +1,5 @@
 import type { Reglas } from "../models/Reglas.ts";
-import { alerta, crear, desplegable, fila, intentar, tabla } from "./dom.ts";
+import { alerta, crear, desplegable, fila, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, describirInteres, reglasDesde } from "./FormularioDeReglas.ts";
 import { fechaYHora, monto } from "./Formato.ts";
@@ -55,10 +55,9 @@ export class PantallaReglas {
 
   private _cambiar(evento: Event, formulario: HTMLFormElement): void {
     evento.preventDefault();
-    const cambiadas = intentar(() => {
+    this._entorno.intentarYRefrescar(() => {
       this._entorno.aplicacion().cambiarReglas(reglasDesde(formulario, this._entorno.ahora()));
     }, this._errores);
-    if (cambiadas) this._entorno.refrescar();
   }
 
   private _tablaDeVersiones(): HTMLTableElement | undefined {

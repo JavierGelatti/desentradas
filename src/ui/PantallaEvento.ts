@@ -104,11 +104,10 @@ export class PantallaEvento {
   }
 
   private _repartir(nombre: string): void {
-    const repartido = intentar(
+    this._entorno.intentarYRefrescar(
       () => this._entorno.aplicacion().repartir(nombre, this._borrador().fecha()),
       this._errores,
     );
-    if (repartido) this._entorno.refrescar();
   }
 
   private _abrirIngreso(): void {

@@ -7,5 +7,6 @@ export interface Entorno {
   grupo(): Grupo;
   ahora(): Date;
   refrescar(): void;
+  intentarYRefrescar(accion: () => void, errores: HTMLOutputElement): void;
   deshacer(): void;
 }

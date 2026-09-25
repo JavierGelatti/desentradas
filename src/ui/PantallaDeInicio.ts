@@ -1,6 +1,6 @@
 import type { CrearGrupo } from "../app/comandos/CrearGrupo.ts";
 import { campoDeTexto } from "./Campos.ts";
-import { alerta, crear, intentar, valorDe } from "./dom.ts";
+import { alerta, crear, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
 
@@ -36,10 +36,9 @@ export class PantallaDeInicio {
 
   private _crearGrupo(evento: Event, formulario: HTMLFormElement, errores: HTMLOutputElement): void {
     evento.preventDefault();
-    const creado = intentar(() => {
+    this._entorno.intentarYRefrescar(() => {
       const reglas = reglasDesde(formulario, this._entorno.ahora());
       this._entorno.aplicacion().crearGrupo(valorDe(formulario, "nombreDelGrupo"), reglas);
     }, errores);
-    if (creado) this._entorno.refrescar();
   }
 }
