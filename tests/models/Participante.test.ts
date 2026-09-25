@@ -64,6 +64,18 @@ describe("Participante", () => {
       expect(ana.esPosibleAsistente()).toBe(true);
     });
 
+    it("está al día", () => {
+      const ana = nuevoParticipante();
+
+      expect(ana.estaAlDia()).toBe(true);
+    });
+
+    it("no necesita pagar para asistir", () => {
+      const ana = nuevoParticipante();
+
+      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+    });
+
     it("ir a un evento lo mantiene participando", () => {
       const ana = nuevoParticipante();
 
@@ -146,6 +158,18 @@ describe("Participante", () => {
       const ana = enDeuda();
 
       expect(ana.puedeAsistir()).toBe(false);
+    });
+
+    it("necesita pagar para asistir", () => {
+      const ana = enDeuda();
+
+      expect(ana.necesitaPagarParaAsistir()).toBe(true);
+    });
+
+    it("no está al día", () => {
+      const ana = enDeuda();
+
+      expect(ana.estaAlDia()).toBe(false);
     });
 
     it("no puede ir a un evento mientras deba", () => {
@@ -243,6 +267,18 @@ describe("Participante", () => {
       const ana = libreDeDeuda();
 
       expect(ana.puedeAsistir()).toBe(true);
+    });
+
+    it("no necesita pagar para asistir", () => {
+      const ana = libreDeDeuda();
+
+      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+    });
+
+    it("no está al día, porque se le cuentan las faltas", () => {
+      const ana = libreDeDeuda();
+
+      expect(ana.estaAlDia()).toBe(false);
     });
 
     it("sus acciones posibles son ir y faltar", () => {
@@ -346,6 +382,18 @@ describe("Participante", () => {
       expect(ana.esPosibleAsistente()).toBe(false);
     });
 
+    it("no necesita pagar para asistir, porque no puede asistir ni pagando", () => {
+      const ana = moroso();
+
+      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+    });
+
+    it("no está al día", () => {
+      const ana = moroso();
+
+      expect(ana.estaAlDia()).toBe(false);
+    });
+
     it("no puede ir a un evento", () => {
       const ana = moroso();
 
@@ -442,6 +490,18 @@ describe("Participante", () => {
       expect(ana.estado()).toBe("participando");
       expect(ana.faltas()).toBe(0);
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
+    });
+
+    it("no necesita pagar para asistir", () => {
+      const ana = finalizado();
+
+      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+    });
+
+    it("no está al día", () => {
+      const ana = finalizado();
+
+      expect(ana.estaAlDia()).toBe(false);
     });
 
     it("no es un posible asistente", () => {

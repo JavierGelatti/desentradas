@@ -45,6 +45,14 @@ export abstract class Estado {
     return this.puedeAsistir();
   }
 
+  necesitaPagarParaAsistir(): boolean {
+    return false;
+  }
+
+  estaAlDia(): boolean {
+    return false;
+  }
+
   estaActivo(): boolean {
     return true;
   }

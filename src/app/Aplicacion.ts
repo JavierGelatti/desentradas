@@ -144,7 +144,7 @@ export class Aplicacion {
 
   private _asertarQueEstaEnDeuda(nombre: string): void {
     const participante = this.grupo().participanteActivo(nombre);
-    if (participante !== undefined && participante.estado() !== "en deuda") {
+    if (participante !== undefined && !participante.necesitaPagarParaAsistir()) {
       throw new Error(`${nombre} no está en deuda`);
     }
   }

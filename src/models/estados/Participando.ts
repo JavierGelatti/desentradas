@@ -20,4 +20,8 @@ export class Participando extends Estado {
   override puedeAsistir(): boolean {
     return true;
   }
+
+  override estaAlDia(): boolean {
+    return true;
+  }
 }

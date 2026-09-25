@@ -19,6 +19,10 @@ export class EnDeuda extends ConDeuda {
     return true;
   }
 
+  override necesitaPagarParaAsistir(): boolean {
+    return true;
+  }
+
   protected _estadoAlSaldar(reglas: Reglas): Estado {
     return LibreDeDeuda.oFinalizadoPorFaltas(this.faltas(), reglas);
   }

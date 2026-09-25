@@ -9,13 +9,13 @@ import { porNombre } from "./Orden.ts";
 
 const ultimoCambioDe = (participante: Participante) => participante.fechaDelUltimoCambio().getTime();
 
-// Primero quienes requieren atención (los que no están participando), del cambio más reciente al más antiguo;
-// después los que están participando, por nombre.
+// Primero quienes requieren atención (los que no están al día), del cambio más reciente al más antiguo;
+// después los que están al día, por nombre.
 const porAtencionYNombre = (uno: Participante, otro: Participante): number => {
-  const unoParticipa = uno.estado() === "participando";
-  const otroParticipa = otro.estado() === "participando";
-  if (unoParticipa !== otroParticipa) return unoParticipa ? 1 : -1;
-  if (!unoParticipa && ultimoCambioDe(uno) !== ultimoCambioDe(otro)) {
+  const unoAlDia = uno.estaAlDia();
+  const otroAlDia = otro.estaAlDia();
+  if (unoAlDia !== otroAlDia) return unoAlDia ? 1 : -1;
+  if (!unoAlDia && ultimoCambioDe(uno) !== ultimoCambioDe(otro)) {
     return ultimoCambioDe(otro) - ultimoCambioDe(uno);
   }
 

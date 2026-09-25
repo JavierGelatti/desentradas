@@ -63,6 +63,14 @@ export class Participante {
     return this._estado.esPosibleAsistente();
   }
 
+  necesitaPagarParaAsistir(): boolean {
+    return this._estado.necesitaPagarParaAsistir();
+  }
+
+  estaAlDia(): boolean {
+    return this._estado.estaAlDia();
+  }
+
   estaActivo(): boolean {
     return this._estado.estaActivo();
   }
