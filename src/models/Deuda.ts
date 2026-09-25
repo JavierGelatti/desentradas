@@ -1,6 +1,5 @@
 import type { Evento } from "./Evento.ts";
 import type { PoliticaDeInteres } from "./PoliticaDeInteres.ts";
-import type { Reglas } from "./Reglas.ts";
 
 export class Deuda {
   private _monto: number;
@@ -9,11 +8,7 @@ export class Deuda {
   private _enMoraDesde: Date | undefined;
   private _ultimoPago: Date | undefined;
 
-  static porFaltarA(evento: Evento, reglas: Reglas): Deuda {
-    return new Deuda(reglas.montoPorFalta(), evento, reglas.politicaDeInteres());
-  }
-
-  private constructor(monto: number, eventoFaltado: Evento, politicaDeInteres: PoliticaDeInteres) {
+  constructor(monto: number, eventoFaltado: Evento, politicaDeInteres: PoliticaDeInteres) {
     this._monto = monto;
     this._eventoFaltado = eventoFaltado;
     this._politicaDeInteres = politicaDeInteres;

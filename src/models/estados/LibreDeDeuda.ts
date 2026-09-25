@@ -8,7 +8,7 @@ export class LibreDeDeuda extends Estado {
   private _faltas: number;
 
   static oFinalizadoPorFaltas(faltas: number, reglas: Reglas): Estado {
-    if (faltas > reglas.toleranciaDeFaltas()) return new Finalizado("por faltas");
+    if (reglas.superaLaTolerancia(faltas)) return new Finalizado("por faltas");
     return new LibreDeDeuda(faltas);
   }
 

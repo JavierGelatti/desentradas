@@ -1,19 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { Deuda } from "../../src/models/Deuda.ts";
-import { dia, nuevoEvento, reglas } from "./factories.ts";
+import { dia, nuevoEvento } from "./factories.ts";
 import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 
 const montoPorFalta = 1000;
 const interesDiario = 10;
 
-const lasReglas = reglas({ montoPorFalta, politicaDeInteres: new InteresFijoPorDia(interesDiario) });
-
-const nuevaDeuda = () => Deuda.porFaltarA(nuevoEvento(), lasReglas);
+const nuevaDeuda = (evento = nuevoEvento()) => new Deuda(montoPorFalta, evento, new InteresFijoPorDia(interesDiario));
 
 describe("Deuda", () => {
-  it("se origina por faltar a un evento, por el monto por falta de las reglas", () => {
+  it("se origina por faltar a un evento, por un monto, y no nace en mora", () => {
     const evento = nuevoEvento();
-    const deuda = Deuda.porFaltarA(evento, lasReglas);
+    const deuda = nuevaDeuda(evento);
 
     expect(deuda.monto()).toBe(montoPorFalta);
     expect(deuda.eventoFaltado()).toBe(evento);

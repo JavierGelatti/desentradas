@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Reglas } from "../../src/models/Reglas.ts";
-import { SinInteres } from "../../src/models/PoliticaDeInteres.ts";
-import { dia } from "./factories.ts";
+import { InteresFijoPorDia, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
+import { dia, nuevoEvento } from "./factories.ts";
 
 describe("Reglas", () => {
   it("la tolerancia de faltas debe ser al menos 1", () => {
@@ -24,5 +24,32 @@ describe("Reglas", () => {
     expect(reglas.toleranciaDeFaltas()).toBe(2);
     expect(reglas.montoPorFalta()).toBe(1000);
     expect(reglas.politicaDeInteres()).toBe(politica);
+  });
+
+  it("se supera la tolerancia con más faltas que las toleradas", () => {
+    const reglas = new Reglas(dia(1), 2, 1000, new SinInteres());
+
+    expect(reglas.superaLaTolerancia(2)).toBe(false);
+    expect(reglas.superaLaTolerancia(3)).toBe(true);
+  });
+
+  it("la deuda por faltar a un evento es por el monto por falta", () => {
+    const reglas = new Reglas(dia(1), 2, 1000, new SinInteres());
+    const evento = nuevoEvento();
+
+    const deuda = reglas.deudaPorFaltarA(evento);
+
+    expect(deuda.monto()).toBe(1000);
+    expect(deuda.eventoFaltado()).toBe(evento);
+    expect(deuda.estaEnMora()).toBe(false);
+  });
+
+  it("la deuda por faltar a un evento acumula interés en mora según la política de interés", () => {
+    const reglas = new Reglas(dia(1), 2, 1000, new InteresFijoPorDia(10));
+    const deuda = reglas.deudaPorFaltarA(nuevoEvento());
+
+    deuda.entrarEnMora(dia(8));
+
+    expect(deuda.montoAl(dia(11))).toBe(1030);
   });
 });
