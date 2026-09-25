@@ -59,8 +59,8 @@ export class Aplicacion {
     this._ejecutar(new Reingresar(nombre, fecha));
   }
 
-  cerrarEvento(fecha: Date, asistentes: Iterable<string>): void {
-    this._ejecutar(new CerrarEvento(fecha, asistentes));
+  cerrarEvento(fecha: Date, asistentes: Iterable<string>, ausentes: Iterable<string>): void {
+    this._ejecutar(new CerrarEvento(fecha, asistentes, ausentes));
   }
 
   ingresarAsistente(nombre: string): void {
@@ -83,7 +83,11 @@ export class Aplicacion {
   }
 
   cerrarEventoSegunPlanillaDeAsistencia(): void {
-    this.cerrarEvento(this._planillaDeAsistencia.fecha(), this._planillaDeAsistencia.asistentes());
+    this.cerrarEvento(
+      this._planillaDeAsistencia.fecha(),
+      this._planillaDeAsistencia.asistentes(),
+      this.ausentesEnPlanillaDeAsistencia(),
+    );
     this._planillaDeAsistencia.descartar();
   }
 

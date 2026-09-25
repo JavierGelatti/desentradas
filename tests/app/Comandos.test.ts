@@ -134,7 +134,7 @@ describe("CerrarEvento", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
-    const comando = new CerrarEvento(dia(2), ["beto"]);
+    const comando = new CerrarEvento(dia(2), ["beto"], ["ana"]);
 
     comando.ejecutar(grupo, desempate);
 
@@ -144,13 +144,35 @@ describe("CerrarEvento", () => {
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 
-  it("se convierte a JSON con la fecha en formato ISO y los asistentes, y vuelve igual", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
+  it("recuerda a los posibles asistentes que no vinieron", () => {
+    const comando = new CerrarEvento(dia(2), ["beto"], ["ana", "carla"]);
+
+    const ausentes = comando.ausentes();
+
+    expect(ausentes).toEqual(["ana", "carla"]);
+  });
+
+  it("se convierte a JSON con la fecha en formato ISO, los asistentes y los ausentes, y vuelve igual", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla"], ["ana"]);
 
     const json = comando.aJson();
 
-    expect(json).toEqual({ tipo: "cerrar evento", fecha: dia(2).toISOString(), asistentes: ["beto", "carla"] });
+    expect(json).toEqual({
+      tipo: "cerrar evento",
+      fecha: dia(2).toISOString(),
+      asistentes: ["beto", "carla"],
+      ausentes: ["ana"],
+    });
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+
+  it("un cierre guardado antes de recordar a los ausentes se lee sin conocerlos, y vuelve igual", () => {
+    const json = { tipo: "cerrar evento", fecha: dia(2).toISOString(), asistentes: ["beto"] };
+
+    const comando = comandoDesdeJson(json) as CerrarEvento;
+
+    expect(comando.ausentes()).toBeUndefined();
+    expect(comando.aJson()).toEqual(json);
   });
 });
 
@@ -257,11 +279,29 @@ describe("Descripción de los comandos", () => {
     expect(comando.describir()).toBe("Reingreso de ana");
   });
 
-  it("cerrar evento lleva la fecha del evento y se describe con sus asistentes", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
+  it("cerrar evento lleva la fecha del evento y se describe con cuántos vinieron de los posibles asistentes", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla", "dani"], ["ana"]);
 
     expect(comando.fecha()).toEqual(dia(2));
-    expect(comando.describir()).toBe("Evento con beto, carla");
+    expect(comando.describir()).toBe("3/4 presentes");
+  });
+
+  it("un cierre con un solo asistente de varios posibles se describe en plural, porque cuenta sobre el total", () => {
+    const comando = new CerrarEvento(dia(2), ["beto"], ["ana", "carla", "dani"]);
+
+    expect(comando.describir()).toBe("1/4 presentes");
+  });
+
+  it("un cierre sin ausentes conocidos se describe sólo con cuántos vinieron", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla", "dani"], undefined);
+
+    expect(comando.describir()).toBe("3 presentes");
+  });
+
+  it("un cierre sin ausentes conocidos y con un solo asistente se describe en singular", () => {
+    const comando = new CerrarEvento(dia(2), ["beto"], undefined);
+
+    expect(comando.describir()).toBe("1 presente");
   });
 
   it("cobrar lleva la fecha del cobro y se describe con el monto y el nombre", () => {

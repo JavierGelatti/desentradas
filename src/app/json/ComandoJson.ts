@@ -13,7 +13,7 @@ export type ComandoJson =
   | { tipo: "crear grupo"; nombreDelGrupo: string; reglas: ReglasJson }
   | { tipo: "ingresar"; nombre: string; fecha: string }
   | { tipo: "reingresar"; nombre: string; fecha: string }
-  | { tipo: "cerrar evento"; fecha: string; asistentes: readonly string[] }
+  | { tipo: "cerrar evento"; fecha: string; asistentes: readonly string[]; ausentes?: readonly string[] }
   | { tipo: "cobrar"; nombre: string; monto: number; fecha: string }
   | { tipo: "repartir"; nombre: string; fecha: string }
   | { tipo: "cambiar reglas"; reglas: ReglasJson };

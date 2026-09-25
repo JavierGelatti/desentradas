@@ -30,7 +30,7 @@ const almacenamientosConGrupo = () => {
   const almacenamientos = almacenamientosConGrupoSinParticipantes();
   const aplicacion = nuevaAplicacion(almacenamientos);
   ["ana", "beto", "carla", "dani"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
-  aplicacion.cerrarEvento(dia(2), ["beto", "carla", "dani"]);
+  aplicacion.cerrarEvento(dia(2), ["beto", "carla", "dani"], ["ana"]);
   return almacenamientos;
 };
 
@@ -155,7 +155,7 @@ describe("VistaPrincipal", () => {
     expect(hayDesplegable("Versiones anteriores")).toBe(false);
 
     const preparacion = nuevaAplicacion(almacenamientos);
-    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
     preparacion.cobrar("ana", 1000, dia(4));
     document.body.replaceChildren();
     montar(almacenamientos);
@@ -239,7 +239,7 @@ describe("VistaPrincipal", () => {
     it("registrar un participante y reingresar a uno finalizado se fechan en el momento en que se hacen", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
       preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Participantes");
@@ -257,7 +257,7 @@ describe("VistaPrincipal", () => {
     it("reingresar no pide confirmación", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
       preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Participantes");
@@ -270,7 +270,7 @@ describe("VistaPrincipal", () => {
 
     it("se puede cobrar a un moroso, y sigue en la tabla mientras deba", async () => {
       const almacenamientos = almacenamientosConGrupo();
-      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Participantes");
       expect(textoDe(fila("ana"))).toContain("moroso");
@@ -336,7 +336,7 @@ describe("VistaPrincipal", () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.ingresar("eva", dia(2));
-      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]); // ana queda morosa y eva en deuda
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana", "eva"]); // ana queda morosa y eva en deuda
       montar(almacenamientos);
 
       casillaDeAsistencia("beto").click();
@@ -348,7 +348,7 @@ describe("VistaPrincipal", () => {
 
     it("si sólo quedan sin marcar los morosos, la confirmación del cierre dice que nadie queda ausente", () => {
       const almacenamientos = almacenamientosConGrupo();
-      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
       montar(almacenamientos);
 
       ["beto", "carla", "dani"].forEach((nombre) => casillaDeAsistencia(nombre).click());

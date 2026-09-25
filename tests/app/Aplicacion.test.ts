@@ -3,6 +3,7 @@ import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.t
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
+import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
 import { nuevaPlanillaDeAsistencia } from "./factories.ts";
@@ -20,13 +21,13 @@ const aplicacionConDeudaDeAna = (almacenamiento = new AlmacenamientoEnMemoria())
   const aplicacion = aplicacionConGrupo(almacenamiento);
   aplicacion.ingresar("ana", dia(1));
   aplicacion.ingresar("beto", dia(1));
-  aplicacion.cerrarEvento(dia(2), ["beto"]);
+  aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
   return aplicacion;
 };
 
 const aplicacionConAnaMorosa = (almacenamiento = new AlmacenamientoEnMemoria()) => {
   const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
-  aplicacion.cerrarEvento(dia(3), ["beto"]);
+  aplicacion.cerrarEvento(dia(3), ["beto"], ["ana"]);
   return aplicacion;
 };
 
@@ -123,7 +124,7 @@ describe("Aplicacion", () => {
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
 
-      aplicacion.cerrarEvento(dia(2), ["beto"]);
+      aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
 
       expect(aplicacion.grupo().eventos()).toHaveLength(1);
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
@@ -149,7 +150,7 @@ describe("Aplicacion", () => {
 
     it("reingresar vuelve a dejar como participante activo a quien ya participó", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.cerrarEvento(dia(9), ["beto"]);
+      aplicacion.cerrarEvento(dia(9), ["beto"], ["ana"]);
       aplicacion.cobrar("ana", 1000, dia(10));
       expect(aplicacion.grupo().participanteActivo("ana")).toBeUndefined();
 
@@ -261,6 +262,18 @@ describe("Aplicacion", () => {
       const [evento] = aplicacion.grupo().eventos();
       expect(evento.fecha()).toEqual(dia(3));
       expect(evento.asistentes()).toEqual(new Set(["beto"]));
+    });
+
+    it("cerrar el evento según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
+      const aplicacion = aplicacionConGrupo();
+      ["ana", "beto", "carla"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
+      aplicacion.planillaDeAsistencia().cambiarFecha(dia(3));
+      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+
+      aplicacion.cerrarEventoSegunPlanillaDeAsistencia();
+
+      const cierre = aplicacion.comandos().at(-1) as CerrarEvento;
+      expect(cierre.ausentes()).toEqual(["ana", "carla"]);
     });
 
     it("cerrar el evento según la planilla la descarta", () => {
