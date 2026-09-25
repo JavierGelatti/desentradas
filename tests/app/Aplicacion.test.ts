@@ -177,16 +177,30 @@ describe("Aplicacion", () => {
   });
 
   describe("deshacer", () => {
-    it("deshacer devuelve el último comando, reconstruye el grupo sin él y deja guardada la bitácora", () => {
-      const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
+    it("deshacer deja el grupo como estaba antes del último comando", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.grupo().eventos()).toEqual([]);
+      expect(aplicacion.ultimoComando()).toBeInstanceOf(Ingresar);
+    });
+
+    it("deshacer devuelve el comando deshecho", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
 
       const deshecho = aplicacion.deshacer();
 
       expect(deshecho).toBeInstanceOf(CerrarEvento);
-      expect(aplicacion.grupo().eventos()).toEqual([]);
+    });
+
+    it("deshacer deja guardada la bitácora", () => {
+      const almacenamiento = new AlmacenamientoEnMemoria();
+      const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
+
+      aplicacion.deshacer();
+
       expect(almacenamiento.leer()).toBe(aplicacion.exportar());
-      expect(aplicacion.ultimoComando()).toBeInstanceOf(Ingresar);
     });
 
     it("se puede deshacer mientras haya comandos, incluida la creación del grupo", () => {
@@ -202,7 +216,7 @@ describe("Aplicacion", () => {
   });
 
   describe("borrador del evento", () => {
-    it("cerrar el borrador registra el evento con su fecha y sus asistentes, y lo descarta", () => {
+    it("cerrar el borrador registra el evento con su fecha y sus asistentes", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
@@ -214,6 +228,17 @@ describe("Aplicacion", () => {
       const [evento] = aplicacion.grupo().eventos();
       expect(evento.fecha()).toEqual(dia(3));
       expect(evento.asistentes()).toEqual(new Set(["beto"]));
+    });
+
+    it("cerrar el borrador lo descarta", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.ingresar("ana", dia(1));
+      aplicacion.ingresar("beto", dia(1));
+      aplicacion.borrador().cambiarFecha(dia(3));
+      aplicacion.borrador().marcar("beto");
+
+      aplicacion.cerrarElBorrador();
+
       expect(aplicacion.borrador().existe()).toBe(false);
     });
 
@@ -332,10 +357,9 @@ describe("Aplicacion", () => {
       });
     });
 
-    it("importar reemplaza la bitácora por la importada y la deja guardada", () => {
+    it("importar reemplaza la bitácora por la importada", () => {
       const exportado = aplicacionConDeudaDeAna().exportar();
-      const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(almacenamiento);
+      const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("carla", dia(1));
 
       aplicacion.importar(exportado);
@@ -343,6 +367,16 @@ describe("Aplicacion", () => {
       expect(aplicacion.exportar()).toBe(exportado);
       expect(aplicacion.grupo().participanteActivo("carla")).toBeUndefined();
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
+    });
+
+    it("importar deja guardada la bitácora importada", () => {
+      const exportado = aplicacionConDeudaDeAna().exportar();
+      const almacenamiento = new AlmacenamientoEnMemoria();
+      const aplicacion = aplicacionConGrupo(almacenamiento);
+      aplicacion.ingresar("carla", dia(1));
+
+      aplicacion.importar(exportado);
+
       expect(almacenamiento.leer()).toBe(exportado);
     });
 
