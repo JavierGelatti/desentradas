@@ -71,7 +71,8 @@ export class PlanillaDeAsistencia {
     if (texto === undefined) return;
 
     try {
-      this._asistentes = new Set(textos(objeto(JSON.parse(texto), "La planilla de asistencia"), "asistentes"));
+      const campos = objeto(JSON.parse(texto), "La planilla de asistencia");
+      this._asistentes = new Set(textos(campos, "asistentes"));
       this._empezada = true;
     } catch {
       this._almacenamiento.borrar();
