@@ -51,10 +51,10 @@ describe("Participante", () => {
       expect(ana.puedeAsistir()).toBe(true);
     });
 
-    it("podría asistir, porque ya puede", () => {
+    it("es un posible asistente, porque ya puede asistir", () => {
       const ana = nuevoParticipante();
 
-      expect(ana.podriaAsistir()).toBe(true);
+      expect(ana.esPosibleAsistente()).toBe(true);
     });
 
     it("ir a un evento lo mantiene participando", () => {
@@ -129,10 +129,10 @@ describe("Participante", () => {
       expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
     });
 
-    it("podría asistir si paga", () => {
+    it("es un posible asistente, porque puede asistir si paga", () => {
       const ana = enDeuda();
 
-      expect(ana.podriaAsistir()).toBe(true);
+      expect(ana.esPosibleAsistente()).toBe(true);
     });
 
     it("no puede asistir", () => {
@@ -333,10 +333,10 @@ describe("Participante", () => {
       expect(ana.puedeAsistir()).toBe(false);
     });
 
-    it("no podría asistir ni pagando", () => {
+    it("no es un posible asistente, porque no puede asistir ni pagando", () => {
       const ana = moroso();
 
-      expect(ana.podriaAsistir()).toBe(false);
+      expect(ana.esPosibleAsistente()).toBe(false);
     });
 
     it("no puede ir a un evento", () => {
@@ -427,10 +427,10 @@ describe("Participante", () => {
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
     });
 
-    it("no podría asistir", () => {
+    it("no es un posible asistente", () => {
       const ana = finalizado();
 
-      expect(ana.podriaAsistir()).toBe(false);
+      expect(ana.esPosibleAsistente()).toBe(false);
     });
 
     it("no puede ir a un evento", () => {

@@ -15,7 +15,7 @@ export class EnDeuda extends ConDeuda {
     return new Moroso(this._deuda);
   }
 
-  override podriaAsistir(): boolean {
+  override esPosibleAsistente(): boolean {
     return true;
   }
 

@@ -59,8 +59,8 @@ export class Participante {
     return this._estado.puedeAsistir();
   }
 
-  podriaAsistir(): boolean {
-    return this._estado.podriaAsistir();
+  esPosibleAsistente(): boolean {
+    return this._estado.esPosibleAsistente();
   }
 
   estaActivo(): boolean {
