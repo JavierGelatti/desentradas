@@ -35,15 +35,20 @@ const finalizado = () => {
 
 describe("Participante", () => {
   describe("participando", () => {
-    it("al ingresar está participando, sin faltas ni deuda, y puede asistir", () => {
+    it("al ingresar está participando, sin faltas ni deuda", () => {
       const ana = nuevoParticipante();
 
       expect(ana.nombre()).toBe("ana");
       expect(ana.estado()).toBe("participando");
-      expect(ana.puedeAsistir()).toBe(true);
       expect(ana.estaActivo()).toBe(true);
       expect(ana.faltas()).toBe(0);
       expect(ana.deudaAl(dia(2))).toBe(0);
+    });
+
+    it("puede asistir", () => {
+      const ana = nuevoParticipante();
+
+      expect(ana.puedeAsistir()).toBe(true);
     });
 
     it("podría asistir, porque ya puede", () => {
@@ -60,15 +65,21 @@ describe("Participante", () => {
       expect(ana.estado()).toBe("participando");
     });
 
-    it("faltar estando participando lo deja en deuda por el monto por falta, cuenta esa falta, y ya no puede asistir", () => {
+    it("faltar lo deja en deuda por el monto por falta", () => {
       const ana = nuevoParticipante();
 
       ana.falto(nuevoEvento(), lasReglas);
 
       expect(ana.estado()).toBe("en deuda");
-      expect(ana.puedeAsistir()).toBe(false);
-      expect(ana.faltas()).toBe(1);
       expect(ana.deudaAl(dia(3))).toBe(1000);
+    });
+
+    it("faltar cuenta la falta", () => {
+      const ana = nuevoParticipante();
+
+      ana.falto(nuevoEvento(), lasReglas);
+
+      expect(ana.faltas()).toBe(1);
     });
 
     it("no adeuda ningún evento", () => {
@@ -121,8 +132,13 @@ describe("Participante", () => {
     it("podría asistir si paga", () => {
       const ana = enDeuda();
 
-      expect(ana.puedeAsistir()).toBe(false);
       expect(ana.podriaAsistir()).toBe(true);
+    });
+
+    it("no puede asistir", () => {
+      const ana = enDeuda();
+
+      expect(ana.puedeAsistir()).toBe(false);
     });
 
     it("no puede ir a un evento mientras deba", () => {
@@ -133,24 +149,29 @@ describe("Participante", () => {
       }).toThrow(TransicionInvalida);
     });
 
-    it("pagar lo deja libre de deuda, pudiendo asistir, y conserva la falta que originó la deuda", () => {
+    it("pagar el total lo deja libre de deuda", () => {
       const ana = enDeuda();
 
       ana.pago(dia(3), 1000, lasReglas);
 
       expect(ana.estado()).toBe("libre de deuda");
-      expect(ana.puedeAsistir()).toBe(true);
-      expect(ana.faltas()).toBe(1);
       expect(ana.deudaAl(dia(4))).toBe(0);
     });
 
-    it("un pago parcial lo deja en deuda por el resto, sin poder asistir", () => {
+    it("pagar conserva la falta que originó la deuda", () => {
+      const ana = enDeuda();
+
+      ana.pago(dia(3), 1000, lasReglas);
+
+      expect(ana.faltas()).toBe(1);
+    });
+
+    it("un pago parcial lo deja en deuda por el resto", () => {
       const ana = enDeuda();
 
       ana.pago(dia(3), 400, lasReglas);
 
       expect(ana.estado()).toBe("en deuda");
-      expect(ana.puedeAsistir()).toBe(false);
       expect(ana.deudaAl(dia(4))).toBe(600);
     });
 
@@ -172,14 +193,19 @@ describe("Participante", () => {
       expect(ana.deudaAl(dia(8))).toBe(1000);
     });
 
-    it("una falta estando en deuda lo vuelve moroso, conservando las faltas que tenía", () => {
+    it("faltar lo vuelve moroso", () => {
       const ana = enDeuda();
 
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
 
       expect(ana.estado()).toBe("moroso");
-      expect(ana.puedeAsistir()).toBe(false);
-      expect(ana.estaActivo()).toBe(true);
+    });
+
+    it("al volverse moroso conserva las faltas y la deuda que tenía", () => {
+      const ana = enDeuda();
+
+      ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
+
       expect(ana.faltas()).toBe(1);
       expect(ana.deudaAl(dia(10))).toBe(1000);
     });
@@ -206,6 +232,12 @@ describe("Participante", () => {
   });
 
   describe("libre de deuda", () => {
+    it("puede asistir", () => {
+      const ana = libreDeDeuda();
+
+      expect(ana.puedeAsistir()).toBe(true);
+    });
+
     it("puede ir o faltar, pero no pagar", () => {
       const ana = libreDeDeuda();
 
@@ -228,15 +260,22 @@ describe("Participante", () => {
       }).toThrow(TransicionInvalida);
     });
 
-    it("cada falta se cuenta sin generar deuda, y sigue activo mientras no supere la tolerancia", () => {
+    it("cada falta se cuenta sin generar deuda", () => {
+      const ana = libreDeDeuda();
+
+      ana.falto(nuevoEvento(), lasReglas);
+
+      expect(ana.faltas()).toBe(2);
+      expect(ana.deudaAl(dia(10))).toBe(0);
+    });
+
+    it("sigue libre de deuda mientras las faltas no superen la tolerancia", () => {
       const ana = libreDeDeuda();
 
       ana.falto(nuevoEvento(), lasReglas);
 
       expect(ana.estado()).toBe("libre de deuda");
       expect(ana.estaActivo()).toBe(true);
-      expect(ana.faltas()).toBe(2);
-      expect(ana.deudaAl(dia(10))).toBe(0);
     });
 
     it("volver a ir borra las faltas y lo devuelve a participando", () => {
@@ -249,7 +288,7 @@ describe("Participante", () => {
       expect(ana.faltas()).toBe(0);
     });
 
-    it("con tolerancia N, la falta N + 1 desde la última vez que fue lo finaliza por faltas, sin deber nada", () => {
+    it("la falta que supera la tolerancia desde la última vez que fue lo finaliza por faltas, sin deber nada", () => {
       const ana = nuevoParticipante();
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
@@ -261,8 +300,6 @@ describe("Participante", () => {
 
       expect(ana.estado()).toBe("finalizado");
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
-      expect(ana.estaActivo()).toBe(false);
-      expect(ana.puedeAsistir()).toBe(false);
       expect(ana.deudaAl(dia(17))).toBe(0);
     });
   });
@@ -282,6 +319,18 @@ describe("Participante", () => {
       const ana = moroso();
 
       expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
+    });
+
+    it("sigue activo", () => {
+      const ana = moroso();
+
+      expect(ana.estaActivo()).toBe(true);
+    });
+
+    it("no puede asistir", () => {
+      const ana = moroso();
+
+      expect(ana.puedeAsistir()).toBe(false);
     });
 
     it("no podría asistir ni pagando", () => {
@@ -333,19 +382,16 @@ describe("Participante", () => {
       ana.pago(dia(16), 400, lasReglas);
 
       expect(ana.estado()).toBe("moroso");
-      expect(ana.estaActivo()).toBe(true);
       expect(ana.deudaAl(dia(17))).toBe(600);
     });
 
-    it("saldar la deuda finaliza la participación por pago de morosidad, sin devolverlo a participar", () => {
+    it("saldar la deuda finaliza la participación por pago de morosidad", () => {
       const ana = moroso();
 
       ana.pago(dia(16), 1000, lasReglas);
 
       expect(ana.estado()).toBe("finalizado");
       expect(ana.motivoDeFinalizacion()).toBe("por pago de morosidad");
-      expect(ana.estaActivo()).toBe(false);
-      expect(ana.puedeAsistir()).toBe(false);
       expect(ana.deudaAl(dia(17))).toBe(0);
     });
   });
@@ -358,14 +404,24 @@ describe("Participante", () => {
       expect(ana.puede("reingresar")).toBe(true);
     });
 
-    it("reingresar lo devuelve a participando, sin faltas ni deuda, pudiendo asistir", () => {
+    it("ya no está activo", () => {
+      const ana = finalizado();
+
+      expect(ana.estaActivo()).toBe(false);
+    });
+
+    it("no puede asistir", () => {
+      const ana = finalizado();
+
+      expect(ana.puedeAsistir()).toBe(false);
+    });
+
+    it("reingresar lo devuelve a participando", () => {
       const ana = finalizado();
 
       ana.reingresar(dia(20));
 
       expect(ana.estado()).toBe("participando");
-      expect(ana.estaActivo()).toBe(true);
-      expect(ana.puedeAsistir()).toBe(true);
       expect(ana.faltas()).toBe(0);
       expect(ana.deudaAl(dia(21))).toBe(0);
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
