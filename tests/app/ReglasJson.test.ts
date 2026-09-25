@@ -53,6 +53,12 @@ describe("Políticas de interés en JSON", () => {
     expect((leida as InteresMensual).porcentaje()).toBe(30);
   });
 
+  it("no se puede leer una política de interés con un valor que no es positivo", () => {
+    expect(() => {
+      politicaDeInteresDesdeJson({ tipo: "fijo por día", montoPorDia: 0 });
+    }).toThrow("El monto por día debe ser positivo");
+  });
+
   it("no se puede leer una política de interés de tipo desconocido", () => {
     expect(() => {
       politicaDeInteresDesdeJson({ tipo: "compuesto" });

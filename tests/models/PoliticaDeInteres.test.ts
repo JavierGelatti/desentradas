@@ -19,6 +19,15 @@ describe("SinInteres", () => {
 });
 
 describe("InteresFijoPorDia", () => {
+  it("el monto por día debe ser positivo", () => {
+    expect(() => {
+      new InteresFijoPorDia(0);
+    }).toThrow("El monto por día debe ser positivo");
+    expect(() => {
+      new InteresFijoPorDia(-10);
+    }).toThrow("El monto por día debe ser positivo");
+  });
+
   it("conoce su monto por día", () => {
     const politica = new InteresFijoPorDia(10);
 
@@ -39,6 +48,12 @@ describe("InteresFijoPorDia", () => {
     expect(politica.montoConInteres(1000, dia(1), casiDosDias)).toBe(1010);
   });
 
+  it("el resultado se redondea a pesos enteros", () => {
+    const politica = new InteresFijoPorDia(0.5);
+
+    expect(politica.montoConInteres(1000, dia(1), dia(4))).toBe(1002);
+  });
+
   it("se describe por su monto por día de mora", () => {
     const politica = new InteresFijoPorDia(10);
 
@@ -47,6 +62,15 @@ describe("InteresFijoPorDia", () => {
 });
 
 describe("InteresMensual", () => {
+  it("el porcentaje mensual debe ser positivo", () => {
+    expect(() => {
+      new InteresMensual(0);
+    }).toThrow("El porcentaje mensual debe ser positivo");
+    expect(() => {
+      new InteresMensual(-30);
+    }).toThrow("El porcentaje mensual debe ser positivo");
+  });
+
   it("conoce su porcentaje", () => {
     const politica = new InteresMensual(30);
 

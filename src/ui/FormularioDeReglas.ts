@@ -22,7 +22,7 @@ const etiquetaDelValor: Record<TipoDeInteres, string | undefined> = {
 const interesDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
   if (politica instanceof InteresFijoPorDia) return ["fijo por día", politica.montoPorDia()];
   if (politica instanceof InteresMensual) return ["mensual", politica.porcentaje()];
-  return ["sin interés", 0];
+  return ["sin interés", 1];
 };
 
 // Los campos de unas reglas, prellenados con las dadas; se leen con reglasDesde.
@@ -46,7 +46,7 @@ const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
       type: "number",
       name: "valorDelInteres",
       value: valorInicial,
-      min: 0,
+      min: 1,
       required: true,
     }),
   );

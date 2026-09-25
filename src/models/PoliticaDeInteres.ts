@@ -23,6 +23,8 @@ export class InteresFijoPorDia implements PoliticaDeInteres {
   private _montoPorDia: number;
 
   constructor(montoPorDia: number) {
+    if (montoPorDia <= 0) throw new Error("El monto por día debe ser positivo");
+
     this._montoPorDia = montoPorDia;
   }
 
@@ -31,7 +33,7 @@ export class InteresFijoPorDia implements PoliticaDeInteres {
   }
 
   montoConInteres(monto: number, desde: Date, hasta: Date): number {
-    return monto + diasCompletosEntre(desde, hasta) * this._montoPorDia;
+    return Math.round(monto + diasCompletosEntre(desde, hasta) * this._montoPorDia);
   }
 
   describir(formatearMonto: (monto: number) => string): string {
@@ -43,6 +45,8 @@ export class InteresMensual implements PoliticaDeInteres {
   private _porcentaje: number;
 
   constructor(porcentaje: number) {
+    if (porcentaje <= 0) throw new Error("El porcentaje mensual debe ser positivo");
+
     this._porcentaje = porcentaje;
   }
 
