@@ -47,10 +47,10 @@ export abstract class Estado {
 
   // Puede asistir ahora, o podría después de pagar: es a quien se espera en el próximo evento.
   esPosibleAsistente(): boolean {
-    return this.puedeAsistir();
+    return this.puedeAsistir() || this.soloLeFaltaPagarParaAsistir();
   }
 
-  necesitaPagarParaAsistir(): boolean {
+  soloLeFaltaPagarParaAsistir(): boolean {
     return false;
   }
 

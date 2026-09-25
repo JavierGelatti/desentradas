@@ -1,6 +1,6 @@
 import type { Cobro } from "./Cobro.ts";
 
-export type EstadoDeCredito = "cobrado" | "aplicado" | "repartido";
+export type EstadoDeCredito = "pendiente" | "aplicado" | "repartido";
 
 export class Credito {
   private _acreedor: string;
@@ -12,7 +12,7 @@ export class Credito {
     this._acreedor = acreedor;
     this._monto = monto;
     this._cobro = cobro;
-    this._estado = "cobrado";
+    this._estado = "pendiente";
   }
 
   acreedor(): string {
@@ -32,7 +32,7 @@ export class Credito {
   }
 
   estaPendiente(): boolean {
-    return this._estado === "cobrado";
+    return this._estado === "pendiente";
   }
 
   aplicar(): void {

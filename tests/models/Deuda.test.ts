@@ -82,7 +82,7 @@ describe("Deuda", () => {
       expect(deuda.montoAl(dia(3))).toBe(montoPorFalta);
     });
 
-    it("en mora, el pago se descuenta del valor con interés a esa fecha, y el interés vuelve a correr desde el pago", () => {
+    it("en mora, un pago capitaliza el interés devengado hasta esa fecha", () => {
       const deuda = nuevaDeuda();
       deuda.entrarEnMora(dia(8));
 

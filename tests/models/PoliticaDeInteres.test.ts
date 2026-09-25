@@ -39,7 +39,7 @@ describe("InteresFijoPorDia", () => {
     expect(politica.montoConInteres(1000, dia(1), casiDosDias)).toBe(1010);
   });
 
-  it("se describe por su monto por día de mora, con el formato de monto dado", () => {
+  it("se describe por su monto por día de mora", () => {
     const politica = new InteresFijoPorDia(10);
 
     expect(politica.describir(conPesos)).toBe("$10 por día de mora");

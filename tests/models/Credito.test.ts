@@ -3,7 +3,7 @@ import { Credito } from "../../src/models/Credito.ts";
 import { cobroEnEfectivo } from "./factories.ts";
 
 describe("Crédito", () => {
-  it("nace cobrado, pendiente de entrega, a nombre de alguien y por un cobro", () => {
+  it("nace pendiente de entrega, a nombre de alguien y por un cobro", () => {
     const cobro = cobroEnEfectivo();
 
     const credito = new Credito("beto", 500, cobro);
@@ -11,7 +11,7 @@ describe("Crédito", () => {
     expect(credito.acreedor()).toBe("beto");
     expect(credito.monto()).toBe(500);
     expect(credito.cobro()).toBe(cobro);
-    expect(credito.estado()).toBe("cobrado");
+    expect(credito.estado()).toBe("pendiente");
     expect(credito.estaPendiente()).toBe(true);
   });
 
@@ -33,13 +33,19 @@ describe("Crédito", () => {
     expect(credito.estaPendiente()).toBe(false);
   });
 
-  it("no se puede repartir ni aplicar un crédito que no está pendiente", () => {
+  it("no se puede aplicar un crédito que no está pendiente", () => {
     const credito = new Credito("beto", 500, cobroEnEfectivo());
     credito.repartir();
 
     expect(() => {
       credito.aplicar();
     }).toThrow("El crédito ya no está pendiente");
+  });
+
+  it("no se puede repartir un crédito que no está pendiente", () => {
+    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    credito.aplicar();
+
     expect(() => {
       credito.repartir();
     }).toThrow("El crédito ya no está pendiente");

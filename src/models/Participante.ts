@@ -66,8 +66,8 @@ export class Participante {
     return this._estado.esPosibleAsistente();
   }
 
-  necesitaPagarParaAsistir(): boolean {
-    return this._estado.necesitaPagarParaAsistir();
+  soloLeFaltaPagarParaAsistir(): boolean {
+    return this._estado.soloLeFaltaPagarParaAsistir();
   }
 
   estaAlDia(): boolean {

@@ -17,7 +17,7 @@ export class Caja {
   }
 
   cobrar(cobro: Cobro): readonly Credito[] {
-    const creditos = this._repartirEnCreditos(cobro);
+    const creditos = this._distribuirEnCreditos(cobro);
     this._cobros.push(cobro);
     this._creditos.push(...creditos);
     return creditos;
@@ -70,7 +70,7 @@ export class Caja {
     return [...new Set(this._creditosPendientes().map((credito) => credito.acreedor()))];
   }
 
-  private _repartirEnCreditos(cobro: Cobro): Credito[] {
+  private _distribuirEnCreditos(cobro: Cobro): Credito[] {
     const asistentes = this._desempate.ordenar([...cobro.eventoFaltado().asistentes()], cobro);
     const parte = Math.floor(cobro.monto() / asistentes.length);
     const sobrante = cobro.monto() % asistentes.length;

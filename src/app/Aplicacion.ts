@@ -92,7 +92,7 @@ export class Aplicacion {
   }
 
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
-    this._asertarQueEstaEnDeuda(nombre);
+    this._asertarQueSoloLeFaltaPagar(nombre);
 
     this.cobrar(nombre, monto, fecha);
     if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._planillaDeAsistencia.marcarComoPresente(nombre);
@@ -146,10 +146,10 @@ export class Aplicacion {
     this._guardar();
   }
 
-  private _asertarQueEstaEnDeuda(nombre: string): void {
+  private _asertarQueSoloLeFaltaPagar(nombre: string): void {
     const participante = this.grupo().participanteActivo(nombre);
-    if (participante !== undefined && !participante.necesitaPagarParaAsistir()) {
-      throw new Error(`${nombre} no está en deuda`);
+    if (participante !== undefined && !participante.soloLeFaltaPagarParaAsistir()) {
+      throw new Error(`Pagar en la puerta no habilita a ${nombre}`);
     }
   }
 

@@ -71,7 +71,7 @@ export class PantallaParticipantes {
   }
 
   private _tablaDeFinalizados(): HTMLTableElement | undefined {
-    const finalizados = this._entorno.grupo().participantesHistoricos().toSorted(porNombre);
+    const finalizados = this._entorno.grupo().participantesFinalizados().toSorted(porNombre);
     return tabla(
       "Quienes ya no participan",
       ["Nombre", "Motivo", "Crédito pendiente", ""],

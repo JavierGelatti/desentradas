@@ -15,11 +15,7 @@ export class EnDeuda extends ConDeuda {
     return new Moroso(this._deuda);
   }
 
-  override esPosibleAsistente(): boolean {
-    return true;
-  }
-
-  override necesitaPagarParaAsistir(): boolean {
+  override soloLeFaltaPagarParaAsistir(): boolean {
     return true;
   }
 

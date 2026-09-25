@@ -77,7 +77,7 @@ export class PantallaEvento {
 
   private _accionDe(participante: Participante): HTMLElement | false {
     const nombre = participante.nombre();
-    if (participante.necesitaPagarParaAsistir()) return boton("Cobrar y habilitar", () => this._abrirCobro(nombre));
+    if (participante.soloLeFaltaPagarParaAsistir()) return boton("Cobrar y habilitar", () => this._abrirCobro(nombre));
 
     const pendiente = this._entorno.grupo().caja().montoPendienteDe(nombre);
     if (this._planillaDeAsistencia().asiste(nombre) && pendiente > 0) {

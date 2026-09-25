@@ -6,8 +6,8 @@ import { cobroEnEfectivo, dia } from "./factories.ts";
 const nuevaCaja = () => new Caja(new DesempateAlfabetico());
 
 describe("Caja", () => {
-  describe("cobros", () => {
-    it("un cobro se reparte en créditos iguales entre los asistentes al evento faltado", () => {
+  describe("distribución de cobros", () => {
+    it("un cobro se distribuye en créditos iguales entre los asistentes al evento faltado", () => {
       const caja = nuevaCaja();
       const cobro = cobroEnEfectivo({ monto: 1000 });
 
@@ -47,7 +47,9 @@ describe("Caja", () => {
         ["beto", 1],
       ]);
     });
+  });
 
+  describe("créditos pendientes", () => {
     it("conoce el monto de los créditos pendientes, por nombre y en total", () => {
       const caja = nuevaCaja();
       caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
@@ -96,7 +98,7 @@ describe("Caja", () => {
       expect(caja.montoPendienteDe("beto")).toBe(600);
       expect(caja.creditos().map((credito) => [credito.monto(), credito.estado()])).toEqual([
         [400, "aplicado"],
-        [600, "cobrado"],
+        [600, "pendiente"],
       ]);
     });
 

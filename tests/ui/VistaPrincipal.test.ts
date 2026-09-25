@@ -160,7 +160,7 @@ describe("VistaPrincipal", () => {
   });
 
   describe("formulario inicial", () => {
-    it("crear el grupo, con reglas que rigen desde ahora, muestra su nombre y las pantallas", () => {
+    it("crear el grupo, con reglas que rigen desde el momento de crearlo, muestra su nombre y las pantallas", () => {
       const { aplicacion } = montar();
       expect(document.querySelector("nav")).toBeNull();
       expect(pantallaActual()).toBe("Crear el grupo");
@@ -231,7 +231,7 @@ describe("VistaPrincipal", () => {
   });
 
   describe("pantalla de participantes", () => {
-    it("registrar un participante y reingresar a uno finalizado se hacen con la fecha actual", async () => {
+    it("registrar un participante y reingresar a uno finalizado se fechan en el momento en que se hacen", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
@@ -307,7 +307,7 @@ describe("VistaPrincipal", () => {
       expect(casillaDeAsistencia("beto").checked).toBe(false);
     });
 
-    it("la confirmación del cierre nombra a los activos sin marcar, en deuda incluidos, pero no a los morosos", () => {
+    it("la confirmación del cierre nombra a los posibles asistentes sin marcar, incluso a quien está en deuda", () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.ingresar("eva", dia(2));
@@ -393,7 +393,7 @@ describe("VistaPrincipal", () => {
       ]);
     });
 
-    it("deshacer otro comando mientras se arma un evento deja la pantalla del historial", async () => {
+    it("deshacer un comando que no es un cierre, con una planilla empezada, deja la pantalla del historial", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.planillaDeAsistencia().marcarComoPresente("beto");
@@ -406,7 +406,7 @@ describe("VistaPrincipal", () => {
       expect(pantallaActual()).toBe("Historial");
     });
 
-    it("deshacer otro comando sin un evento en armado deja la pantalla del historial", async () => {
+    it("deshacer un comando que no es un cierre, sin planilla empezada, deja la pantalla del historial", async () => {
       const almacenamientos = almacenamientosConGrupo();
       nuevaAplicacion(almacenamientos).cobrar("ana", 500, dia(3));
       montar(almacenamientos);

@@ -12,7 +12,7 @@ export class Grupo {
   private _historialDeReglas: Reglas[];
   private _eventos: Evento[];
   private _participantes: Participante[];
-  private _participantesHistoricos: Participante[];
+  private _participantesFinalizados: Participante[];
   private _caja: Caja;
 
   constructor(nombre: string, reglasIniciales: Reglas, desempate: Desempate) {
@@ -23,7 +23,7 @@ export class Grupo {
     this._historialDeReglas = [reglasIniciales];
     this._eventos = [];
     this._participantes = [];
-    this._participantesHistoricos = [];
+    this._participantesFinalizados = [];
     this._caja = new Caja(desempate);
   }
 
@@ -71,10 +71,10 @@ export class Grupo {
   reingresar(nombre: string, fecha: Date): Participante {
     const nombreLimpio = nombre.trim();
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
-    const participante = this._participanteHistoricoLlamado(nombreLimpio);
+    const participante = this._participanteFinalizadoLlamado(nombreLimpio);
 
     participante.reingresar(fecha);
-    this._participantesHistoricos.splice(this._participantesHistoricos.indexOf(participante), 1);
+    this._participantesFinalizados.splice(this._participantesFinalizados.indexOf(participante), 1);
     this._participantes.push(participante);
     return participante;
   }
@@ -83,7 +83,7 @@ export class Grupo {
     const participante = this._participanteActivoLlamado(nombre);
     if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El cobro no puede ser anterior al último cobro");
 
-    this._cobrarYRepartir(participante, monto, fecha, "efectivo");
+    this._cobrarYDistribuir(participante, monto, fecha, "efectivo");
     this._archivarFinalizados();
   }
 
@@ -124,8 +124,8 @@ export class Grupo {
     return this._participantes.filter((participante) => participante.esPosibleAsistente());
   }
 
-  participantesHistoricos(): readonly Participante[] {
-    return this._participantesHistoricos;
+  participantesFinalizados(): readonly Participante[] {
+    return this._participantesFinalizados;
   }
 
   participanteActivo(nombre: string): Participante | undefined {
@@ -133,7 +133,7 @@ export class Grupo {
   }
 
   yaParticipo(nombre: string): boolean {
-    return this._participanteHistorico(nombre.trim()) !== undefined;
+    return this._participanteFinalizado(nombre.trim()) !== undefined;
   }
 
   private _participanteActivoLlamado(nombre: string): Participante {
@@ -143,12 +143,12 @@ export class Grupo {
     return participante;
   }
 
-  private _participanteHistorico(nombre: string): Participante | undefined {
-    return this._participantesHistoricos.find((participante) => participante.nombre() === nombre);
+  private _participanteFinalizado(nombre: string): Participante | undefined {
+    return this._participantesFinalizados.find((participante) => participante.nombre() === nombre);
   }
 
-  private _participanteHistoricoLlamado(nombre: string): Participante {
-    const participante = this._participanteHistorico(nombre);
+  private _participanteFinalizadoLlamado(nombre: string): Participante {
+    const participante = this._participanteFinalizado(nombre);
     if (participante === undefined) throw new Error(`${nombre} nunca ingresó al grupo`);
 
     return participante;
@@ -159,7 +159,7 @@ export class Grupo {
   }
 
   private _asertarQueNuncaParticipo(nombre: string): void {
-    if (this._participanteHistorico(nombre) !== undefined) {
+    if (this._participanteFinalizado(nombre) !== undefined) {
       throw new Error(`${nombre} ya participó del grupo, debe reingresar`);
     }
   }
@@ -189,7 +189,7 @@ export class Grupo {
     return ultimo === undefined || fecha > ultimo.fecha();
   }
 
-  private _cobrarYRepartir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
+  private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
     const cobro = participante.pago(fecha, monto, this.reglasVigentesAl(fecha), origen);
     this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiElTitularDebe(credito, fecha));
   }
@@ -201,12 +201,12 @@ export class Grupo {
     if (deuda === 0) return;
 
     const monto = Math.min(credito.monto(), deuda);
-    this._cobrarYRepartir(deudor, monto, fecha, this._caja.aplicar(credito, monto));
+    this._cobrarYDistribuir(deudor, monto, fecha, this._caja.aplicar(credito, monto));
   }
 
   private _archivarFinalizados(): void {
     const finalizados = this._participantes.filter((participante) => !participante.estaActivo());
     this._participantes = this._participantes.filter((participante) => participante.estaActivo());
-    this._participantesHistoricos.push(...finalizados);
+    this._participantesFinalizados.push(...finalizados);
   }
 }

@@ -216,7 +216,7 @@ describe("Grupo", () => {
       expect(() => {
         grupo.ingresar("ana", dia(11));
       }).toThrow("ana ya participó del grupo, debe reingresar");
-      expect(grupo.participantesHistoricos()).toEqual([ana]);
+      expect(grupo.participantesFinalizados()).toEqual([ana]);
     });
 
     it("el nombre de la persona se guarda sin espacios al principio ni al final", () => {
@@ -258,7 +258,7 @@ describe("Grupo", () => {
       expect(ana.estado()).toBe("participando");
       expect(grupo.participanteActivo("ana")).toBe(ana);
       expect(grupo.participantes()).toEqual([beto, ana]);
-      expect(grupo.participantesHistoricos()).toEqual([]);
+      expect(grupo.participantesFinalizados()).toEqual([]);
     });
 
     it("el nombre de la persona también se toma sin espacios al principio ni al final", () => {
@@ -327,7 +327,7 @@ describe("Grupo", () => {
   });
 
   describe("finalización", () => {
-    it("una participación finalizada deja de estar activa y pasa a los participantes históricos", () => {
+    it("una participación finalizada deja de estar activa y pasa a los participantes finalizados", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
@@ -339,10 +339,10 @@ describe("Grupo", () => {
       expect(ana.estaActivo()).toBe(false);
       expect(grupo.participanteActivo("ana")).toBeUndefined();
       expect(grupo.participantes()).toEqual([beto]);
-      expect(grupo.participantesHistoricos()).toEqual([ana]);
+      expect(grupo.participantesFinalizados()).toEqual([ana]);
     });
 
-    it("quien queda finalizado por faltas al cerrar un evento pasa a los participantes históricos", () => {
+    it("quien queda finalizado por faltas al cerrar un evento pasa a los participantes finalizados", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
@@ -356,7 +356,7 @@ describe("Grupo", () => {
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
       expect(grupo.participanteActivo("ana")).toBeUndefined();
       expect(grupo.participantes()).toEqual([beto]);
-      expect(grupo.participantesHistoricos()).toEqual([ana]);
+      expect(grupo.participantesFinalizados()).toEqual([ana]);
     });
   });
 
@@ -479,9 +479,7 @@ describe("Grupo", () => {
 
       expect(ana.estado()).toBe("participando");
     });
-  });
 
-  describe("caja", () => {
     it("cobrar registra un cobro en efectivo por el evento faltado", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
@@ -501,8 +499,10 @@ describe("Grupo", () => {
       expect(cobro.eventoFaltado()).toBe(evento);
       expect(cobro.esEnEfectivo()).toBe(true);
     });
+  });
 
-    it("un cobro se reparte en créditos entre los asistentes al evento faltado", () => {
+  describe("créditos", () => {
+    it("un cobro se distribuye en créditos entre los asistentes al evento faltado", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -516,7 +516,7 @@ describe("Grupo", () => {
       expect(caja.montoPendienteDe("carla")).toBe(500);
     });
 
-    it("un cobro parcial también se reparte", () => {
+    it("un cobro parcial también se distribuye", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -531,7 +531,7 @@ describe("Grupo", () => {
       expect(grupo.caja().montoPendienteDe("carla")).toBe(200);
     });
 
-    it("el crédito de quien debe se aplica de inmediato a su deuda como un nuevo cobro, que se vuelve a repartir", () => {
+    it("el crédito de quien debe se aplica de inmediato a su deuda como un nuevo cobro, que se vuelve a distribuir", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
@@ -590,7 +590,7 @@ describe("Grupo", () => {
 
       expect(beto.estado()).toBe("finalizado");
       expect(beto.motivoDeFinalizacion()).toBe("por pago de morosidad");
-      expect(grupo.participantesHistoricos()).toEqual([ana, beto]);
+      expect(grupo.participantesFinalizados()).toEqual([ana, beto]);
       expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
       expect(grupo.caja().montoPendienteDe("carla")).toBe(500 + 500 + 500);
     });

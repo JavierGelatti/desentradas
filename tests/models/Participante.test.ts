@@ -52,13 +52,13 @@ describe("Participante", () => {
       expect(ana.deudaAl(dia(2))).toBe(0);
     });
 
-    it("puede asistir", () => {
+    it("está habilitado para asistir", () => {
       const ana = nuevoParticipante();
 
       expect(ana.puedeAsistir()).toBe(true);
     });
 
-    it("es un posible asistente, porque ya puede asistir", () => {
+    it("es un posible asistente, porque ya está habilitado", () => {
       const ana = nuevoParticipante();
 
       expect(ana.esPosibleAsistente()).toBe(true);
@@ -70,10 +70,10 @@ describe("Participante", () => {
       expect(ana.estaAlDia()).toBe(true);
     });
 
-    it("no necesita pagar para asistir", () => {
+    it("no tiene nada que pagar para asistir", () => {
       const ana = nuevoParticipante();
 
-      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+      expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
     });
 
     it("ir a un evento lo mantiene participando", () => {
@@ -139,16 +139,16 @@ describe("Participante", () => {
       expect(ana.esPosibleAsistente()).toBe(true);
     });
 
-    it("no puede asistir", () => {
+    it("no está habilitado para asistir", () => {
       const ana = enDeuda();
 
       expect(ana.puedeAsistir()).toBe(false);
     });
 
-    it("necesita pagar para asistir", () => {
+    it("sólo le falta pagar para asistir", () => {
       const ana = enDeuda();
 
-      expect(ana.necesitaPagarParaAsistir()).toBe(true);
+      expect(ana.soloLeFaltaPagarParaAsistir()).toBe(true);
     });
 
     it("no está al día", () => {
@@ -157,7 +157,7 @@ describe("Participante", () => {
       expect(ana.estaAlDia()).toBe(false);
     });
 
-    it("no puede ir a un evento mientras deba", () => {
+    it("no puede ir a un evento", () => {
       const ana = enDeuda();
 
       expect(() => {
@@ -262,16 +262,16 @@ describe("Participante", () => {
   });
 
   describe("libre de deuda", () => {
-    it("puede asistir", () => {
+    it("está habilitado para asistir", () => {
       const ana = libreDeDeuda();
 
       expect(ana.puedeAsistir()).toBe(true);
     });
 
-    it("no necesita pagar para asistir", () => {
+    it("no tiene nada que pagar para asistir", () => {
       const ana = libreDeDeuda();
 
-      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+      expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
     });
 
     it("no está al día, porque se le cuentan las faltas", () => {
@@ -370,7 +370,7 @@ describe("Participante", () => {
       expect(ana.estaActivo()).toBe(true);
     });
 
-    it("no puede asistir", () => {
+    it("no está habilitado para asistir", () => {
       const ana = moroso();
 
       expect(ana.puedeAsistir()).toBe(false);
@@ -382,10 +382,10 @@ describe("Participante", () => {
       expect(ana.esPosibleAsistente()).toBe(false);
     });
 
-    it("no necesita pagar para asistir, porque no puede asistir ni pagando", () => {
+    it("pagar no le alcanza para asistir", () => {
       const ana = moroso();
 
-      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+      expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
     });
 
     it("no está al día", () => {
@@ -465,7 +465,7 @@ describe("Participante", () => {
       expect(ana.estaActivo()).toBe(false);
     });
 
-    it("no puede asistir", () => {
+    it("no está habilitado para asistir", () => {
       const ana = finalizado();
 
       expect(ana.puedeAsistir()).toBe(false);
@@ -492,10 +492,10 @@ describe("Participante", () => {
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
     });
 
-    it("no necesita pagar para asistir", () => {
+    it("pagar no le alcanza para asistir", () => {
       const ana = finalizado();
 
-      expect(ana.necesitaPagarParaAsistir()).toBe(false);
+      expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
     });
 
     it("no está al día", () => {
@@ -536,7 +536,7 @@ describe("Participante", () => {
   });
 
   describe("historial", () => {
-    it("registra el ingreso y cada transición con su fecha, disparador, origen y destino", () => {
+    it("registra el ingreso y cada cambio de estado, con su fecha, qué lo provocó y de qué estado a cuál pasó", () => {
       const ana = nuevoParticipante();
       ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
@@ -579,7 +579,7 @@ describe("Participante", () => {
       expect(ultima.fecha()).toEqual(dia(20));
     });
 
-    it("un pago parcial se registra como una transición al mismo estado", () => {
+    it("un pago parcial queda en el historial aunque el estado no cambie", () => {
       const ana = enDeuda();
 
       ana.pago(dia(3), 400, lasReglas, "efectivo");
@@ -587,7 +587,7 @@ describe("Participante", () => {
       expect(ana.historial().at(-1)!.describir()).toBe("pago: en deuda -> en deuda");
     });
 
-    it("una transición inválida no deja rastro", () => {
+    it("una acción rechazada no deja rastro en el historial", () => {
       const ana = nuevoParticipante();
 
       expect(() => {

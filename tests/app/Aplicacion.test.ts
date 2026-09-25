@@ -287,7 +287,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
-    it("cobrar en la puerta toda la deuda deja a la persona marcada como asistente", () => {
+    it("cobrar en la puerta toda la deuda deja a la persona marcada como presente", () => {
       const aplicacion = aplicacionConDeudaDeAna();
 
       aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
@@ -305,12 +305,21 @@ describe("Aplicacion", () => {
       expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
     });
 
-    it("no se puede cobrar en la puerta a quien no está en deuda", () => {
+    it("no se puede cobrar en la puerta a un moroso, porque pagar no lo habilita a asistir", () => {
       const aplicacion = aplicacionConAnaMorosa();
 
       expect(() => {
         aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
-      }).toThrow("ana no está en deuda");
+      }).toThrow("Pagar en la puerta no habilita a ana");
+    });
+
+    it("no se puede cobrar en la puerta a quien no debe nada", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.ingresar("ana", dia(1));
+
+      expect(() => {
+        aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
+      }).toThrow("Pagar en la puerta no habilita a ana");
     });
 
     it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha de la planilla y marcado como presente", () => {
@@ -380,7 +389,7 @@ describe("Aplicacion", () => {
   });
 
   describe("exportar e importar", () => {
-    it("exportar devuelve la bitácora en formato JSON", () => {
+    it("lo exportado es la bitácora en formato JSON", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
 
