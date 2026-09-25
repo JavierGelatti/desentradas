@@ -48,12 +48,11 @@ describe("Caja", () => {
       ]);
     });
 
-    it("conoce los créditos pendientes, y su monto, por nombre y en total", () => {
+    it("conoce el monto de los créditos pendientes, por nombre y en total", () => {
       const caja = nuevaCaja();
       caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
       caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
 
-      expect(caja.creditosPendientesDe("beto").map((credito) => credito.monto())).toEqual([500, 300]);
       expect(caja.montoPendienteDe("beto")).toBe(800);
       expect(caja.montoPendienteDe("carla")).toBe(500);
       expect(caja.montoPendienteDe("dario")).toBe(0);
@@ -124,9 +123,9 @@ describe("Caja", () => {
   describe("repartos", () => {
     it("repartir entrega de una vez todos los créditos pendientes de una persona", () => {
       const caja = nuevaCaja();
-      caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
-      caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
-      const creditosDeBeto = caja.creditosPendientesDe("beto");
+      const [creditoDeBetoPorElPrimerCobro] = caja.cobrar(cobroEnEfectivo({ monto: 1000 }));
+      const [creditoDeBetoPorElSegundoCobro] = caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
+      const creditosDeBeto = [creditoDeBetoPorElPrimerCobro, creditoDeBetoPorElSegundoCobro];
 
       const reparto = caja.repartir("beto", dia(5));
 

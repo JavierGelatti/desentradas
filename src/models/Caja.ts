@@ -33,7 +33,7 @@ export class Caja {
   }
 
   repartir(nombre: string, fecha: Date): Reparto {
-    const creditos = this.creditosPendientesDe(nombre);
+    const creditos = this._creditosPendientesDe(nombre);
     if (creditos.length === 0) throw new Error(`${nombre} no tiene créditos pendientes`);
 
     creditos.forEach((credito) => credito.repartir());
@@ -58,12 +58,8 @@ export class Caja {
     return this._repartos;
   }
 
-  creditosPendientesDe(nombre: string): Credito[] {
-    return this._creditosPendientes().filter((credito) => credito.acreedor() === nombre);
-  }
-
   montoPendienteDe(nombre: string): number {
-    return this._sumar(this.creditosPendientesDe(nombre));
+    return this._sumar(this._creditosPendientesDe(nombre));
   }
 
   totalPendiente(): number {
@@ -91,6 +87,10 @@ export class Caja {
 
   private _creditosPendientes(): Credito[] {
     return this._creditos.filter((credito) => credito.estaPendiente());
+  }
+
+  private _creditosPendientesDe(nombre: string): Credito[] {
+    return this._creditosPendientes().filter((credito) => credito.acreedor() === nombre);
   }
 
   private _sumar(creditos: readonly Credito[]): number {
