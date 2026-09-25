@@ -75,4 +75,13 @@ describe("Crédito", () => {
       credito.dividir(0);
     }).toThrow("El monto debe ser positivo y menor al del crédito");
   });
+
+  it("no se puede dividir un crédito que no está pendiente", () => {
+    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    credito.repartir();
+
+    expect(() => {
+      credito.dividir(400);
+    }).toThrow("El crédito ya no está pendiente");
+  });
 });

@@ -120,6 +120,17 @@ describe("Caja", () => {
       }).toThrow("El monto a aplicar no puede superar el del crédito");
       expect(credito.estaPendiente()).toBe(true);
     });
+
+    it("no se puede aplicar parte de un crédito que no está pendiente", () => {
+      const caja = nuevaCaja();
+      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
+      caja.repartir("beto", dia(5));
+
+      expect(() => {
+        caja.aplicar(credito, 300);
+      }).toThrow("El crédito ya no está pendiente");
+      expect(caja.montoPendienteDe("beto")).toBe(0);
+    });
   });
 
   describe("repartos", () => {

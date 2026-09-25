@@ -48,6 +48,7 @@ export class Credito {
   }
 
   dividir(monto: number): [Credito, Credito] {
+    this._asertarQueEstaPendiente();
     if (monto <= 0 || monto >= this._monto) throw new Error("El monto debe ser positivo y menor al del crédito");
 
     return [
