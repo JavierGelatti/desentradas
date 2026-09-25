@@ -1,7 +1,5 @@
 import type { Almacenamiento } from "../app/Almacenamiento.ts";
 import type { Aplicacion } from "../app/Aplicacion.ts";
-import { CerrarEvento } from "../app/comandos/CerrarEvento.ts";
-import { CrearGrupo } from "../app/comandos/CrearGrupo.ts";
 import type { Grupo } from "../models/Grupo.ts";
 import { crear, intentar } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
@@ -31,7 +29,6 @@ export class VistaPrincipal implements Entorno {
   private _ahora: () => Date;
   private _pantallaActual: NombreDePantalla;
   private _raiz: HTMLElement | undefined;
-  private _creacionDeshecha: CrearGrupo | undefined;
 
   constructor(aplicacion: Aplicacion, ultimaPantalla: Almacenamiento, ahora: () => Date) {
     this._aplicacion = aplicacion;
@@ -39,7 +36,6 @@ export class VistaPrincipal implements Entorno {
     this._ahora = ahora;
     this._pantallaActual = this._pantallaInicial();
     this._raiz = undefined;
-    this._creacionDeshecha = undefined;
   }
 
   montarEn(raiz: HTMLElement): void {
@@ -63,7 +59,6 @@ export class VistaPrincipal implements Entorno {
   refrescar(): void {
     if (this._raiz === undefined) throw new Error("La vista no está montada");
 
-    if (this._aplicacion.tieneGrupo()) this._creacionDeshecha = undefined;
     this._raiz.replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
   }
 
@@ -72,15 +67,14 @@ export class VistaPrincipal implements Entorno {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // El cierre deshecho quedó como borrador, así que se muestra la pantalla del evento;
-  // la creación deshecha vuelve al formulario inicial con lo que se había cargado.
+  // Si lo deshecho dejó un evento en armado que antes no estaba (el cierre deshecho vuelve a ser borrador),
+  // se muestra la pantalla del evento; si no, se queda donde está.
+  // La creación deshecha vuelve al formulario inicial con lo que se había cargado.
   deshacer(): void {
-    const deshecho = this._aplicacion.deshacer();
-    if (deshecho instanceof CerrarEvento) {
+    const habiaBorrador = this._aplicacion.borrador().existe();
+    this._aplicacion.deshacer();
+    if (!habiaBorrador && this._aplicacion.borrador().existe()) {
       this._irA("evento");
-    } else if (deshecho instanceof CrearGrupo) {
-      this._creacionDeshecha = deshecho;
-      this.refrescar();
     } else {
       this.refrescar();
     }
@@ -126,7 +120,9 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _pantalla(): HTMLElement {
-    if (!this._aplicacion.tieneGrupo()) return new PantallaDeInicio(this, this._creacionDeshecha).elemento();
+    if (!this._aplicacion.tieneGrupo()) {
+      return new PantallaDeInicio(this, this._aplicacion.creacionDeshecha()).elemento();
+    }
 
     switch (this._pantallaActual) {
       case "participantes":

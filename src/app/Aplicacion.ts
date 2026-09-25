@@ -21,6 +21,7 @@ export class Aplicacion {
   private _borrador: BorradorDeEvento;
   private _bitacora: Bitacora;
   private _avisoDeInicio: string | undefined;
+  private _creacionDeshecha: CrearGrupo | undefined;
 
   constructor(almacenamiento: Almacenamiento, desempate: Desempate, borrador: BorradorDeEvento) {
     this._almacenamiento = almacenamiento;
@@ -28,6 +29,7 @@ export class Aplicacion {
     this._borrador = borrador;
     this._bitacora = new Bitacora(desempate);
     this._avisoDeInicio = undefined;
+    this._creacionDeshecha = undefined;
     this._cargarLaBitacoraGuardada();
   }
 
@@ -106,11 +108,18 @@ export class Aplicacion {
     this._ejecutar(new CambiarReglas(reglas));
   }
 
-  deshacer(): Comando {
+  deshacer(): void {
     const deshecho = this._bitacora.deshacer();
     this._guardar();
-    if (deshecho instanceof CerrarEvento) this._borrador.restaurar(deshecho.fecha(), deshecho.asistentes());
-    return deshecho;
+    deshecho.alDeshacerse(this);
+  }
+
+  recordarCreacionDeshecha(creacion: CrearGrupo): void {
+    this._creacionDeshecha = creacion;
+  }
+
+  creacionDeshecha(): CrearGrupo | undefined {
+    return this._creacionDeshecha;
   }
 
   puedeDeshacer(): boolean {
@@ -139,6 +148,7 @@ export class Aplicacion {
 
   private _ejecutar(comando: Comando): void {
     this._bitacora.ejecutar(comando);
+    this._creacionDeshecha = undefined;
     this._guardar();
   }
 

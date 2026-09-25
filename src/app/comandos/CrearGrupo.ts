@@ -1,3 +1,4 @@
+import type { Aplicacion } from "../Aplicacion.ts";
 import type { Comando } from "../Comando.ts";
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import type { Desempate } from "../../models/Desempate.ts";
@@ -23,6 +24,10 @@ export class CrearGrupo implements Comando {
     if (grupo !== undefined) throw new Error("El grupo ya fue creado");
 
     return new Grupo(this._nombreDelGrupo, this._reglas, desempate);
+  }
+
+  alDeshacerse(aplicacion: Aplicacion): void {
+    aplicacion.recordarCreacionDeshecha(this);
   }
 
   nombreDelGrupo(): string {

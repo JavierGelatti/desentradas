@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
-import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
@@ -192,12 +191,40 @@ describe("Aplicacion", () => {
       expect(aplicacion.ultimoComando()).toBeInstanceOf(Ingresar);
     });
 
-    it("deshacer devuelve el comando deshecho", () => {
-      const aplicacion = aplicacionConDeudaDeAna();
+    it("deshacer la creación del grupo la deja disponible para volver a cargarla", () => {
+      const aplicacion = nuevaAplicacion();
+      const reglasIniciales = reglas();
+      aplicacion.crearGrupo("Fútbol de los jueves", reglasIniciales);
 
-      const deshecho = aplicacion.deshacer();
+      aplicacion.deshacer();
 
-      expect(deshecho).toBeInstanceOf(CerrarEvento);
+      expect(aplicacion.creacionDeshecha()?.nombreDelGrupo()).toBe("Fútbol de los jueves");
+      expect(aplicacion.creacionDeshecha()?.reglas()).toBe(reglasIniciales);
+    });
+
+    it("una aplicación nueva no tiene una creación deshecha", () => {
+      const aplicacion = nuevaAplicacion();
+
+      expect(aplicacion.creacionDeshecha()).toBeUndefined();
+    });
+
+    it("después de crear el grupo no queda una creación deshecha", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.deshacer();
+
+      aplicacion.crearGrupo("Fútbol de los viernes", reglas());
+
+      expect(aplicacion.creacionDeshecha()).toBeUndefined();
+    });
+
+    it("deshacer un comando sobre el grupo que no es un cierre no arma un borrador ni deja una creación deshecha", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.ingresar("ana", dia(1));
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.borrador().existe()).toBe(false);
+      expect(aplicacion.creacionDeshecha()).toBeUndefined();
     });
 
     it("deshacer deja guardada la bitácora", () => {

@@ -1,3 +1,4 @@
+import type { Aplicacion } from "../Aplicacion.ts";
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import { Evento } from "../../models/Evento.ts";
 import type { Grupo } from "../../models/Grupo.ts";
@@ -26,8 +27,8 @@ export class CerrarEvento extends ComandoSobreElGrupo {
     return this._fecha;
   }
 
-  asistentes(): readonly string[] {
-    return this._asistentes;
+  alDeshacerse(aplicacion: Aplicacion): void {
+    aplicacion.borrador().restaurar(this._fecha, this._asistentes);
   }
 
   describir(): string {

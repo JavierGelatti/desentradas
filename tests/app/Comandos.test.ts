@@ -144,13 +144,6 @@ describe("CerrarEvento", () => {
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 
-  it("conoce su fecha y sus asistentes, para poder rearmar el borrador si se deshace", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
-
-    expect(comando.fecha()).toEqual(dia(2));
-    expect(comando.asistentes()).toEqual(["beto", "carla"]);
-  });
-
   it("se convierte a JSON con la fecha en formato ISO y los asistentes, y vuelve igual", () => {
     const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
 

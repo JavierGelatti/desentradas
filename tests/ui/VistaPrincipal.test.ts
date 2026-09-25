@@ -380,6 +380,30 @@ describe("VistaPrincipal", () => {
       ]);
     });
 
+    it("deshacer otro comando mientras se arma un evento deja la pantalla del historial", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.borrador().marcar("beto");
+      preparacion.cobrar("ana", 500, dia(3));
+      montar(almacenamientos);
+      await navegarA("Historial");
+
+      hacerClic("Deshacer");
+
+      expect(pantallaActual()).toBe("Historial");
+    });
+
+    it("deshacer otro comando sin un evento en armado deja la pantalla del historial", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      nuevaAplicacion(almacenamientos).cobrar("ana", 500, dia(3));
+      montar(almacenamientos);
+      await navegarA("Historial");
+
+      hacerClic("Deshacer");
+
+      expect(pantallaActual()).toBe("Historial");
+    });
+
     it("importar en un dispositivo nuevo lo exportado en otro reproduce los mismos participantes", async () => {
       const { aplicacion: original } = montar(almacenamientosConGrupo());
       await navegarA("Historial");
