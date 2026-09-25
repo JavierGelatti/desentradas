@@ -1,4 +1,4 @@
-import { alerta, boton, crear, intentar } from "./dom.ts";
+import { alerta, boton, crear, intentar, mostrarDialogo } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 
 // Un formulario secundario en un <dialog> nativo: al confirmar ejecuta la acción y, si el modelo la rechaza,
@@ -44,9 +44,7 @@ export class Dialogo {
         crear("button", { type: "submit" }, this._textoDeConfirmacion),
       ),
     );
-    this._elemento = crear("dialog", { onclose: () => this._elemento?.remove() }, formulario);
-    contenedor.append(this._elemento);
-    this._elemento.showModal();
+    this._elemento = mostrarDialogo(contenedor, formulario);
   }
 
   private _cerrar(): void {

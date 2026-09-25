@@ -45,7 +45,7 @@ export class CerrarEvento extends ComandoSobreElGrupo {
     return `${presentes}/${presentes + this._ausentes.length} presentes`;
   }
 
-  // Con ausentes desconocidos, porque el cierre se guardó antes de recordarlos, sólo se sabe quiénes vinieron.
+  // Un cierre guardado antes de recordar a los ausentes no los conoce.
   asistencia(): Asistencia {
     return { presentes: this._asistentes, ausentes: this._ausentes ?? [] };
   }

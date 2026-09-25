@@ -57,11 +57,18 @@ export const desplegable = (
 export const fila = (...celdas: Hijo[]): HTMLTableRowElement =>
   crear("tr", {}, ...celdas.map((celda) => crear("td", {}, celda)));
 
-// Un <dialog> sólo para mirar: se cierra con un botón y, al cerrarse, sale del documento.
+// Al cerrarse sale del documento, para no acumular diálogos ocultos.
+export const mostrarDialogo = (contenedor: HTMLElement, ...contenido: Hijo[]): HTMLDialogElement => {
+  const dialogo = crear("dialog", { onclose: () => dialogo.remove() }, ...contenido);
+  contenedor.append(dialogo);
+  dialogo.showModal();
+  return dialogo;
+};
+
+// Sólo para mirar; los formularios van en un Dialogo.
 export const abrirDialogo = (contenedor: HTMLElement, titulo: string, ...contenido: Hijo[]): void => {
-  const dialogo = crear(
-    "dialog",
-    { onclose: () => dialogo.remove() },
+  const dialogo = mostrarDialogo(
+    contenedor,
     crear("h3", {}, titulo),
     ...contenido,
     crear(
@@ -70,8 +77,6 @@ export const abrirDialogo = (contenedor: HTMLElement, titulo: string, ...conteni
       boton("Cerrar", () => dialogo.close()),
     ),
   );
-  contenedor.append(dialogo);
-  dialogo.showModal();
 };
 
 export const alerta = (): HTMLOutputElement => crear("output", { role: "alert" });

@@ -119,10 +119,10 @@ const navegarA = async (pestania: string) => {
   await new Promise((resolver) => setTimeout(resolver, 0));
 };
 
+const textosDeLasCeldas = (fila: Element) => [...fila.querySelectorAll("td")].map(textoDe);
+
 const fila = (nombre: string) => {
-  const fila = [...document.querySelectorAll("tbody tr")].find((fila) =>
-    [...fila.querySelectorAll("td")].some((celda) => textoDe(celda) === nombre),
-  );
+  const fila = [...document.querySelectorAll("tbody tr")].find((fila) => textosDeLasCeldas(fila).includes(nombre));
   if (fila === undefined) throw new Error(`No se encontró la fila de "${nombre}"`);
 
   return fila;
@@ -137,8 +137,7 @@ const dialogoAbierto = () => {
   return dialogo;
 };
 
-const filasDe = (raiz: ParentNode) =>
-  [...raiz.querySelectorAll("tbody tr")].map((fila) => [...fila.querySelectorAll("td")].map(textoDe));
+const filasDe = (raiz: ParentNode) => [...raiz.querySelectorAll("tbody tr")].map(textosDeLasCeldas);
 
 describe("VistaPrincipal", () => {
   beforeEach(() => {

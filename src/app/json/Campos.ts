@@ -48,6 +48,6 @@ export const textos = (objeto: Objeto, campo: string): string[] => {
   return valor;
 };
 
-// Un campo que los JSON guardados antes de existir no traen.
+// Para campos agregados después: los JSON guardados antes no los traen.
 export const textosOpcionales = (objeto: Objeto, campo: string): string[] | undefined =>
   objeto[campo] === undefined ? undefined : textos(objeto, campo);
