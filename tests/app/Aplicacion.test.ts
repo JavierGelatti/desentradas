@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
+import { BorradorDeEvento } from "../../src/app/BorradorDeEvento.ts";
 import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
 
-const nuevaAplicacion = (almacenamiento = new AlmacenamientoEnMemoria()) => new Aplicacion(almacenamiento, desempate);
+const ahora = () => dia(5);
+
+const nuevoBorrador = () => new BorradorDeEvento(new AlmacenamientoEnMemoria(), ahora);
+
+const nuevaAplicacion = (almacenamiento = new AlmacenamientoEnMemoria()) =>
+  new Aplicacion(almacenamiento, desempate, nuevoBorrador());
 
 const aplicacionConGrupo = (almacenamiento = new AlmacenamientoEnMemoria()) => {
   const aplicacion = nuevaAplicacion(almacenamiento);
@@ -196,6 +202,97 @@ describe("Aplicacion", () => {
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(aplicacion.puedeDeshacer()).toBe(false);
       expect(aplicacion.ultimoComando()).toBeUndefined();
+    });
+  });
+
+  describe("borrador del evento", () => {
+    it("cerrar el borrador registra el evento con su fecha y sus asistentes, y lo descarta", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.ingresar("ana", dia(1));
+      aplicacion.ingresar("beto", dia(1));
+      aplicacion.borrador().cambiarFecha(dia(3));
+      aplicacion.borrador().marcar("beto");
+
+      aplicacion.cerrarElBorrador();
+
+      const [evento] = aplicacion.grupo().eventos();
+      expect(evento.fecha()).toEqual(dia(3));
+      expect(evento.asistentes()).toEqual(new Set(["beto"]));
+      expect(aplicacion.borrador().existe()).toBe(false);
+    });
+
+    it("un cierre que el grupo rechaza deja el borrador como estaba", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.borrador().cambiarFecha(dia(2));
+      aplicacion.borrador().marcar("beto");
+
+      expect(() => {
+        aplicacion.cerrarElBorrador();
+      }).toThrow("El evento debe ser posterior al último registrado");
+      expect(aplicacion.borrador().fecha()).toEqual(dia(2));
+      expect(aplicacion.borrador().asistentes()).toEqual(["beto"]);
+    });
+
+    it("cobrar en la puerta toda la deuda deja a la persona marcada como asistente", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+
+      aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("libre de deuda");
+      expect(aplicacion.borrador().asiste("ana")).toBe(true);
+    });
+
+    it("un pago parcial en la puerta no marca a la persona, porque sigue sin poder asistir", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+
+      aplicacion.cobrarEnLaPuerta("ana", 400, dia(3));
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(dia(3))).toBe(600);
+      expect(aplicacion.borrador().asiste("ana")).toBe(false);
+    });
+
+    it("registrar a alguien nuevo como asistente lo ingresa con la fecha del borrador y lo deja marcado", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.borrador().cambiarFecha(dia(3));
+
+      aplicacion.ingresarAsistente("carla");
+
+      expect(aplicacion.grupo().participanteActivo("carla")?.historial().at(0)?.fecha()).toEqual(dia(3));
+      expect(aplicacion.borrador().asiste("carla")).toBe(true);
+    });
+
+    it("registrar como asistente a quien ya participó la reingresa con la fecha del borrador y la deja marcada", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.cerrarEvento(dia(9), ["beto"]);
+      aplicacion.cobrar("ana", 1000, dia(10));
+      expect(aplicacion.grupo().participanteActivo("ana")).toBeUndefined();
+      aplicacion.borrador().cambiarFecha(dia(11));
+
+      aplicacion.ingresarAsistente(" ana ");
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+      expect(aplicacion.grupo().participanteActivo("ana")?.historial().at(-1)?.fecha()).toEqual(dia(11));
+      expect(aplicacion.borrador().asiste("ana")).toBe(true);
+    });
+
+    it("deshacer el cierre de un evento lo restaura como borrador", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+
+      aplicacion.deshacer();
+
+      expect(aplicacion.borrador().existe()).toBe(true);
+      expect(aplicacion.borrador().fecha()).toEqual(dia(2));
+      expect(aplicacion.borrador().asistentes()).toEqual(["beto"]);
+    });
+
+    it("importar una bitácora descarta el borrador", () => {
+      const exportado = aplicacionConDeudaDeAna().exportar();
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.borrador().marcar("carla");
+
+      aplicacion.importar(exportado);
+
+      expect(aplicacion.borrador().existe()).toBe(false);
     });
   });
 

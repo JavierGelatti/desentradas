@@ -67,7 +67,6 @@ export class PantallaHistorial {
     );
     new Dialogo(this._entorno, "Importar", [aviso], "Reemplazar", () => {
       this._entorno.aplicacion().importar(texto);
-      this._entorno.borrador().descartar();
     }).abrirEn(this._seccion);
   }
 

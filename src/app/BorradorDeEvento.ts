@@ -1,15 +1,17 @@
-import type { Almacenamiento } from "../app/Almacenamiento.ts";
-import { fecha as leerFecha, objeto, textos } from "../app/json/Campos.ts";
+import type { Almacenamiento } from "./Almacenamiento.ts";
+import { fecha as leerFecha, objeto, textos } from "./json/Campos.ts";
 
 // El evento que se está armando: su fecha y quiénes ya están marcados como asistentes.
-// Se guarda después de cada cambio para sobrevivir a una recarga.
+// Mientras no empezó, la fecha es la de ahora. Se guarda después de cada cambio para sobrevivir a una recarga.
 export class BorradorDeEvento {
   private _almacenamiento: Almacenamiento;
+  private _ahora: () => Date;
   private _fecha: Date | undefined;
   private _asistentes: Set<string>;
 
-  constructor(almacenamiento: Almacenamiento) {
+  constructor(almacenamiento: Almacenamiento, ahora: () => Date) {
     this._almacenamiento = almacenamiento;
+    this._ahora = ahora;
     this._fecha = undefined;
     this._asistentes = new Set();
     this._cargar();
@@ -20,9 +22,7 @@ export class BorradorDeEvento {
   }
 
   fecha(): Date {
-    this._asertarQueExiste();
-
-    return this._fecha!;
+    return this._fecha ?? this._ahora();
   }
 
   asistentes(): readonly string[] {
@@ -40,22 +40,18 @@ export class BorradorDeEvento {
   }
 
   cambiarFecha(fecha: Date): void {
-    this._asertarQueExiste();
-
     this._fecha = fecha;
     this._guardar();
   }
 
   marcar(nombre: string): void {
-    this._asertarQueExiste();
-
+    this._empezarSiHaceFalta();
     this._asistentes.add(nombre);
     this._guardar();
   }
 
   desmarcar(nombre: string): void {
-    this._asertarQueExiste();
-
+    this._empezarSiHaceFalta();
     this._asistentes.delete(nombre);
     this._guardar();
   }
@@ -66,12 +62,13 @@ export class BorradorDeEvento {
     this._almacenamiento.borrar();
   }
 
-  private _asertarQueExiste(): void {
-    if (!this.existe()) throw new Error("No hay un borrador de evento");
+  // El primer cambio empieza el borrador con la fecha que venía mostrando.
+  private _empezarSiHaceFalta(): void {
+    if (!this.existe()) this._fecha = this._ahora();
   }
 
   private _guardar(): void {
-    this._almacenamiento.guardar(JSON.stringify({ fecha: this._fecha!.toISOString(), asistentes: this.asistentes() }));
+    this._almacenamiento.guardar(JSON.stringify({ fecha: this.fecha().toISOString(), asistentes: this.asistentes() }));
   }
 
   // Un borrador guardado que no se puede leer se ignora: no vale la pena avisar por algo que se rehace en minutos.

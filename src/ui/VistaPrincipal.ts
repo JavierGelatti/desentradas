@@ -3,7 +3,6 @@ import type { Aplicacion } from "../app/Aplicacion.ts";
 import { CerrarEvento } from "../app/comandos/CerrarEvento.ts";
 import { CrearGrupo } from "../app/comandos/CrearGrupo.ts";
 import type { Grupo } from "../models/Grupo.ts";
-import type { BorradorDeEvento } from "./BorradorDeEvento.ts";
 import { crear } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { PantallaDeInicio } from "./PantallaDeInicio.ts";
@@ -28,16 +27,14 @@ const esNombreDePantalla = (texto: string): texto is NombreDePantalla => pantall
 // Encabezado, pestañas y la pantalla actual. Se vuelve a dibujar entera después de cada comando.
 export class VistaPrincipal implements Entorno {
   private _aplicacion: Aplicacion;
-  private _borrador: BorradorDeEvento;
   private _ultimaPantalla: Almacenamiento;
   private _ahora: () => Date;
   private _pantallaActual: NombreDePantalla;
   private _raiz: HTMLElement | undefined;
   private _creacionDeshecha: CrearGrupo | undefined;
 
-  constructor(aplicacion: Aplicacion, borrador: BorradorDeEvento, ultimaPantalla: Almacenamiento, ahora: () => Date) {
+  constructor(aplicacion: Aplicacion, ultimaPantalla: Almacenamiento, ahora: () => Date) {
     this._aplicacion = aplicacion;
-    this._borrador = borrador;
     this._ultimaPantalla = ultimaPantalla;
     this._ahora = ahora;
     this._pantallaActual = this._pantallaInicial();
@@ -59,10 +56,6 @@ export class VistaPrincipal implements Entorno {
     return this._aplicacion.grupo();
   }
 
-  borrador(): BorradorDeEvento {
-    return this._borrador;
-  }
-
   ahora(): Date {
     return this._ahora();
   }
@@ -74,12 +67,11 @@ export class VistaPrincipal implements Entorno {
     this._raiz.replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
   }
 
-  // Deshacer un cierre de evento devuelve ese evento al borrador para retocarlo y volver a cerrarlo,
+  // Deshacer un cierre de evento lleva a la pantalla del evento, donde queda restaurado como borrador,
   // y deshacer la creación del grupo vuelve al formulario inicial con lo que se había cargado.
   deshacer(): void {
     const deshecho = this._aplicacion.deshacer();
     if (deshecho instanceof CerrarEvento) {
-      this._borrador.restaurar(deshecho.fecha(), deshecho.asistentes());
       this._irA("evento");
     } else if (deshecho instanceof CrearGrupo) {
       this._creacionDeshecha = deshecho;
@@ -90,7 +82,7 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _pantallaInicial(): NombreDePantalla {
-    if (this._borrador.existe()) return "evento";
+    if (this._aplicacion.borrador().existe()) return "evento";
 
     const delHash = location.hash.slice(1);
     if (esNombreDePantalla(delHash)) return delHash;

@@ -90,7 +90,9 @@ export class PantallaParticipantes {
   }
 
   private _abrirCobro(nombre: string): void {
-    new DialogoDeCobro(this._entorno, nombre, this._entorno.ahora()).abrirEn(this._seccion);
+    new DialogoDeCobro(this._entorno, nombre, this._entorno.ahora(), (monto, fecha) =>
+      this._entorno.aplicacion().cobrar(nombre, monto, fecha),
+    ).abrirEn(this._seccion);
   }
 
   // Registrar queda fechado en el momento en que se hace.

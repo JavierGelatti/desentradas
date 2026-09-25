@@ -1,5 +1,6 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { Bitacora } from "./Bitacora.ts";
+import type { BorradorDeEvento } from "./BorradorDeEvento.ts";
 import type { Comando } from "./Comando.ts";
 import { CrearGrupo } from "./comandos/CrearGrupo.ts";
 import { Ingresar } from "./comandos/Ingresar.ts";
@@ -12,16 +13,19 @@ import type { Desempate } from "../models/Desempate.ts";
 import type { Grupo } from "../models/Grupo.ts";
 import type { Reglas } from "../models/Reglas.ts";
 
-// Fachada para la interfaz: las reglas viven en el modelo y el orden de los comandos en la bitácora.
+// Fachada para la interfaz: las reglas viven en el modelo, el orden de los comandos en la bitácora
+// y el evento que se está armando en el borrador.
 export class Aplicacion {
   private _almacenamiento: Almacenamiento;
   private _desempate: Desempate;
+  private _borrador: BorradorDeEvento;
   private _bitacora: Bitacora;
   private _avisoDeInicio: string | undefined;
 
-  constructor(almacenamiento: Almacenamiento, desempate: Desempate) {
+  constructor(almacenamiento: Almacenamiento, desempate: Desempate, borrador: BorradorDeEvento) {
     this._almacenamiento = almacenamiento;
     this._desempate = desempate;
+    this._borrador = borrador;
     this._bitacora = new Bitacora(desempate);
     this._avisoDeInicio = undefined;
     this._cargarLaBitacoraGuardada();
@@ -43,6 +47,10 @@ export class Aplicacion {
     return this._avisoDeInicio;
   }
 
+  borrador(): BorradorDeEvento {
+    return this._borrador;
+  }
+
   crearGrupo(nombreDelGrupo: string, reglasIniciales: Reglas): void {
     this._ejecutar(new CrearGrupo(nombreDelGrupo, reglasIniciales));
   }
@@ -59,8 +67,34 @@ export class Aplicacion {
     this._ejecutar(new CerrarEvento(fecha, asistentes));
   }
 
+  // Quien vino sin estar registrado se registra con la fecha del borrador y queda marcado como asistente.
+  // Si ya participó, reingresa; si no, ingresa.
+  ingresarAsistente(nombre: string): void {
+    const nombreLimpio = nombre.trim();
+    const yaParticipo = this.grupo()
+      .participantesHistoricos()
+      .some((participante) => participante.nombre() === nombreLimpio);
+    if (yaParticipo) {
+      this.reingresar(nombreLimpio, this._borrador.fecha());
+    } else {
+      this.ingresar(nombreLimpio, this._borrador.fecha());
+    }
+    this._borrador.marcar(nombreLimpio);
+  }
+
+  cerrarElBorrador(): void {
+    this.cerrarEvento(this._borrador.fecha(), this._borrador.asistentes());
+    this._borrador.descartar();
+  }
+
   cobrar(nombre: string, monto: number, fecha: Date): void {
     this._ejecutar(new Cobrar(nombre, monto, fecha));
+  }
+
+  // Quien paga en la puerta queda marcado como asistente si el pago lo habilitó.
+  cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
+    this.cobrar(nombre, monto, fecha);
+    if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._borrador.marcar(nombre);
   }
 
   repartir(nombre: string, fecha: Date): void {
@@ -71,9 +105,11 @@ export class Aplicacion {
     this._ejecutar(new CambiarReglas(reglas));
   }
 
+  // Deshacer un cierre de evento devuelve ese evento al borrador, para retocarlo y volver a cerrarlo.
   deshacer(): Comando {
     const deshecho = this._bitacora.deshacer();
     this._guardar();
+    if (deshecho instanceof CerrarEvento) this._borrador.restaurar(deshecho.fecha(), deshecho.asistentes());
     return deshecho;
   }
 
@@ -94,9 +130,11 @@ export class Aplicacion {
   }
 
   // Se lee y ejecuta completa antes de reemplazar la bitácora actual: si falla, no cambia nada.
+  // El borrador era de otro grupo, así que se descarta.
   importar(texto: string): void {
     this._bitacora = this._bitacoraDesde(texto);
     this._guardar();
+    this._borrador.descartar();
   }
 
   private _ejecutar(comando: Comando): void {

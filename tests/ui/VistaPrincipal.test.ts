@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
-import { BorradorDeEvento } from "../../src/ui/BorradorDeEvento.ts";
+import { BorradorDeEvento } from "../../src/app/BorradorDeEvento.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { aEntradaDeFecha } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
@@ -18,7 +18,8 @@ const nuevosAlmacenamientos = () => ({
 
 type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
 
-const nuevaAplicacion = (almacenamientos: Almacenamientos) => new Aplicacion(almacenamientos.bitacora, desempate);
+const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
+  new Aplicacion(almacenamientos.bitacora, desempate, new BorradorDeEvento(almacenamientos.borrador, ahora));
 
 // ana faltó al primer evento y está en deuda; beto, carla y dani están participando.
 const almacenamientosConGrupo = () => {
@@ -32,12 +33,7 @@ const almacenamientosConGrupo = () => {
 
 const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   const aplicacion = nuevaAplicacion(almacenamientos);
-  const vista = new VistaPrincipal(
-    aplicacion,
-    new BorradorDeEvento(almacenamientos.borrador),
-    almacenamientos.pantalla,
-    ahora,
-  );
+  const vista = new VistaPrincipal(aplicacion, almacenamientos.pantalla, ahora);
   vista.montarEn(document.body);
   return { aplicacion, almacenamientos };
 };
