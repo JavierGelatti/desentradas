@@ -65,7 +65,6 @@ export class PlanillaDeAsistencia {
     this._almacenamiento.guardar(JSON.stringify({ asistentes: this.asistentes() }));
   }
 
-  // Una planilla guardada por una versión anterior también tiene su fecha, que ya no se usa.
   private _cargar(): void {
     const texto = this._almacenamiento.leer();
     if (texto === undefined) return;

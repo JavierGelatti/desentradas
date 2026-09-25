@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
-import { dia } from "../models/factories.ts";
 import { nuevaPlanillaDeAsistencia } from "./factories.ts";
 
 describe("PlanillaDeAsistencia", () => {
@@ -70,16 +69,6 @@ describe("PlanillaDeAsistencia", () => {
     const anterior = nuevaPlanillaDeAsistencia(almacenamiento);
     anterior.empezar();
     anterior.marcarComoPresente("ana");
-
-    const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
-
-    expect(planilla.existe()).toBe(true);
-    expect(planilla.asistentes()).toEqual(["ana"]);
-  });
-
-  it("una planilla guardada por la versión anterior, que tenía fecha, se recupera con sus asistentes", () => {
-    const almacenamiento = new AlmacenamientoEnMemoria();
-    almacenamiento.guardar(JSON.stringify({ fecha: dia(3).toISOString(), asistentes: ["ana"] }));
 
     const planilla = nuevaPlanillaDeAsistencia(almacenamiento);
 

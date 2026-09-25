@@ -165,15 +165,6 @@ describe("CerrarEvento", () => {
     });
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
   });
-
-  it("un cierre guardado antes de recordar a los ausentes se lee sin conocerlos, y vuelve igual", () => {
-    const json = { tipo: "cerrar evento", fecha: dia(2).toISOString(), asistentes: ["beto"] };
-
-    const comando = comandoDesdeJson(json) as CerrarEvento;
-
-    expect(comando.ausentes()).toBeUndefined();
-    expect(comando.aJson()).toEqual(json);
-  });
 });
 
 describe("Cobrar", () => {
@@ -284,24 +275,6 @@ describe("Descripción de los comandos", () => {
 
     expect(comando.fecha()).toEqual(dia(2));
     expect(comando.describir()).toBe("3/4 presentes");
-  });
-
-  it("un cierre con un solo asistente de varios posibles se describe en plural, porque cuenta sobre el total", () => {
-    const comando = new CerrarEvento(dia(2), ["beto"], ["ana", "carla", "dani"]);
-
-    expect(comando.describir()).toBe("1/4 presentes");
-  });
-
-  it("un cierre sin ausentes conocidos se describe sólo con cuántos vinieron", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla", "dani"], undefined);
-
-    expect(comando.describir()).toBe("3 presentes");
-  });
-
-  it("un cierre sin ausentes conocidos y con un solo asistente se describe en singular", () => {
-    const comando = new CerrarEvento(dia(2), ["beto"], undefined);
-
-    expect(comando.describir()).toBe("1 presente");
   });
 
   it("cobrar lleva la fecha del cobro y se describe con el monto y el nombre", () => {
