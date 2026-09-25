@@ -48,7 +48,7 @@ describe("Deuda", () => {
 
       deuda.pagar(dia(3), 400);
 
-      expect(deuda.saldada()).toBe(false);
+      expect(deuda.estaSaldada()).toBe(false);
       expect(deuda.montoAl(dia(5))).toBe(600);
     });
 
@@ -57,7 +57,7 @@ describe("Deuda", () => {
 
       deuda.pagar(dia(3), montoPorFalta);
 
-      expect(deuda.saldada()).toBe(true);
+      expect(deuda.estaSaldada()).toBe(true);
       expect(deuda.montoAl(dia(5))).toBe(0);
     });
 
@@ -98,7 +98,7 @@ describe("Deuda", () => {
 
       deuda.pagar(dia(11), montoPorFalta + 3 * interesDiario);
 
-      expect(deuda.saldada()).toBe(true);
+      expect(deuda.estaSaldada()).toBe(true);
       expect(deuda.montoAl(dia(20))).toBe(0);
     });
 
