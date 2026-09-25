@@ -309,10 +309,17 @@ describe("VistaPrincipal", () => {
   });
 
   describe("pantalla del evento", () => {
-    it("antes de empezar el evento sólo se puede empezarlo, y al empezarlo aparece la planilla de asistencia", () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
-      expect([...document.querySelectorAll("main button")].map(textoDe)).toEqual(["Empezar evento"]);
+    it("antes de empezar el evento sólo se puede empezarlo", () => {
+      montar(almacenamientosConGrupo());
+
+      const botones = [...document.querySelectorAll("main button")].map(textoDe);
+
+      expect(botones).toEqual(["Empezar evento"]);
       expect(document.querySelector("main table")).toBeNull();
+    });
+
+    it("empezar el evento abre la planilla de asistencia sin nadie marcado", () => {
+      const { aplicacion } = montar(almacenamientosConGrupo());
 
       hacerClic("Empezar evento");
 
