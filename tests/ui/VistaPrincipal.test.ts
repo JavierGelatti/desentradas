@@ -19,19 +19,18 @@ type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
 const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
   new Aplicacion(almacenamientos.bitacora, desempate, nuevaPlanillaDeAsistencia(almacenamientos.planilla));
 
-// ana faltó al primer evento y está en deuda; beto, carla y dani están participando.
-const almacenamientosConGrupo = () => {
-  const almacenamientos = nuevosAlmacenamientos();
-  const aplicacion = nuevaAplicacion(almacenamientos);
-  aplicacion.crearGrupo("Fútbol de los jueves", reglas());
-  ["ana", "beto", "carla", "dani"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
-  aplicacion.cerrarEvento(dia(2), ["beto", "carla", "dani"]);
-  return almacenamientos;
-};
-
 const almacenamientosConGrupoSinParticipantes = () => {
   const almacenamientos = nuevosAlmacenamientos();
   nuevaAplicacion(almacenamientos).crearGrupo("Fútbol de los jueves", reglas());
+  return almacenamientos;
+};
+
+// ana faltó al primer evento y está en deuda; beto, carla y dani están participando.
+const almacenamientosConGrupo = () => {
+  const almacenamientos = almacenamientosConGrupoSinParticipantes();
+  const aplicacion = nuevaAplicacion(almacenamientos);
+  ["ana", "beto", "carla", "dani"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
+  aplicacion.cerrarEvento(dia(2), ["beto", "carla", "dani"]);
   return almacenamientos;
 };
 
