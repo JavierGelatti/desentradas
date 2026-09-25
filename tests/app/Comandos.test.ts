@@ -107,7 +107,7 @@ describe("Reingresar", () => {
     grupo.ingresar("beto", dia(1));
     grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
     grupo.registrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-    grupo.registrarPago("ana", 1000, dia(10));
+    grupo.cobrar("ana", 1000, dia(10));
     expect(ana.estaActivo()).toBe(false);
     const comando = new Reingresar("ana", dia(11));
 
@@ -160,7 +160,7 @@ describe("CerrarEvento", () => {
 });
 
 describe("Cobrar", () => {
-  it("cobrar registra el pago de la persona por el monto y en la fecha indicados", () => {
+  it("cobrar registra el cobro a la persona por el monto y en la fecha indicados", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -190,7 +190,7 @@ describe("Repartir", () => {
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
     grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-    grupo.registrarPago("ana", 1000, dia(3));
+    grupo.cobrar("ana", 1000, dia(3));
     const comando = new Repartir("beto", dia(4));
 
     comando.ejecutar(grupo, desempate);

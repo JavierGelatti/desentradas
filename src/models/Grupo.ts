@@ -80,9 +80,9 @@ export class Grupo {
     return participante;
   }
 
-  registrarPago(nombre: string, monto: number, fecha: Date): void {
+  cobrar(nombre: string, monto: number, fecha: Date): void {
     const participante = this._participanteActivoLlamado(nombre);
-    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El pago no puede ser anterior al último cobro");
+    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El cobro no puede ser anterior al último cobro");
 
     this._cobrarYRepartir(participante, monto, fecha, "efectivo");
     this._archivarFinalizados();

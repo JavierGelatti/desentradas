@@ -20,7 +20,7 @@ export class Cobrar extends ComandoSobreElGrupo {
   }
 
   protected ejecutarEn(grupo: Grupo): void {
-    grupo.registrarPago(this._nombre, this._monto, this._fecha);
+    grupo.cobrar(this._nombre, this._monto, this._fecha);
   }
 
   fecha(): Date {

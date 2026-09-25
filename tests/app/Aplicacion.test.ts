@@ -124,7 +124,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
     });
 
-    it("cobrar registra el pago de la persona en el grupo", () => {
+    it("cobrar registra el cobro a la persona en el grupo", () => {
       const aplicacion = aplicacionConDeudaDeAna();
 
       aplicacion.cobrar("ana", 400, dia(3));
