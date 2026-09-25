@@ -12,7 +12,7 @@ describe("BorradorDeEvento", () => {
     expect(borrador.asistentes()).toEqual([]);
   });
 
-  it("marcar a alguien empieza el borrador con la fecha que mostraba y lo deja guardado", () => {
+  it("marcar a alguien empieza el borrador con la fecha que mostraba", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
     let momento = dia(5);
     const borrador = nuevoBorrador(almacenamiento, () => momento);
@@ -24,6 +24,16 @@ describe("BorradorDeEvento", () => {
     expect(borrador.fecha()).toEqual(dia(5));
     expect(borrador.asistentes()).toEqual(["ana"]);
     expect(borrador.asiste("ana")).toBe(true);
+  });
+
+  it("el borrador empezado queda guardado", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    let momento = dia(5);
+    const borrador = nuevoBorrador(almacenamiento, () => momento);
+
+    borrador.marcar("ana");
+    momento = dia(6);
+
     expect(JSON.parse(almacenamiento.leer()!)).toEqual({ fecha: dia(5).toISOString(), asistentes: ["ana"] });
   });
 
@@ -50,7 +60,7 @@ describe("BorradorDeEvento", () => {
     expect(almacenamiento.leer()).toBeUndefined();
   });
 
-  it("descartar el borrador lo vuelve a dejar sin empezar y borra lo guardado", () => {
+  it("descartar el borrador lo vuelve a dejar sin empezar", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
     const borrador = nuevoBorrador(almacenamiento);
     borrador.marcar("ana");
@@ -61,6 +71,16 @@ describe("BorradorDeEvento", () => {
     expect(borrador.existe()).toBe(false);
     expect(borrador.fecha()).toEqual(dia(5));
     expect(borrador.asistentes()).toEqual([]);
+  });
+
+  it("descartar el borrador borra lo guardado", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    const borrador = nuevoBorrador(almacenamiento);
+    borrador.marcar("ana");
+    borrador.cambiarFecha(dia(6));
+
+    borrador.descartar();
+
     expect(almacenamiento.leer()).toBeUndefined();
   });
 });
