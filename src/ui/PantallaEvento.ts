@@ -118,7 +118,7 @@ export class PantallaEvento {
 
   private _abrirIngreso(): void {
     new Dialogo(this._entorno, "Vino alguien nuevo", [campoDeTexto("Nombre", "nombre")], "Registrar", (formulario) => {
-      this._entorno.aplicacion().ingresarAsistente(valorDe(formulario, "nombre").trim());
+      this._entorno.aplicacion().ingresarAsistente(valorDe(formulario, "nombre"));
     }).abrirEn(this._seccion);
   }
 

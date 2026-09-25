@@ -70,16 +70,12 @@ export class Aplicacion {
   // Quien vino sin estar registrado se registra con la fecha del borrador y queda marcado como asistente.
   // Si ya participó, reingresa; si no, ingresa.
   ingresarAsistente(nombre: string): void {
-    const nombreLimpio = nombre.trim();
-    const yaParticipo = this.grupo()
-      .participantesHistoricos()
-      .some((participante) => participante.nombre() === nombreLimpio);
-    if (yaParticipo) {
-      this.reingresar(nombreLimpio, this._borrador.fecha());
+    if (this.grupo().yaParticipo(nombre)) {
+      this.reingresar(nombre, this._borrador.fecha());
     } else {
-      this.ingresar(nombreLimpio, this._borrador.fecha());
+      this.ingresar(nombre, this._borrador.fecha());
     }
-    this._borrador.marcar(nombreLimpio);
+    this._borrador.marcar(nombre.trim());
   }
 
   cerrarElBorrador(): void {

@@ -57,8 +57,9 @@ export class Grupo {
   }
 
   reingresar(nombre: string, fecha: Date): Participante {
-    this._asertarQueNoTieneParticipacionActiva(nombre);
-    const participante = this._participanteHistoricoLlamado(nombre);
+    const nombreLimpio = nombre.trim();
+    this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
+    const participante = this._participanteHistoricoLlamado(nombreLimpio);
 
     participante.reingresar(fecha);
     this._participantesHistoricos.splice(this._participantesHistoricos.indexOf(participante), 1);
@@ -112,6 +113,10 @@ export class Grupo {
 
   participanteActivo(nombre: string): Participante | undefined {
     return this._participantes.find((participante) => participante.nombre() === nombre);
+  }
+
+  yaParticipo(nombre: string): boolean {
+    return this._participanteHistorico(nombre.trim()) !== undefined;
   }
 
   private _participanteActivoLlamado(nombre: string): Participante {

@@ -222,6 +222,15 @@ describe("Grupo", () => {
       expect(grupo.participantesHistoricos()).toEqual([]);
     });
 
+    it("al reingresar, el nombre también se toma sin espacios al principio ni al final", () => {
+      const { grupo, ana } = grupoConAnaFinalizada();
+
+      const reingresada = grupo.reingresar("  ana ", dia(11));
+
+      expect(reingresada).toBe(ana);
+      expect(grupo.participanteActivo("ana")).toBe(ana);
+    });
+
     it("no se puede reingresar a quien tiene una participación activa", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
@@ -237,6 +246,14 @@ describe("Grupo", () => {
       expect(() => {
         grupo.reingresar("ana", dia(2));
       }).toThrow("ana nunca ingresó al grupo");
+    });
+
+    it("ya participó quien tiene una participación finalizada, aunque el nombre venga con espacios", () => {
+      const { grupo } = grupoConAnaFinalizada();
+
+      expect(grupo.yaParticipo(" ana ")).toBe(true);
+      expect(grupo.yaParticipo("beto")).toBe(false);
+      expect(grupo.yaParticipo("carla")).toBe(false);
     });
 
     it("quien reingresa conserva los créditos pendientes a su nombre", () => {
