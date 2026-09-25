@@ -9,7 +9,7 @@ describe("Evento", () => {
     }).toThrow("Un evento debe tener al menos un asistente");
   });
 
-  it("el evento registra cuándo ocurrió y quiénes asistieron", () => {
+  it("registra cuándo ocurrió y quiénes asistieron", () => {
     const evento = new Evento(dia(1), ["ana", "beto"]);
 
     expect(evento.fecha()).toEqual(dia(1));

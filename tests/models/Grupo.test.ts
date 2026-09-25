@@ -25,7 +25,7 @@ describe("Grupo", () => {
       expect(nombre).toBe("Fútbol de los jueves");
     });
 
-    it("el nombre del grupo se guarda sin espacios al principio ni al final", () => {
+    it("se guarda sin espacios al principio ni al final", () => {
       const grupo = new Grupo("  Fútbol de los jueves ", reglas(), desempate);
 
       const nombre = grupo.nombre();
@@ -33,7 +33,7 @@ describe("Grupo", () => {
       expect(nombre).toBe("Fútbol de los jueves");
     });
 
-    it("el nombre del grupo no puede estar vacío", () => {
+    it("no puede estar vacío", () => {
       expect(() => {
         new Grupo("   ", reglas(), desempate);
       }).toThrow("El nombre del grupo no puede estar vacío");
@@ -219,7 +219,7 @@ describe("Grupo", () => {
       expect(grupo.participantesHistoricos()).toEqual([ana]);
     });
 
-    it("el nombre se guarda sin espacios al principio ni al final", () => {
+    it("el nombre de la persona se guarda sin espacios al principio ni al final", () => {
       const grupo = nuevoGrupo();
 
       const ana = grupo.ingresar("  ana ", dia(1));
@@ -228,7 +228,7 @@ describe("Grupo", () => {
       expect(grupo.participanteActivo("ana")).toBe(ana);
     });
 
-    it("el nombre no puede estar vacío", () => {
+    it("el nombre de la persona no puede estar vacío", () => {
       const grupo = nuevoGrupo();
 
       expect(() => {
@@ -261,7 +261,7 @@ describe("Grupo", () => {
       expect(grupo.participantesHistoricos()).toEqual([]);
     });
 
-    it("al reingresar, el nombre también se toma sin espacios al principio ni al final", () => {
+    it("el nombre de la persona también se toma sin espacios al principio ni al final", () => {
       const { grupo, ana } = grupoConAnaFinalizada();
 
       const reingresada = grupo.reingresar("  ana ", dia(11));

@@ -11,7 +11,7 @@ import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "../models/factories.ts";
 
 describe("CrearGrupo", () => {
-  it("crear grupo crea el grupo con su nombre y sus reglas iniciales", () => {
+  it("crea el grupo con su nombre y sus reglas iniciales", () => {
     const reglasIniciales = reglas();
     const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
 
@@ -22,7 +22,7 @@ describe("CrearGrupo", () => {
     expect(grupo.participantes()).toEqual([]);
   });
 
-  it("crear grupo se convierte a JSON con el nombre del grupo y las reglas, y vuelve igual", () => {
+  it("se convierte a JSON con el nombre del grupo y las reglas, y vuelve igual", () => {
     const comando = new CrearGrupo("Fútbol de los jueves", reglas());
 
     const json = comando.aJson();
@@ -35,7 +35,7 @@ describe("CrearGrupo", () => {
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
   });
 
-  it("crear grupo conoce el nombre del grupo y las reglas iniciales, para poder volver a pedirlos si se deshace", () => {
+  it("conoce el nombre del grupo y las reglas iniciales, para poder volver a pedirlos si se deshace", () => {
     const reglasIniciales = reglas();
     const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
 
@@ -62,7 +62,7 @@ describe("CrearGrupo", () => {
 });
 
 describe("Ingresar", () => {
-  it("ingresar deja a la persona como participante activo desde la fecha indicada", () => {
+  it("deja a la persona como participante activo desde la fecha indicada", () => {
     const grupo = nuevoGrupo();
     const comando = new Ingresar("ana", dia(1));
 
@@ -82,7 +82,7 @@ describe("Ingresar", () => {
     expect(grupo.participanteActivo("ana")).toBeDefined();
   });
 
-  it("ingresar se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+  it("se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
     const comando = new Ingresar("ana", dia(1));
 
     const json = comando.aJson();
@@ -101,7 +101,7 @@ describe("Ingresar", () => {
 });
 
 describe("Reingresar", () => {
-  it("reingresar vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
+  it("vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -117,7 +117,7 @@ describe("Reingresar", () => {
     expect(ana.fechaDelUltimoCambio()).toEqual(dia(11));
   });
 
-  it("reingresar se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+  it("se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
     const comando = new Reingresar("ana", dia(11));
 
     const json = comando.aJson();
@@ -128,7 +128,7 @@ describe("Reingresar", () => {
 });
 
 describe("CerrarEvento", () => {
-  it("cerrar un evento lo registra en el grupo con su fecha y sus asistentes", () => {
+  it("registra el evento en el grupo con su fecha y sus asistentes", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -142,14 +142,14 @@ describe("CerrarEvento", () => {
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 
-  it("un cierre de evento conoce su fecha y sus asistentes, para poder rearmar el borrador si se deshace", () => {
+  it("conoce su fecha y sus asistentes, para poder rearmar el borrador si se deshace", () => {
     const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
 
     expect(comando.fecha()).toEqual(dia(2));
     expect(comando.asistentes()).toEqual(["beto", "carla"]);
   });
 
-  it("cerrar evento se convierte a JSON con la fecha en formato ISO y los asistentes, y vuelve igual", () => {
+  it("se convierte a JSON con la fecha en formato ISO y los asistentes, y vuelve igual", () => {
     const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
 
     const json = comando.aJson();
@@ -160,7 +160,7 @@ describe("CerrarEvento", () => {
 });
 
 describe("Cobrar", () => {
-  it("cobrar registra el cobro a la persona por el monto y en la fecha indicados", () => {
+  it("registra el cobro a la persona por el monto y en la fecha indicados", () => {
     const grupo = nuevoGrupo();
     const ana = grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -174,7 +174,7 @@ describe("Cobrar", () => {
     expect(cobro.fecha()).toEqual(dia(3));
   });
 
-  it("cobrar se convierte a JSON con el nombre, el monto y la fecha en formato ISO, y vuelve igual", () => {
+  it("se convierte a JSON con el nombre, el monto y la fecha en formato ISO, y vuelve igual", () => {
     const comando = new Cobrar("ana", 400, dia(3));
 
     const json = comando.aJson();
@@ -185,7 +185,7 @@ describe("Cobrar", () => {
 });
 
 describe("Repartir", () => {
-  it("repartir entrega los créditos pendientes de la persona en la fecha indicada", () => {
+  it("entrega los créditos pendientes de la persona en la fecha indicada", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -200,7 +200,7 @@ describe("Repartir", () => {
     expect(reparto.fecha()).toEqual(dia(4));
   });
 
-  it("repartir se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
+  it("se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
     const comando = new Repartir("beto", dia(4));
 
     const json = comando.aJson();
@@ -211,7 +211,7 @@ describe("Repartir", () => {
 });
 
 describe("CambiarReglas", () => {
-  it("cambiar reglas deja vigentes las nuevas reglas", () => {
+  it("deja vigentes las nuevas reglas", () => {
     const grupo = nuevoGrupo();
     const nuevasReglas = reglas({ rigeDesde: dia(4) });
     const comando = new CambiarReglas(nuevasReglas);
@@ -221,7 +221,7 @@ describe("CambiarReglas", () => {
     expect(grupo.reglas()).toBe(nuevasReglas);
   });
 
-  it("cambiar reglas se convierte a JSON con las reglas y vuelve igual", () => {
+  it("se convierte a JSON con las reglas y vuelve igual", () => {
     const nuevasReglas = reglas({ rigeDesde: dia(4) });
     const comando = new CambiarReglas(nuevasReglas);
 
