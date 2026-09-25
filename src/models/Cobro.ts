@@ -12,7 +12,7 @@ export class Cobro {
 
   constructor(deudor: string, monto: number, fecha: Date, eventoFaltado: Evento, origen: OrigenDeCobro) {
     if (monto <= 0) throw new Error("El monto del cobro debe ser positivo");
-    if (origen !== "efectivo" && origen.nombre() !== deudor) {
+    if (origen !== "efectivo" && origen.acreedor() !== deudor) {
       throw new Error("Un crédito sólo se aplica a una deuda de su dueño");
     }
 

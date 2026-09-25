@@ -13,7 +13,7 @@ describe("Caja", () => {
 
       const creditos = caja.cobrar(cobro);
 
-      expect(creditos.map((credito) => [credito.nombre(), credito.monto()])).toEqual([
+      expect(creditos.map((credito) => [credito.acreedor(), credito.monto()])).toEqual([
         ["beto", 500],
         ["carla", 500],
       ]);
@@ -29,7 +29,7 @@ describe("Caja", () => {
 
       const creditos = caja.cobrar(cobro);
 
-      expect(creditos.map((credito) => [credito.nombre(), credito.monto()])).toEqual([
+      expect(creditos.map((credito) => [credito.acreedor(), credito.monto()])).toEqual([
         ["ana", 334],
         ["beto", 333],
         ["carla", 333],
@@ -42,7 +42,7 @@ describe("Caja", () => {
 
       const creditos = caja.cobrar(cobro);
 
-      expect(creditos.map((credito) => [credito.nombre(), credito.monto()])).toEqual([
+      expect(creditos.map((credito) => [credito.acreedor(), credito.monto()])).toEqual([
         ["ana", 1],
         ["beto", 1],
       ]);
@@ -130,7 +130,7 @@ describe("Caja", () => {
 
       const reparto = caja.repartir("beto", dia(5));
 
-      expect(reparto.nombre()).toBe("beto");
+      expect(reparto.acreedor()).toBe("beto");
       expect(reparto.fecha()).toEqual(dia(5));
       expect(reparto.monto()).toBe(800);
       expect(reparto.creditos()).toEqual(creditosDeBeto);

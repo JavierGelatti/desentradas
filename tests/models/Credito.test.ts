@@ -8,7 +8,7 @@ describe("Crédito", () => {
 
     const credito = new Credito("beto", 500, cobro);
 
-    expect(credito.nombre()).toBe("beto");
+    expect(credito.acreedor()).toBe("beto");
     expect(credito.monto()).toBe(500);
     expect(credito.cobro()).toBe(cobro);
     expect(credito.estado()).toBe("cobrado");
@@ -51,7 +51,7 @@ describe("Crédito", () => {
 
     const [primero, segundo] = credito.dividir(400);
 
-    expect(primero.nombre()).toBe("beto");
+    expect(primero.acreedor()).toBe("beto");
     expect(primero.monto()).toBe(400);
     expect(segundo.monto()).toBe(100);
     expect(segundo.cobro()).toBe(cobro);

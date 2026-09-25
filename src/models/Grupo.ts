@@ -195,7 +195,7 @@ export class Grupo {
   }
 
   private _aplicarSiElTitularDebe(credito: Credito, fecha: Date): void {
-    const deudor = this.participanteActivo(credito.nombre());
+    const deudor = this.participanteActivo(credito.acreedor());
     if (deudor === undefined) return;
     const deuda = deudor.deudaAl(fecha);
     if (deuda === 0) return;

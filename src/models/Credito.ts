@@ -3,20 +3,20 @@ import type { Cobro } from "./Cobro.ts";
 export type EstadoDeCredito = "cobrado" | "aplicado" | "repartido";
 
 export class Credito {
-  private _nombre: string;
+  private _acreedor: string;
   private _monto: number;
   private _cobro: Cobro;
   private _estado: EstadoDeCredito;
 
-  constructor(nombre: string, monto: number, cobro: Cobro) {
-    this._nombre = nombre;
+  constructor(acreedor: string, monto: number, cobro: Cobro) {
+    this._acreedor = acreedor;
     this._monto = monto;
     this._cobro = cobro;
     this._estado = "cobrado";
   }
 
-  nombre(): string {
-    return this._nombre;
+  acreedor(): string {
+    return this._acreedor;
   }
 
   monto(): number {
@@ -50,7 +50,10 @@ export class Credito {
   dividir(monto: number): [Credito, Credito] {
     if (monto <= 0 || monto >= this._monto) throw new Error("El monto debe ser positivo y menor al del crédito");
 
-    return [new Credito(this._nombre, monto, this._cobro), new Credito(this._nombre, this._monto - monto, this._cobro)];
+    return [
+      new Credito(this._acreedor, monto, this._cobro),
+      new Credito(this._acreedor, this._monto - monto, this._cobro),
+    ];
   }
 
   private _asertarQueEstaPendiente(): void {

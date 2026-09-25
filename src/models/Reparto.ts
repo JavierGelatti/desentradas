@@ -2,12 +2,12 @@ import type { Credito } from "./Credito.ts";
 
 export class Reparto {
   private _fecha: Date;
-  private _nombre: string;
+  private _acreedor: string;
   private _creditos: readonly Credito[];
 
-  constructor(fecha: Date, nombre: string, creditos: readonly Credito[]) {
+  constructor(fecha: Date, acreedor: string, creditos: readonly Credito[]) {
     this._fecha = fecha;
-    this._nombre = nombre;
+    this._acreedor = acreedor;
     this._creditos = creditos;
   }
 
@@ -15,8 +15,8 @@ export class Reparto {
     return this._fecha;
   }
 
-  nombre(): string {
-    return this._nombre;
+  acreedor(): string {
+    return this._acreedor;
   }
 
   creditos(): readonly Credito[] {

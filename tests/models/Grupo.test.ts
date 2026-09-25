@@ -553,7 +553,7 @@ describe("Grupo", () => {
       expect(cobroABeto.fecha()).toEqual(dia(10));
       expect(cobroABeto.eventoFaltado()).toBe(eventoQueDebeBeto);
       const creditoAplicado = cobroABeto.origen() as Credito;
-      expect(creditoAplicado.nombre()).toBe("beto");
+      expect(creditoAplicado.acreedor()).toBe("beto");
       expect(creditoAplicado.estado()).toBe("aplicado");
       expect(creditoAplicado.cobro()).toBe(cobroAAna);
     });

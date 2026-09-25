@@ -59,7 +59,7 @@ export class Caja {
   }
 
   creditosPendientesDe(nombre: string): Credito[] {
-    return this._creditosPendientes().filter((credito) => credito.nombre() === nombre);
+    return this._creditosPendientes().filter((credito) => credito.acreedor() === nombre);
   }
 
   montoPendienteDe(nombre: string): number {
@@ -71,7 +71,7 @@ export class Caja {
   }
 
   nombresConCreditosPendientes(): string[] {
-    return [...new Set(this._creditosPendientes().map((credito) => credito.nombre()))];
+    return [...new Set(this._creditosPendientes().map((credito) => credito.acreedor()))];
   }
 
   private _repartirEnCreditos(cobro: Cobro): Credito[] {

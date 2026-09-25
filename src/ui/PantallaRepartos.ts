@@ -55,7 +55,7 @@ export class PantallaRepartos {
   }
 
   private _filaDeReparto(reparto: Reparto): HTMLTableRowElement {
-    return fila(fechaYHora(reparto.fecha()), reparto.nombre(), monto(reparto.monto()));
+    return fila(fechaYHora(reparto.fecha()), reparto.acreedor(), monto(reparto.monto()));
   }
 
   private _abrirReparto(nombre: string): void {
