@@ -164,7 +164,7 @@ describe("Aplicacion", () => {
   });
 
   describe("historial", () => {
-    it("comandos devuelve los comandos ejecutados en orden, empezando por la creación del grupo", () => {
+    it("el historial son los comandos ejecutados en orden, empezando por la creación del grupo", () => {
       const aplicacion = aplicacionConGrupo();
 
       aplicacion.ingresar("ana", dia(1));

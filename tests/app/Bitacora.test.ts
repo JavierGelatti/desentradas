@@ -114,7 +114,7 @@ describe("Bitacora", () => {
       expect(bitacora.puedeDeshacer()).toBe(true);
     });
 
-    it("al deshacer, el grupo se reconstruye desde cero y las referencias anteriores dejan de valer", () => {
+    it("después de deshacer hay que volver a pedirle el grupo a la bitácora", () => {
       const bitacora = bitacoraConGrupo();
       bitacora.ejecutar(new Ingresar("ana", dia(1)));
       bitacora.ejecutar(new Ingresar("beto", dia(1)));
