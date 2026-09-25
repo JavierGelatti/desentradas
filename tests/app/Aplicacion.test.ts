@@ -25,6 +25,12 @@ const aplicacionConDeudaDeAna = (almacenamiento = new AlmacenamientoEnMemoria())
   return aplicacion;
 };
 
+const aplicacionConAnaMorosa = (almacenamiento = new AlmacenamientoEnMemoria()) => {
+  const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
+  aplicacion.cerrarEvento(dia(3), ["beto"]);
+  return aplicacion;
+};
+
 describe("Aplicacion", () => {
   describe("creación del grupo", () => {
     it("una aplicación nueva no tiene grupo", () => {
@@ -273,8 +279,7 @@ describe("Aplicacion", () => {
     });
 
     it("no se puede cobrar en la puerta a quien no está en deuda", () => {
-      const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.cerrarEvento(dia(3), ["beto"]); // ana queda morosa
+      const aplicacion = aplicacionConAnaMorosa();
 
       expect(() => {
         aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
@@ -292,15 +297,14 @@ describe("Aplicacion", () => {
     });
 
     it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del borrador y lo deja marcado como asistente", () => {
-      const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.cerrarEvento(dia(9), ["beto"]);
-      aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por pago de morosidad
-      aplicacion.borrador().cambiarFecha(dia(11));
+      const aplicacion = aplicacionConAnaMorosa();
+      aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+      aplicacion.borrador().cambiarFecha(dia(5));
 
       aplicacion.ingresarAsistente("ana");
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
-      expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(11));
+      expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(5));
       expect(aplicacion.borrador().asiste("ana")).toBe(true);
     });
 
@@ -321,10 +325,8 @@ describe("Aplicacion", () => {
       expect(aplicacion.ausentesDelBorrador()).toEqual(["ana"]);
     });
 
-    it("un moroso nunca queda ausente, porque no puede asistir ni pagando", () => {
-      const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.cerrarEvento(dia(3), ["beto"]);
-      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("moroso");
+    it("un moroso no figura entre los ausentes del borrador", () => {
+      const aplicacion = aplicacionConAnaMorosa();
 
       expect(aplicacion.ausentesDelBorrador()).toEqual(["beto"]);
     });
