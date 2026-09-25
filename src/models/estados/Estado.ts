@@ -70,10 +70,6 @@ export abstract class Estado {
     return 0;
   }
 
-  eventoAdeudado(): Evento | undefined {
-    return undefined;
-  }
-
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
     return undefined;
   }

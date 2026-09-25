@@ -173,21 +173,4 @@ describe("Bitacora", () => {
       }).toThrow("ana ya tiene una participación activa");
     });
   });
-
-  describe("último comando", () => {
-    it("el último comando es el último ejecutado", () => {
-      const bitacora = bitacoraConGrupo();
-      const ingresar = new Ingresar("ana", dia(1));
-
-      bitacora.ejecutar(ingresar);
-
-      expect(bitacora.ultimoComando()).toBe(ingresar);
-    });
-
-    it("una bitácora vacía no tiene último comando", () => {
-      const bitacora = new Bitacora(desempate);
-
-      expect(bitacora.ultimoComando()).toBeUndefined();
-    });
-  });
 });

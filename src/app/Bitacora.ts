@@ -53,10 +53,6 @@ export class Bitacora {
     return this._comandos;
   }
 
-  ultimoComando(): Comando | undefined {
-    return this._comandos.at(-1);
-  }
-
   tieneGrupo(): boolean {
     return this._grupo !== undefined;
   }

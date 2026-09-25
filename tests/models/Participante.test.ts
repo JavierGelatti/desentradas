@@ -101,12 +101,6 @@ describe("Participante", () => {
       expect(ana.faltas()).toBe(1);
     });
 
-    it("no adeuda ningún evento", () => {
-      const ana = nuevoParticipante();
-
-      expect(ana.eventoAdeudado()).toBeUndefined();
-    });
-
     it("sus acciones posibles son ir y faltar", () => {
       const ana = nuevoParticipante();
 
@@ -133,15 +127,6 @@ describe("Participante", () => {
   });
 
   describe("en deuda", () => {
-    it("adeuda el evento al que faltó", () => {
-      const ana = nuevoParticipante();
-      const evento = nuevoEvento();
-
-      ana.falto(evento, lasReglas);
-
-      expect(ana.eventoAdeudado()).toBe(evento);
-    });
-
     it("sus acciones posibles son faltar y pagar", () => {
       const ana = enDeuda();
 
@@ -362,14 +347,15 @@ describe("Participante", () => {
   });
 
   describe("moroso", () => {
-    it("sigue adeudando el evento que originó la deuda", () => {
+    it("pagar produce un cobro por el evento que originó la deuda", () => {
       const ana = nuevoParticipante();
       const evento = nuevoEvento({ numero: 2 });
       ana.falto(evento, lasReglas);
-
       ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
 
-      expect(ana.eventoAdeudado()).toBe(evento);
+      const cobro = ana.pago(dia(20), 400, lasReglas, "efectivo");
+
+      expect(cobro.eventoFaltado()).toBe(evento);
     });
 
     it("sus acciones posibles son faltar y pagar", () => {

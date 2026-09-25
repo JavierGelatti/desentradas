@@ -86,10 +86,6 @@ export class Participante {
     return this._estado.deudaAl(fecha);
   }
 
-  eventoAdeudado(): Evento | undefined {
-    return this._estado.eventoAdeudado();
-  }
-
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
     return this._estado.motivoDeFinalizacion();
   }
