@@ -287,12 +287,24 @@ describe("Grupo", () => {
       }).toThrow("ana nunca ingresó al grupo");
     });
 
-    it("ya participó quien tiene una participación finalizada, aunque el nombre venga con espacios", () => {
+    it("ya participó quien tiene una participación finalizada", () => {
       const { grupo } = grupoConAnaFinalizada();
 
-      expect(grupo.yaParticipo(" ana ")).toBe(true);
-      expect(grupo.yaParticipo("beto")).toBe(false);
-      expect(grupo.yaParticipo("carla")).toBe(false);
+      const anaYaParticipo = grupo.yaParticipo("ana");
+      const betoYaParticipo = grupo.yaParticipo("beto");
+      const carlaYaParticipo = grupo.yaParticipo("carla");
+
+      expect(anaYaParticipo).toBe(true);
+      expect(betoYaParticipo).toBe(false);
+      expect(carlaYaParticipo).toBe(false);
+    });
+
+    it("para saber si ya participó, el nombre se toma sin espacios al principio ni al final", () => {
+      const { grupo } = grupoConAnaFinalizada();
+
+      const yaParticipo = grupo.yaParticipo(" ana ");
+
+      expect(yaParticipo).toBe(true);
     });
 
     it("quien reingresa conserva los créditos pendientes a su nombre", () => {
@@ -470,7 +482,7 @@ describe("Grupo", () => {
   });
 
   describe("caja", () => {
-    it("cobrar registra un cobro en efectivo y reparte créditos entre los asistentes al evento faltado", () => {
+    it("cobrar registra un cobro en efectivo por el evento faltado", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -488,6 +500,18 @@ describe("Grupo", () => {
       expect(cobro.fecha()).toEqual(dia(3));
       expect(cobro.eventoFaltado()).toBe(evento);
       expect(cobro.esEnEfectivo()).toBe(true);
+    });
+
+    it("un cobro se reparte en créditos entre los asistentes al evento faltado", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+
+      grupo.cobrar("ana", 1000, dia(3));
+
+      const caja = grupo.caja();
       expect(caja.montoPendienteDe("beto")).toBe(500);
       expect(caja.montoPendienteDe("carla")).toBe(500);
     });
