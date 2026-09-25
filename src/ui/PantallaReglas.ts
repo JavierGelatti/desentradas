@@ -1,7 +1,7 @@
 import type { Reglas } from "../models/Reglas.ts";
 import { alerta, crear, desplegable, fila, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { camposDeReglas, describirInteres, reglasDesde } from "./FormularioDeReglas.ts";
+import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 
 // Las reglas vigentes, el formulario para cambiarlas (rigen desde el momento del cambio) y las versiones anteriores.
@@ -37,7 +37,7 @@ export class PantallaReglas {
       crear("dt", {}, "Monto por falta"),
       crear("dd", {}, monto(reglas.montoPorFalta())),
       crear("dt", {}, "Interés"),
-      crear("dd", {}, describirInteres(reglas.politicaDeInteres())),
+      crear("dd", {}, reglas.politicaDeInteres().describir(monto)),
     );
   }
 
@@ -74,7 +74,7 @@ export class PantallaReglas {
       fechaYHora(reglas.rigeDesde()),
       String(reglas.toleranciaDeFaltas()),
       monto(reglas.montoPorFalta()),
-      describirInteres(reglas.politicaDeInteres()),
+      reglas.politicaDeInteres().describir(monto),
     );
   }
 }

@@ -359,6 +359,19 @@ describe("VistaPrincipal", () => {
       expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1500);
       expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
     });
+
+    it("el interés fijo por día se muestra como un monto en pesos", async () => {
+      const almacenamientos = nuevosAlmacenamientos();
+      nuevaAplicacion(almacenamientos).crearGrupo(
+        "Fútbol de los jueves",
+        reglas({ politicaDeInteres: new InteresFijoPorDia(1000) }),
+      );
+      montar(almacenamientos);
+
+      await navegarA("Reglas");
+
+      expect(hayElementoConTexto("dd", "$ 1.000 por día de mora")).toBe(true);
+    });
   });
 
   describe("pantalla del historial", () => {

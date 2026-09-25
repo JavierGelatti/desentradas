@@ -2,7 +2,6 @@ import { InteresFijoPorDia, InteresMensual, type PoliticaDeInteres, SinInteres }
 import { Reglas } from "../models/Reglas.ts";
 import { campoDeOpciones, campoNumerico, controlDe } from "./Campos.ts";
 import { crear, numeroDe, valorDe } from "./dom.ts";
-import { monto } from "./Formato.ts";
 
 type TipoDeInteres = "sin interés" | "fijo por día" | "mensual";
 
@@ -83,10 +82,4 @@ const politicaDeInteresDesde = (formulario: HTMLFormElement): PoliticaDeInteres 
     default:
       return new SinInteres();
   }
-};
-
-export const describirInteres = (politica: PoliticaDeInteres): string => {
-  if (politica instanceof InteresFijoPorDia) return `${monto(politica.montoPorDia())} por día de mora`;
-  if (politica instanceof InteresMensual) return `${politica.porcentaje()} % por mes de mora`;
-  return "sin interés";
 };

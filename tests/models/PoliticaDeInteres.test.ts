@@ -2,11 +2,19 @@ import { describe, expect, it } from "vitest";
 import { InteresFijoPorDia, InteresMensual, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
 import { dia } from "./factories.ts";
 
+const conPesos = (monto: number) => `$${monto}`;
+
 describe("SinInteres", () => {
   it("el monto no cambia con el paso del tiempo", () => {
     const politica = new SinInteres();
 
     expect(politica.montoConInteres(1000, dia(1), dia(30))).toBe(1000);
+  });
+
+  it("se describe como sin interés", () => {
+    const politica = new SinInteres();
+
+    expect(politica.describir(conPesos)).toBe("sin interés");
   });
 });
 
@@ -29,6 +37,12 @@ describe("InteresFijoPorDia", () => {
     const casiDosDias = new Date(dia(3).getTime() - 1);
 
     expect(politica.montoConInteres(1000, dia(1), casiDosDias)).toBe(1010);
+  });
+
+  it("se describe por su monto por día de mora, con el formato de monto dado", () => {
+    const politica = new InteresFijoPorDia(10);
+
+    expect(politica.describir(conPesos)).toBe("$10 por día de mora");
   });
 });
 
@@ -59,5 +73,11 @@ describe("InteresMensual", () => {
 
     expect(politica.montoConInteres(1000, dia(1), dia(2))).toBe(1003);
     expect(politica.montoConInteres(1000, dia(1), dia(3))).toBe(1007);
+  });
+
+  it("se describe por su porcentaje por mes de mora", () => {
+    const politica = new InteresMensual(30);
+
+    expect(politica.describir(conPesos)).toBe("30 % por mes de mora");
   });
 });
