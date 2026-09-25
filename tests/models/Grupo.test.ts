@@ -122,7 +122,7 @@ describe("Grupo", () => {
       expect(grupo.historialDeReglas()).toEqual([reglasDefinitivas]);
     });
 
-    it("las faltas a un evento se rigen por las reglas vigentes en su fecha", () => {
+    it("el monto por falta de un evento es el de las reglas vigentes en su fecha", () => {
       const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -134,7 +134,7 @@ describe("Grupo", () => {
       expect(ana.deudaAl(dia(10))).toBe(2000);
     });
 
-    it("un evento anterior a que rijan las nuevas reglas se rige por las anteriores", () => {
+    it("mientras las nuevas reglas no rijan, los eventos se siguen rigiendo por las anteriores", () => {
       const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -249,7 +249,7 @@ describe("Grupo", () => {
   });
 
   describe("reingreso", () => {
-    it("una persona puede reingresar una vez finalizada su participación, con la misma participación", () => {
+    it("quien tiene la participación finalizada puede reingresar y retoma esa misma participación", () => {
       const { grupo, ana, beto } = grupoConAnaFinalizada();
 
       const reingresada = grupo.reingresar("ana", dia(11));
