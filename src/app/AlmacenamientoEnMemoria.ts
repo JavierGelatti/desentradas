@@ -14,4 +14,8 @@ export class AlmacenamientoEnMemoria implements Almacenamiento {
   leer(): string | undefined {
     return this._texto;
   }
+
+  borrar(): void {
+    this._texto = undefined;
+  }
 }

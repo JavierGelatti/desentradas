@@ -21,6 +21,14 @@ export class CambiarReglas extends ComandoSobreElGrupo {
     grupo.cambiarReglas(this._reglas);
   }
 
+  fecha(): Date {
+    return this._reglas.rigeDesde();
+  }
+
+  describir(): string {
+    return "Cambio de reglas";
+  }
+
   aJson(): ComandoJson {
     return { tipo: "cambiar reglas", reglas: reglasAJson(this._reglas) };
   }

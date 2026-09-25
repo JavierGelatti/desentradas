@@ -13,5 +13,9 @@ export abstract class ComandoSobreElGrupo implements Comando {
 
   protected abstract ejecutarEn(grupo: Grupo): void;
 
+  abstract fecha(): Date;
+
+  abstract describir(): string;
+
   abstract aJson(): ComandoJson;
 }

@@ -21,6 +21,14 @@ export class Repartir extends ComandoSobreElGrupo {
     grupo.repartir(this._nombre, this._fecha);
   }
 
+  fecha(): Date {
+    return this._fecha;
+  }
+
+  describir(): string {
+    return `Reparto a ${this._nombre}`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "repartir", nombre: this._nombre, fecha: this._fecha.toISOString() };
   }

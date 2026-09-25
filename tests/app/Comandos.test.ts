@@ -34,6 +34,14 @@ describe("CrearGrupo", () => {
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
   });
 
+  it("crear grupo conoce el nombre del grupo y las reglas iniciales, para poder volver a pedirlos si se deshace", () => {
+    const reglasIniciales = reglas();
+    const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
+
+    expect(comando.nombreDelGrupo()).toBe("Fútbol de los jueves");
+    expect(comando.reglas()).toBe(reglasIniciales);
+  });
+
   it("no se puede crear el grupo si ya fue creado", () => {
     const grupo = nuevoGrupo();
     const comando = new CrearGrupo("Fútbol de los jueves", reglas());
@@ -220,5 +228,56 @@ describe("Comandos en JSON", () => {
     expect(() => {
       comandoDesdeJson({ tipo: "expulsar", nombre: "ana" });
     }).toThrow('Formato inválido: comando desconocido "expulsar"');
+  });
+});
+
+describe("Descripción de los comandos", () => {
+  it("crear grupo refiere a la fecha desde la que rigen las reglas y se describe con el nombre del grupo", () => {
+    const comando = new CrearGrupo("Fútbol de los jueves", reglas({ rigeDesde: dia(1) }));
+
+    expect(comando.fecha()).toEqual(dia(1));
+    expect(comando.describir()).toBe('Creación del grupo "Fútbol de los jueves"');
+  });
+
+  it("ingresar refiere a la fecha de ingreso y se describe como un registro con el nombre", () => {
+    const comando = new Ingresar("ana", dia(1));
+
+    expect(comando.fecha()).toEqual(dia(1));
+    expect(comando.describir()).toBe("Registro de ana");
+  });
+
+  it("reingresar refiere a la fecha de reingreso y se describe con el nombre", () => {
+    const comando = new Reingresar("ana", dia(11));
+
+    expect(comando.fecha()).toEqual(dia(11));
+    expect(comando.describir()).toBe("Reingreso de ana");
+  });
+
+  it("cerrar evento refiere a la fecha del evento y se describe con sus asistentes", () => {
+    const comando = new CerrarEvento(dia(2), ["beto", "carla"]);
+
+    expect(comando.fecha()).toEqual(dia(2));
+    expect(comando.describir()).toBe("Evento con beto, carla");
+  });
+
+  it("cobrar refiere a la fecha del cobro y se describe con el monto y el nombre", () => {
+    const comando = new Cobrar("ana", 1000, dia(3));
+
+    expect(comando.fecha()).toEqual(dia(3));
+    expect(comando.describir()).toBe("Cobro de $1000 a ana");
+  });
+
+  it("repartir refiere a la fecha del reparto y se describe con el nombre", () => {
+    const comando = new Repartir("beto", dia(4));
+
+    expect(comando.fecha()).toEqual(dia(4));
+    expect(comando.describir()).toBe("Reparto a beto");
+  });
+
+  it("cambiar reglas refiere a la fecha desde la que rigen las nuevas reglas", () => {
+    const comando = new CambiarReglas(reglas({ rigeDesde: dia(4) }));
+
+    expect(comando.fecha()).toEqual(dia(4));
+    expect(comando.describir()).toBe("Cambio de reglas");
   });
 });

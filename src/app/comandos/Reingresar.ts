@@ -21,6 +21,14 @@ export class Reingresar extends ComandoSobreElGrupo {
     grupo.reingresar(this._nombre, this._fecha);
   }
 
+  fecha(): Date {
+    return this._fecha;
+  }
+
+  describir(): string {
+    return `Reingreso de ${this._nombre}`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "reingresar", nombre: this._nombre, fecha: this._fecha.toISOString() };
   }

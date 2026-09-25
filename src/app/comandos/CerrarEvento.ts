@@ -30,6 +30,10 @@ export class CerrarEvento extends ComandoSobreElGrupo {
     return this._asistentes;
   }
 
+  describir(): string {
+    return `Evento con ${this._asistentes.join(", ")}`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "cerrar evento", fecha: this._fecha.toISOString(), asistentes: this._asistentes };
   }

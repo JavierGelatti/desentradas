@@ -29,6 +29,18 @@ export class CrearGrupo implements Comando {
     return this._nombreDelGrupo;
   }
 
+  reglas(): Reglas {
+    return this._reglas;
+  }
+
+  fecha(): Date {
+    return this._reglas.rigeDesde();
+  }
+
+  describir(): string {
+    return `Creación del grupo "${this._nombreDelGrupo}"`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "crear grupo", nombreDelGrupo: this._nombreDelGrupo, reglas: reglasAJson(this._reglas) };
   }

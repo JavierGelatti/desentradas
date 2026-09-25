@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
+import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
@@ -157,6 +158,19 @@ describe("Aplicacion", () => {
       aplicacion.cambiarReglas(nuevasReglas);
 
       expect(aplicacion.grupo().reglas()).toBe(nuevasReglas);
+    });
+  });
+
+  describe("historial", () => {
+    it("comandos devuelve los comandos ejecutados en orden, empezando por la creación del grupo", () => {
+      const aplicacion = aplicacionConGrupo();
+
+      aplicacion.ingresar("ana", dia(1));
+
+      const comandos = aplicacion.comandos();
+      expect(comandos).toHaveLength(2);
+      expect(comandos[0]).toBeInstanceOf(CrearGrupo);
+      expect(comandos[1]).toBeInstanceOf(Ingresar);
     });
   });
 

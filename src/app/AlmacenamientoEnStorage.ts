@@ -1,7 +1,7 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 
 // Lo mínimo que se usa de un Storage del navegador (localStorage), para poder reemplazarlo en las pruebas.
-export type StorageDeClaves = Pick<Storage, "getItem" | "setItem">;
+export type StorageDeClaves = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export class AlmacenamientoEnStorage implements Almacenamiento {
   private _storage: StorageDeClaves;
@@ -18,5 +18,9 @@ export class AlmacenamientoEnStorage implements Almacenamiento {
 
   leer(): string | undefined {
     return this._storage.getItem(this._clave) ?? undefined;
+  }
+
+  borrar(): void {
+    this._storage.removeItem(this._clave);
   }
 }

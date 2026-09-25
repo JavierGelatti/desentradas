@@ -23,6 +23,14 @@ export class Cobrar extends ComandoSobreElGrupo {
     grupo.registrarPago(this._nombre, this._monto, this._fecha);
   }
 
+  fecha(): Date {
+    return this._fecha;
+  }
+
+  describir(): string {
+    return `Cobro de $${this._monto} a ${this._nombre}`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "cobrar", nombre: this._nombre, monto: this._monto, fecha: this._fecha.toISOString() };
   }

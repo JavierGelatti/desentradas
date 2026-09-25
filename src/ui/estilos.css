@@ -1,0 +1,63 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 40rem;
+  padding: 0 1rem 2rem;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+nav a[aria-current="page"] {
+  font-weight: bold;
+}
+
+/* Una tabla más ancha que el teléfono se desplaza sola, sin que la página se mueva ni los botones se rompan. */
+table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.25rem 0.75rem 0.25rem 0;
+  white-space: nowrap;
+}
+
+button {
+  white-space: nowrap;
+}
+
+caption {
+  text-align: left;
+  font-weight: bold;
+  padding: 0.5rem 0;
+}
+
+form > label,
+dialog label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+output[role="alert"]:not(:empty),
+p[role="alert"] {
+  display: block;
+  margin: 0.5rem 0;
+  font-weight: bold;
+}
+
+dialog {
+  max-width: calc(100vw - 2rem);
+}

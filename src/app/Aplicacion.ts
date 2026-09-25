@@ -81,6 +81,10 @@ export class Aplicacion {
     return this._bitacora.puedeDeshacer();
   }
 
+  comandos(): readonly Comando[] {
+    return this._bitacora.comandos();
+  }
+
   ultimoComando(): Comando | undefined {
     return this._bitacora.ultimoComando();
   }

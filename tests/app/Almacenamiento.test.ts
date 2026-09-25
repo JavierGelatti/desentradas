@@ -17,6 +17,15 @@ describe("AlmacenamientoEnMemoria", () => {
 
     expect(almacenamiento.leer()).toBe("segundo");
   });
+
+  it("después de borrar no tiene nada guardado", () => {
+    const almacenamiento = new AlmacenamientoEnMemoria();
+    almacenamiento.guardar("texto");
+
+    almacenamiento.borrar();
+
+    expect(almacenamiento.leer()).toBeUndefined();
+  });
 });
 
 const storageFalso = () => {
@@ -24,6 +33,7 @@ const storageFalso = () => {
   return {
     getItem: (clave: string) => guardado.get(clave) ?? null,
     setItem: (clave: string, valor: string) => guardado.set(clave, valor),
+    removeItem: (clave: string) => guardado.delete(clave),
     guardado,
   };
 };
@@ -44,6 +54,16 @@ describe("AlmacenamientoEnStorage", () => {
     const almacenamiento = new AlmacenamientoEnStorage(storage, "bitácora");
 
     expect(almacenamiento.leer()).toBe("texto");
+  });
+
+  it("borrar quita lo que el storage tiene bajo su clave", () => {
+    const storage = storageFalso();
+    storage.setItem("bitácora", "texto");
+    const almacenamiento = new AlmacenamientoEnStorage(storage, "bitácora");
+
+    almacenamiento.borrar();
+
+    expect(storage.guardado.has("bitácora")).toBe(false);
   });
 
   it("no tiene nada guardado si el storage no tiene nada bajo su clave", () => {

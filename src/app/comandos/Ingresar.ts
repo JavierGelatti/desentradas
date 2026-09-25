@@ -21,6 +21,14 @@ export class Ingresar extends ComandoSobreElGrupo {
     grupo.ingresar(this._nombre, this._fecha);
   }
 
+  fecha(): Date {
+    return this._fecha;
+  }
+
+  describir(): string {
+    return `Registro de ${this._nombre}`;
+  }
+
   aJson(): ComandoJson {
     return { tipo: "ingresar", nombre: this._nombre, fecha: this._fecha.toISOString() };
   }
