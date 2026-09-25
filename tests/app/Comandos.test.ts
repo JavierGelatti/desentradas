@@ -61,6 +61,26 @@ describe("CrearGrupo", () => {
   });
 });
 
+describe("ComandoSobreElGrupo", () => {
+  it("ejecutarlo sobre el grupo creado lo modifica y lo devuelve", () => {
+    const grupo = nuevoGrupo();
+    const comando = new Ingresar("ana", dia(1));
+
+    const resultado = comando.ejecutar(grupo, desempate);
+
+    expect(resultado).toBe(grupo);
+    expect(grupo.participanteActivo("ana")).toBeDefined();
+  });
+
+  it("no se puede ejecutar antes de crear el grupo", () => {
+    const comando = new Ingresar("ana", dia(1));
+
+    expect(() => {
+      comando.ejecutar(undefined, desempate);
+    }).toThrow("El grupo no está creado");
+  });
+});
+
 describe("Ingresar", () => {
   it("deja a la persona como participante activo desde la fecha indicada", () => {
     const grupo = nuevoGrupo();
@@ -72,16 +92,6 @@ describe("Ingresar", () => {
     expect(ana?.historial().at(0)?.fecha()).toEqual(dia(1));
   });
 
-  it("ejecutar un comando sobre el grupo creado lo modifica y lo devuelve", () => {
-    const grupo = nuevoGrupo();
-    const comando = new Ingresar("ana", dia(1));
-
-    const resultado = comando.ejecutar(grupo, desempate);
-
-    expect(resultado).toBe(grupo);
-    expect(grupo.participanteActivo("ana")).toBeDefined();
-  });
-
   it("se convierte a JSON con el nombre y la fecha en formato ISO, y vuelve igual", () => {
     const comando = new Ingresar("ana", dia(1));
 
@@ -89,14 +99,6 @@ describe("Ingresar", () => {
 
     expect(json).toEqual({ tipo: "ingresar", nombre: "ana", fecha: dia(1).toISOString() });
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
-  });
-
-  it("no se puede ejecutar un comando antes de crear el grupo", () => {
-    const comando = new Ingresar("ana", dia(1));
-
-    expect(() => {
-      comando.ejecutar(undefined, desempate);
-    }).toThrow("El grupo no está creado");
   });
 });
 

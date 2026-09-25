@@ -26,6 +26,12 @@ describe("Reglas en JSON", () => {
     expect(leidas.montoPorFalta()).toBe(1000);
     expect(leidas.politicaDeInteres()).toBeInstanceOf(SinInteres);
   });
+
+  it("no se pueden leer reglas con una fecha que no está en formato ISO", () => {
+    expect(() => {
+      reglasDesdeJson({ ...reglasAJson(reglas()), rigeDesde: "ayer" });
+    }).toThrow('Formato inválido: "rigeDesde" debe ser una fecha en formato ISO');
+  });
 });
 
 describe("Políticas de interés en JSON", () => {
@@ -51,11 +57,5 @@ describe("Políticas de interés en JSON", () => {
     expect(() => {
       politicaDeInteresDesdeJson({ tipo: "compuesto" });
     }).toThrow('Formato inválido: política de interés desconocida "compuesto"');
-  });
-
-  it("no se pueden leer reglas con una fecha que no está en formato ISO", () => {
-    expect(() => {
-      reglasDesdeJson({ ...reglasAJson(reglas()), rigeDesde: "ayer" });
-    }).toThrow('Formato inválido: "rigeDesde" debe ser una fecha en formato ISO');
   });
 });
