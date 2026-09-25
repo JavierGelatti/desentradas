@@ -247,7 +247,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.borrador().asiste("ana")).toBe(false);
     });
 
-    it("registrar a alguien nuevo como asistente lo ingresa con la fecha del borrador y lo deja marcado", () => {
+    it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha del borrador y marcado como asistente", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.borrador().cambiarFecha(dia(3));
 
@@ -257,7 +257,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.borrador().asiste("carla")).toBe(true);
     });
 
-    it("registrar como asistente a quien ya participó la reingresa con la fecha del borrador y la deja marcada", () => {
+    it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del borrador y lo deja marcado como asistente", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.cerrarEvento(dia(9), ["beto"]);
       aplicacion.cobrar("ana", 1000, dia(10)); // ana queda finalizada por pago de morosidad
@@ -270,7 +270,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.borrador().asiste("ana")).toBe(true);
     });
 
-    it("registrar como asistente toma el nombre sin espacios al principio ni al final", () => {
+    it("ingresar como asistente toma el nombre sin espacios al principio ni al final", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.borrador().cambiarFecha(dia(3));
 
