@@ -111,5 +111,13 @@ describe("Deuda", () => {
       }).toThrow("El pago no puede ser anterior al último pago");
       expect(deuda.montoAl(dia(5))).toBe(600);
     });
+
+    it("no se puede pagar en una fecha anterior al evento faltado", () => {
+      const deuda = nuevaDeuda(nuevoEvento({ numero: 9 }));
+
+      expect(() => {
+        deuda.pagar(dia(8), 100);
+      }).toThrow("El cobro no puede ser anterior al evento faltado");
+    });
   });
 });

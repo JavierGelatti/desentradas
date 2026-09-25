@@ -93,10 +93,10 @@ export class Grupo {
 
   cerrarEvento(evento: Evento): void {
     this._asertarQueEsPosteriorAlUltimoEvento(evento);
-    this._asertarQuePuedenAsistir(evento.asistentes());
+    this._asertarQuePuedenAsistir(evento);
     const reglas = this.reglasVigentesAl(evento.fecha());
 
-    this._participantes.forEach((participante) => {
+    this._participantesDelEvento(evento).forEach((participante) => {
       if (evento.asistio(participante.nombre())) {
         participante.voy(evento, reglas);
       } else {
@@ -136,6 +136,10 @@ export class Grupo {
     return this._participanteFinalizado(nombre.trim()) !== undefined;
   }
 
+  private _participantesDelEvento(evento: Evento): readonly Participante[] {
+    return this._participantes.filter((participante) => !participante.ingresoDespuesDe(evento));
+  }
+
   private _participanteActivoLlamado(nombre: string): Participante {
     const participante = this.participanteActivo(nombre);
     if (participante === undefined) throw new Error(`${nombre} no tiene una participación activa`);
@@ -164,10 +168,11 @@ export class Grupo {
     }
   }
 
-  private _asertarQuePuedenAsistir(nombres: Iterable<string>): void {
-    for (const nombre of nombres) {
+  private _asertarQuePuedenAsistir(evento: Evento): void {
+    for (const nombre of evento.asistentes()) {
       const participante = this.participanteActivo(nombre);
       if (participante === undefined) throw new Error(`${nombre} no es un participante activo`);
+      if (participante.ingresoDespuesDe(evento)) throw new Error(`${nombre} ingresó después del evento`);
       if (!participante.puedeAsistir()) throw new Error(`${nombre} no puede asistir`);
     }
   }

@@ -37,6 +37,10 @@ export class Transicion {
     return this._hacia;
   }
 
+  iniciaParticipacion(): boolean {
+    return this._disparador === "ingreso" || this._disparador === "reingresar";
+  }
+
   describir(): string {
     if (this._desde === undefined) return `${this._disparador} -> ${this._hacia}`;
     return `${this._disparador}: ${this._desde} -> ${this._hacia}`;

@@ -46,6 +46,14 @@ export class Participante {
     return this._historial;
   }
 
+  fechaDeIngreso(): Date {
+    return this._historial.findLast((transicion) => transicion.iniciaParticipacion())!.fecha();
+  }
+
+  ingresoDespuesDe(evento: Evento): boolean {
+    return this.fechaDeIngreso() > evento.fecha();
+  }
+
   fechaDelUltimoCambio(): Date {
     return this._historial.at(-1)!.fecha();
   }

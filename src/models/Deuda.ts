@@ -47,6 +47,7 @@ export class Deuda {
   // El interés devengado se capitaliza: el resto queda como nueva base y, en mora, vuelve a correr desde el pago.
   pagar(fecha: Date, monto: number): void {
     if (monto <= 0) throw new Error("El monto del pago debe ser positivo");
+    this._asertarQueNoEsAnteriorAlEventoFaltado(fecha);
     this._asertarQueNoEsAnteriorAlUltimoPago(fecha);
     const montoALaFecha = this.montoAl(fecha);
     if (monto > montoALaFecha) throw new Error("El pago no puede superar la deuda");
@@ -54,6 +55,10 @@ export class Deuda {
     this._monto = montoALaFecha - monto;
     if (this.estaEnMora()) this._enMoraDesde = fecha;
     this._ultimoPago = fecha;
+  }
+
+  private _asertarQueNoEsAnteriorAlEventoFaltado(fecha: Date): void {
+    if (fecha < this._eventoFaltado.fecha()) throw new Error("El cobro no puede ser anterior al evento faltado");
   }
 
   private _asertarQueNoEsAnteriorAlUltimoPago(fecha: Date): void {

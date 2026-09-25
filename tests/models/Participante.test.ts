@@ -567,6 +567,22 @@ describe("Participante", () => {
       expect(ana.fechaDelUltimoCambio()).toEqual(dia(10));
     });
 
+    it("la fecha de ingreso es la del ingreso, aunque después haya otros cambios", () => {
+      const ana = nuevoParticipante();
+
+      ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
+
+      expect(ana.fechaDeIngreso()).toEqual(dia(1));
+    });
+
+    it("después de un reingreso, la fecha de ingreso es la del reingreso", () => {
+      const ana = finalizado();
+
+      ana.reingresar(dia(20));
+
+      expect(ana.fechaDeIngreso()).toEqual(dia(20));
+    });
+
     it("el reingreso continúa el historial de la misma participación", () => {
       const ana = finalizado();
       const transicionesAlFinalizar = ana.historial().length;

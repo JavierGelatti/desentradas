@@ -430,6 +430,48 @@ describe("Grupo", () => {
       expect(beto.estado()).toBe("participando");
       expect(grupo.eventos()).toHaveLength(1);
     });
+
+    it("quien ingresó después del evento no participa de él, ni como asistente ni con falta", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("beto", dia(1));
+      const ana = grupo.ingresar("ana", dia(3));
+
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+
+      expect(ana.estado()).toBe("participando");
+      expect(ana.historial()).toHaveLength(1);
+    });
+
+    it("quien reingresó después del evento no participa de él", () => {
+      const { grupo, ana } = grupoConAnaFinalizada();
+      grupo.reingresar("ana", dia(20));
+      const transicionesAlReingresar = ana.historial().length;
+
+      grupo.cerrarEvento(nuevoEvento({ numero: 16, asistentes: ["beto"] }));
+
+      expect(ana.estado()).toBe("participando");
+      expect(ana.historial()).toHaveLength(transicionesAlReingresar);
+    });
+
+    it("quien ingresó el mismo día del evento sí participa", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("beto", dia(1));
+      const ana = grupo.ingresar("ana", dia(2));
+
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+
+      expect(ana.estado()).toBe("en deuda");
+    });
+
+    it("no se puede cerrar un evento con un asistente que ingresó después", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("ana", dia(3));
+
+      expect(() => {
+        grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "ana"] }));
+      }).toThrow("ana ingresó después del evento");
+    });
   });
 
   describe("posibles asistentes", () => {
@@ -498,6 +540,17 @@ describe("Grupo", () => {
       expect(cobro.fecha()).toEqual(dia(3));
       expect(cobro.eventoFaltado()).toBe(evento);
       expect(cobro.esEnEfectivo()).toBe(true);
+    });
+
+    it("no se puede cobrar en una fecha anterior al evento faltado", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+
+      expect(() => {
+        grupo.cobrar("ana", 1000, dia(8));
+      }).toThrow("El cobro no puede ser anterior al evento faltado");
     });
   });
 
