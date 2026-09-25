@@ -138,66 +138,6 @@ describe("VistaPrincipal", () => {
     document.body.replaceChildren();
   });
 
-  it("crear el grupo desde el formulario inicial, con reglas que rigen desde ahora, muestra su nombre y las pantallas", () => {
-    const { aplicacion } = montar();
-    expect(document.querySelector("nav")).toBeNull();
-    expect(pantallaActual()).toBe("Crear el grupo");
-    expect(hayEtiqueta("Rige desde")).toBe(false);
-
-    completar("Nombre del grupo", "Fútbol de los jueves");
-    completar("Tolerancia de faltas", "2");
-    completar("Monto por falta", "1000");
-    hacerClic("Crear");
-
-    expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
-    expect(aplicacion.grupo().reglas().toleranciaDeFaltas()).toBe(2);
-    expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1000);
-    expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
-    expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");
-    expect([...document.querySelectorAll("nav a")].map(textoDe)).toEqual([
-      "Participantes",
-      "Repartos",
-      "Evento",
-      "Historial",
-      "Reglas",
-    ]);
-    expect(pantallaActual()).toBe("Evento");
-  });
-
-  it("el valor del interés sólo se pide para las políticas que lo usan, con el nombre propio de cada una", () => {
-    const { aplicacion } = montar();
-    expect(campo("Interés").value).toBe("sin interés");
-    expect(document.querySelector("[name=valorDelInteres]")).toBeNull();
-
-    completar("Interés", "fijo por día");
-    expect(hayEtiqueta("Monto por día")).toBe(true);
-    expect(hayEtiqueta("Porcentaje mensual")).toBe(false);
-    completar("Interés", "mensual");
-    expect(hayEtiqueta("Monto por día")).toBe(false);
-    expect(hayEtiqueta("Porcentaje mensual")).toBe(true);
-    completar("Porcentaje mensual", "5");
-    completar("Nombre del grupo", "Fútbol de los jueves");
-    completar("Tolerancia de faltas", "2");
-    completar("Monto por falta", "1000");
-    hacerClic("Crear");
-
-    const politica = aplicacion.grupo().reglas().politicaDeInteres();
-    expect(politica).toBeInstanceOf(InteresMensual);
-    expect((politica as InteresMensual).porcentaje()).toBe(5);
-  });
-
-  it("las reglas cambiadas rigen desde el momento del cambio", async () => {
-    const { aplicacion } = montar(almacenamientosConGrupo());
-    await navegarA("Reglas");
-    expect(hayEtiqueta("Rige desde")).toBe(false);
-
-    completar("Monto por falta", "1500");
-    hacerClic("Cambiar reglas");
-
-    expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1500);
-    expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
-  });
-
   it("las tablas sin filas no se muestran, ni el desplegable que las contiene, hasta que tienen algo que mostrar", async () => {
     const almacenamientos = almacenamientosConGrupo();
     montar(almacenamientos);
@@ -219,176 +159,246 @@ describe("VistaPrincipal", () => {
     expect(fila("ana")).toBeDefined();
   });
 
-  it("registrar un participante y reingresar a uno finalizado desde la pantalla de participantes se hacen con la fecha actual", async () => {
-    const almacenamientos = almacenamientosConGrupo();
-    const preparacion = nuevaAplicacion(almacenamientos);
-    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-    const { aplicacion } = montar(almacenamientos);
-    await navegarA("Participantes");
+  describe("formulario inicial", () => {
+    it("crear el grupo, con reglas que rigen desde ahora, muestra su nombre y las pantallas", () => {
+      const { aplicacion } = montar();
+      expect(document.querySelector("nav")).toBeNull();
+      expect(pantallaActual()).toBe("Crear el grupo");
+      expect(hayEtiqueta("Rige desde")).toBe(false);
 
-    hacerClic("Registrar participante");
-    expect(hayEtiqueta("Fecha", dialogoAbierto())).toBe(false);
-    completar("Nombre", "gus", dialogoAbierto());
-    hacerClic("Registrar", dialogoAbierto());
-    hacerClic("Reingresar", fila("ana"));
+      completar("Nombre del grupo", "Fútbol de los jueves");
+      completar("Tolerancia de faltas", "2");
+      completar("Monto por falta", "1000");
+      hacerClic("Crear");
 
-    expect(aplicacion.grupo().participanteActivo("gus")?.historial().at(0)?.fecha()).toEqual(ahora());
-    expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
+      expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
+      expect(aplicacion.grupo().reglas().toleranciaDeFaltas()).toBe(2);
+      expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1000);
+      expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
+      expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");
+      expect([...document.querySelectorAll("nav a")].map(textoDe)).toEqual([
+        "Participantes",
+        "Repartos",
+        "Evento",
+        "Historial",
+        "Reglas",
+      ]);
+      expect(pantallaActual()).toBe("Evento");
+    });
+
+    it("el valor del interés sólo se pide para las políticas que lo usan, con el nombre propio de cada una", () => {
+      const { aplicacion } = montar();
+      expect(campo("Interés").value).toBe("sin interés");
+      expect(document.querySelector("[name=valorDelInteres]")).toBeNull();
+
+      completar("Interés", "fijo por día");
+      expect(hayEtiqueta("Monto por día")).toBe(true);
+      expect(hayEtiqueta("Porcentaje mensual")).toBe(false);
+      completar("Interés", "mensual");
+      expect(hayEtiqueta("Monto por día")).toBe(false);
+      expect(hayEtiqueta("Porcentaje mensual")).toBe(true);
+      completar("Porcentaje mensual", "5");
+      completar("Nombre del grupo", "Fútbol de los jueves");
+      completar("Tolerancia de faltas", "2");
+      completar("Monto por falta", "1000");
+      hacerClic("Crear");
+
+      const politica = aplicacion.grupo().reglas().politicaDeInteres();
+      expect(politica).toBeInstanceOf(InteresMensual);
+      expect((politica as InteresMensual).porcentaje()).toBe(5);
+    });
+
+    it("deshacer la creación del grupo vuelve al formulario inicial con lo que se había cargado", async () => {
+      const almacenamientos = nuevosAlmacenamientos();
+      nuevaAplicacion(almacenamientos).crearGrupo(
+        "Fútbol de los jueves",
+        reglas({ toleranciaDeFaltas: 3, montoPorFalta: 1500, politicaDeInteres: new InteresFijoPorDia(10) }),
+      );
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Historial");
+
+      hacerClic("Deshacer");
+
+      expect(aplicacion.tieneGrupo()).toBe(false);
+      expect(pantallaActual()).toBe("Crear el grupo");
+      expect(campo("Nombre del grupo").value).toBe("Fútbol de los jueves");
+      expect(campo("Tolerancia de faltas").value).toBe("3");
+      expect(campo("Monto por falta").value).toBe("1500");
+      expect(campo("Interés").value).toBe("fijo por día");
+      expect(hayEtiqueta("Monto por día")).toBe(true);
+      expect(campo("Monto por día").value).toBe("10");
+    });
   });
 
-  it("reingresar desde la pantalla de participantes no pide confirmación", async () => {
-    const almacenamientos = almacenamientosConGrupo();
-    const preparacion = nuevaAplicacion(almacenamientos);
-    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-    const { aplicacion } = montar(almacenamientos);
-    await navegarA("Participantes");
+  describe("pantalla de participantes", () => {
+    it("registrar un participante y reingresar a uno finalizado se hacen con la fecha actual", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Participantes");
 
-    hacerClic("Reingresar", fila("ana"));
+      hacerClic("Registrar participante");
+      expect(hayEtiqueta("Fecha", dialogoAbierto())).toBe(false);
+      completar("Nombre", "gus", dialogoAbierto());
+      hacerClic("Registrar", dialogoAbierto());
+      hacerClic("Reingresar", fila("ana"));
 
-    expect(document.querySelector("dialog[open]")).toBeNull();
-    expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+      expect(aplicacion.grupo().participanteActivo("gus")?.historial().at(0)?.fecha()).toEqual(ahora());
+      expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
+    });
+
+    it("reingresar no pide confirmación", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Participantes");
+
+      hacerClic("Reingresar", fila("ana"));
+
+      expect(document.querySelector("dialog[open]")).toBeNull();
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+    });
+
+    it("se puede cobrar a un moroso, y sigue en la tabla mientras deba", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Participantes");
+      expect(textoDe(fila("ana"))).toContain("moroso");
+
+      hacerClic("Cobrar", fila("ana"));
+      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      completar("Monto", "400", dialogoAbierto());
+      hacerClic("Cobrar", dialogoAbierto());
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(ahora())).toBe(600);
+      expect(textoDe(fila("ana"))).toContain("moroso");
+      expect(boton("Cobrar", fila("ana"))).toBeDefined();
+    });
   });
 
-  it("cerrar el evento registra a los marcados como asistentes, incluso a quien pagó en la puerta, y descarta el borrador", () => {
-    const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
-    expect(pantallaActual()).toBe("Evento");
+  describe("pantalla del evento", () => {
+    it("cerrar el evento registra a los marcados como asistentes, incluso a quien pagó en la puerta, y descarta el borrador", () => {
+      const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
+      expect(pantallaActual()).toBe("Evento");
 
-    casillaDeAsistencia("beto").click();
-    casillaDeAsistencia("carla").click();
-    expect(casillaDeAsistencia("ana").disabled).toBe(true);
-    hacerClic("Cobrar y habilitar", fila("ana"));
-    expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
-    expect(campo("Fecha", dialogoAbierto()).value).toBe(aEntradaDeFecha(ahora()));
-    hacerClic("Cobrar", dialogoAbierto());
-    expect(casillaDeAsistencia("ana").disabled).toBe(false);
-    expect(casillaDeAsistencia("ana").checked).toBe(true);
-    hacerClic("Cerrar evento");
-    expect(textoDe(dialogoAbierto())).toContain("Quedan ausentes: dani.");
-    hacerClic("Confirmar", dialogoAbierto());
+      casillaDeAsistencia("beto").click();
+      casillaDeAsistencia("carla").click();
+      expect(casillaDeAsistencia("ana").disabled).toBe(true);
+      hacerClic("Cobrar y habilitar", fila("ana"));
+      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      expect(campo("Fecha", dialogoAbierto()).value).toBe(aEntradaDeFecha(ahora()));
+      hacerClic("Cobrar", dialogoAbierto());
+      expect(casillaDeAsistencia("ana").disabled).toBe(false);
+      expect(casillaDeAsistencia("ana").checked).toBe(true);
+      hacerClic("Cerrar evento");
+      expect(textoDe(dialogoAbierto())).toContain("Quedan ausentes: dani.");
+      hacerClic("Confirmar", dialogoAbierto());
 
-    const [, evento] = aplicacion.grupo().eventos();
-    expect(evento.fecha()).toEqual(ahora());
-    expect(evento.asistentes()).toEqual(new Set(["beto", "carla", "ana"]));
-    expect(aplicacion.grupo().participanteActivo("dani")?.estado()).toBe("en deuda");
-    expect(almacenamientos.borrador.leer()).toBeUndefined();
-    expect(casillaDeAsistencia("beto").checked).toBe(false);
+      const [, evento] = aplicacion.grupo().eventos();
+      expect(evento.fecha()).toEqual(ahora());
+      expect(evento.asistentes()).toEqual(new Set(["beto", "carla", "ana"]));
+      expect(aplicacion.grupo().participanteActivo("dani")?.estado()).toBe("en deuda");
+      expect(almacenamientos.borrador.leer()).toBeUndefined();
+      expect(casillaDeAsistencia("beto").checked).toBe(false);
+    });
+
+    it("la confirmación del cierre nombra a los activos sin marcar, en deuda incluidos, pero no a los morosos", () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.ingresar("eva", dia(2));
+      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]); // ana queda morosa y eva en deuda
+      montar(almacenamientos);
+
+      casillaDeAsistencia("beto").click();
+      hacerClic("Cerrar evento");
+
+      expect(textoDe(dialogoAbierto())).toContain("Quedan ausentes: carla, dani, eva.");
+      expect(textoDe(dialogoAbierto())).not.toContain("ana");
+    });
+
+    it("si sólo quedan sin marcar los morosos, la confirmación del cierre dice que nadie queda ausente", () => {
+      const almacenamientos = almacenamientosConGrupo();
+      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
+      montar(almacenamientos);
+
+      ["beto", "carla", "dani"].forEach((nombre) => casillaDeAsistencia(nombre).click());
+      hacerClic("Cerrar evento");
+
+      expect(textoDe(dialogoAbierto())).toContain("Nadie queda ausente.");
+    });
+
+    it("el borrador del evento sobrevive a una recarga y vuelve a abrir la pantalla del evento", () => {
+      const almacenamientos = almacenamientosConGrupo();
+      montar(almacenamientos);
+      casillaDeAsistencia("beto").click();
+      almacenamientos.pantalla.guardar("participantes");
+      document.body.replaceChildren();
+
+      montar(almacenamientos);
+
+      expect(pantallaActual()).toBe("Evento");
+      expect(casillaDeAsistencia("beto").checked).toBe(true);
+      expect(casillaDeAsistencia("carla").checked).toBe(false);
+    });
   });
 
-  it("la confirmación del cierre nombra a los activos sin marcar, en deuda incluidos, pero no a los morosos", () => {
-    const almacenamientos = almacenamientosConGrupo();
-    const preparacion = nuevaAplicacion(almacenamientos);
-    preparacion.ingresar("eva", dia(2));
-    preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"]); // ana queda morosa y eva en deuda
-    montar(almacenamientos);
+  describe("pantalla de reglas", () => {
+    it("las reglas cambiadas rigen desde el momento del cambio", async () => {
+      const { aplicacion } = montar(almacenamientosConGrupo());
+      await navegarA("Reglas");
+      expect(hayEtiqueta("Rige desde")).toBe(false);
 
-    casillaDeAsistencia("beto").click();
-    hacerClic("Cerrar evento");
+      completar("Monto por falta", "1500");
+      hacerClic("Cambiar reglas");
 
-    expect(textoDe(dialogoAbierto())).toContain("Quedan ausentes: carla, dani, eva.");
-    expect(textoDe(dialogoAbierto())).not.toContain("ana");
+      expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1500);
+      expect(aplicacion.grupo().reglas().rigeDesde()).toEqual(ahora());
+    });
   });
 
-  it("si sólo quedan sin marcar los morosos, la confirmación del cierre dice que nadie queda ausente", () => {
-    const almacenamientos = almacenamientosConGrupo();
-    nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    montar(almacenamientos);
+  describe("pantalla del historial", () => {
+    it("deshacer el cierre de un evento lo restaura como borrador", async () => {
+      const { aplicacion } = montar(almacenamientosConGrupo());
+      await navegarA("Historial");
+      expect(pantallaActual()).toBe("Historial");
 
-    ["beto", "carla", "dani"].forEach((nombre) => casillaDeAsistencia(nombre).click());
-    hacerClic("Cerrar evento");
+      hacerClic("Deshacer");
 
-    expect(textoDe(dialogoAbierto())).toContain("Nadie queda ausente.");
-  });
+      expect(aplicacion.grupo().eventos()).toEqual([]);
+      expect(pantallaActual()).toBe("Evento");
+      expect(campo("Fecha y hora").value).toBe(aEntradaDeFecha(dia(2)));
+      expect(["ana", "beto", "carla", "dani"].map((nombre) => casillaDeAsistencia(nombre).checked)).toEqual([
+        false,
+        true,
+        true,
+        true,
+      ]);
+    });
 
-  it("se puede cobrar a un moroso desde la pantalla de participantes, y sigue en la tabla mientras deba", async () => {
-    const almacenamientos = almacenamientosConGrupo();
-    nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"]);
-    const { aplicacion } = montar(almacenamientos);
-    await navegarA("Participantes");
-    expect(textoDe(fila("ana"))).toContain("moroso");
+    it("importar en un dispositivo nuevo lo exportado en otro reproduce los mismos participantes", async () => {
+      const { aplicacion: original } = montar(almacenamientosConGrupo());
+      await navegarA("Historial");
+      const exportado = await exportar();
+      document.body.replaceChildren();
+      const almacenamientos = nuevosAlmacenamientos();
+      nuevaAplicacion(almacenamientos).crearGrupo("Otro grupo", reglas());
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Historial");
 
-    hacerClic("Cobrar", fila("ana"));
-    expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
-    completar("Monto", "400", dialogoAbierto());
-    hacerClic("Cobrar", dialogoAbierto());
+      elegirArchivo("Importar", exportado);
+      await vi.waitFor(() => dialogoAbierto());
+      expect(textoDe(dialogoAbierto())).toContain("reemplazar");
+      hacerClic("Reemplazar", dialogoAbierto());
 
-    expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(ahora())).toBe(600);
-    expect(textoDe(fila("ana"))).toContain("moroso");
-    expect(boton("Cobrar", fila("ana"))).toBeDefined();
-  });
-
-  it("deshacer la creación del grupo vuelve al formulario inicial con lo que se había cargado", async () => {
-    const almacenamientos = nuevosAlmacenamientos();
-    nuevaAplicacion(almacenamientos).crearGrupo(
-      "Fútbol de los jueves",
-      reglas({ toleranciaDeFaltas: 3, montoPorFalta: 1500, politicaDeInteres: new InteresFijoPorDia(10) }),
-    );
-    const { aplicacion } = montar(almacenamientos);
-    await navegarA("Historial");
-
-    hacerClic("Deshacer");
-
-    expect(aplicacion.tieneGrupo()).toBe(false);
-    expect(pantallaActual()).toBe("Crear el grupo");
-    expect(campo("Nombre del grupo").value).toBe("Fútbol de los jueves");
-    expect(campo("Tolerancia de faltas").value).toBe("3");
-    expect(campo("Monto por falta").value).toBe("1500");
-    expect(campo("Interés").value).toBe("fijo por día");
-    expect(hayEtiqueta("Monto por día")).toBe(true);
-    expect(campo("Monto por día").value).toBe("10");
-  });
-
-  it("el borrador del evento sobrevive a una recarga y vuelve a abrir la pantalla del evento", () => {
-    const almacenamientos = almacenamientosConGrupo();
-    montar(almacenamientos);
-    casillaDeAsistencia("beto").click();
-    almacenamientos.pantalla.guardar("participantes");
-    document.body.replaceChildren();
-
-    montar(almacenamientos);
-
-    expect(pantallaActual()).toBe("Evento");
-    expect(casillaDeAsistencia("beto").checked).toBe(true);
-    expect(casillaDeAsistencia("carla").checked).toBe(false);
-  });
-
-  it("deshacer el cierre de un evento desde el historial lo restaura como borrador", async () => {
-    const { aplicacion } = montar(almacenamientosConGrupo());
-    await navegarA("Historial");
-    expect(pantallaActual()).toBe("Historial");
-
-    hacerClic("Deshacer");
-
-    expect(aplicacion.grupo().eventos()).toEqual([]);
-    expect(pantallaActual()).toBe("Evento");
-    expect(campo("Fecha y hora").value).toBe(aEntradaDeFecha(dia(2)));
-    expect(["ana", "beto", "carla", "dani"].map((nombre) => casillaDeAsistencia(nombre).checked)).toEqual([
-      false,
-      true,
-      true,
-      true,
-    ]);
-  });
-
-  it("importar en un dispositivo nuevo lo exportado en otro reproduce los mismos participantes", async () => {
-    const { aplicacion: original } = montar(almacenamientosConGrupo());
-    await navegarA("Historial");
-    const exportado = await exportar();
-    document.body.replaceChildren();
-    const almacenamientos = nuevosAlmacenamientos();
-    nuevaAplicacion(almacenamientos).crearGrupo("Otro grupo", reglas());
-    const { aplicacion } = montar(almacenamientos);
-    await navegarA("Historial");
-
-    elegirArchivo("Importar", exportado);
-    await vi.waitFor(() => dialogoAbierto());
-    expect(textoDe(dialogoAbierto())).toContain("reemplazar");
-    hacerClic("Reemplazar", dialogoAbierto());
-
-    expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
-    expect(nombresDeParticipantes(aplicacion)).toEqual(nombresDeParticipantes(original));
-    expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
-    expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");
+      expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
+      expect(nombresDeParticipantes(aplicacion)).toEqual(nombresDeParticipantes(original));
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
+      expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");
+    });
   });
 });
