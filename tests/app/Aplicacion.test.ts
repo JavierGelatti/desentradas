@@ -272,6 +272,15 @@ describe("Aplicacion", () => {
       expect(aplicacion.borrador().asiste("ana")).toBe(false);
     });
 
+    it("no se puede cobrar en la puerta a quien no está en deuda", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      aplicacion.cerrarEvento(dia(3), ["beto"]); // ana queda morosa
+
+      expect(() => {
+        aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
+      }).toThrow("ana no está en deuda");
+    });
+
     it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha del borrador y marcado como asistente", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.borrador().cambiarFecha(dia(3));

@@ -92,6 +92,8 @@ export class Aplicacion {
   }
 
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
+    this._asertarQueEstaEnDeuda(nombre);
+
     this.cobrar(nombre, monto, fecha);
     if (this.grupo().participanteActivo(nombre)?.puedeAsistir()) this._borrador.marcar(nombre);
   }
@@ -138,6 +140,13 @@ export class Aplicacion {
   private _ejecutar(comando: Comando): void {
     this._bitacora.ejecutar(comando);
     this._guardar();
+  }
+
+  private _asertarQueEstaEnDeuda(nombre: string): void {
+    const participante = this.grupo().participanteActivo(nombre);
+    if (participante !== undefined && participante.estado() !== "en deuda") {
+      throw new Error(`${nombre} no está en deuda`);
+    }
   }
 
   private _guardar(): void {
