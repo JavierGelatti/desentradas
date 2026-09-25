@@ -424,6 +424,17 @@ describe("Participante", () => {
       expect(historial[0].desde()).toBeUndefined();
     });
 
+    it("la fecha del último cambio es la de la última transición del historial", () => {
+      const ana = nuevoParticipante();
+      expect(ana.fechaDelUltimoCambio()).toEqual(dia(1));
+      ana.voy(nuevoEvento({ numero: 2 }), lasReglas);
+      ana.falto(nuevoEvento({ numero: 9 }), lasReglas);
+
+      ana.pago(dia(10), 1000, lasReglas);
+
+      expect(ana.fechaDelUltimoCambio()).toEqual(dia(10));
+    });
+
     it("el reingreso continúa el historial de la misma participación", () => {
       const ana = finalizado();
       const transicionesAlFinalizar = ana.historial().length;

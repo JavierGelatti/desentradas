@@ -38,6 +38,21 @@ describe("Grupo", () => {
       expect(grupo.historialDeReglas()).toEqual([reglasIniciales, nuevasReglas]);
     });
 
+    it("las reglas anteriores son todas las versiones salvo la vigente, de la más antigua a la más nueva", () => {
+      const reglasIniciales = reglas();
+      const grupo = nuevoGrupo(reglasIniciales);
+      expect(grupo.reglasAnteriores()).toEqual([]);
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      const segundasReglas = reglas({ rigeDesde: dia(3) });
+      grupo.cambiarReglas(segundasReglas);
+      grupo.registrarEvento(nuevoEvento({ numero: 4, asistentes: ["beto"] }));
+
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(5) }));
+
+      expect(grupo.reglasAnteriores()).toEqual([reglasIniciales, segundasReglas]);
+    });
+
     it("las nuevas reglas deben regir desde después del último evento registrado", () => {
       const reglasIniciales = reglas();
       const grupo = nuevoGrupo(reglasIniciales);

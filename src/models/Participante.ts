@@ -43,6 +43,10 @@ export class Participante {
     return this._historial;
   }
 
+  fechaDelUltimoCambio(): Date {
+    return this._historial.at(-1)!.fecha();
+  }
+
   puede(accion: Accion): boolean {
     return this._estado.puede(accion);
   }

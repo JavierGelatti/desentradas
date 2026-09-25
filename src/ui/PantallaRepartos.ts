@@ -26,13 +26,11 @@ export class PantallaRepartos {
   }
 
   private _nombresConCreditosPendientes(): string[] {
-    const nombres = this._entorno
+    return this._entorno
       .grupo()
       .caja()
-      .creditos()
-      .filter((credito) => credito.estaPendiente())
-      .map((credito) => credito.nombre());
-    return [...new Set(nombres)].sort((uno, otro) => uno.localeCompare(otro));
+      .nombresConCreditosPendientes()
+      .toSorted((uno, otro) => uno.localeCompare(otro));
   }
 
   private _tablaDePendientes(): HTMLTableElement | undefined {

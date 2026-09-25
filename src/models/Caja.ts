@@ -70,6 +70,11 @@ export class Caja {
     return this._sumar(this._creditos.filter((credito) => credito.estaPendiente()));
   }
 
+  nombresConCreditosPendientes(): string[] {
+    const nombres = this._creditos.filter((credito) => credito.estaPendiente()).map((credito) => credito.nombre());
+    return [...new Set(nombres)];
+  }
+
   private _repartirEnCreditos(cobro: Cobro): Credito[] {
     const asistentes = this._desempate.ordenar([...cobro.eventoFaltado().asistentes()], cobro);
     const parte = Math.floor(cobro.monto() / asistentes.length);

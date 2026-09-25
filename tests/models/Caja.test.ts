@@ -59,6 +59,16 @@ describe("Caja", () => {
       expect(caja.montoPendienteDe("dario")).toBe(0);
       expect(caja.totalPendiente()).toBe(1300);
     });
+
+    it("conoce los nombres con créditos pendientes, sin repetir y en el orden en que aparecieron", () => {
+      const caja = nuevaCaja();
+      caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["dario", "carla"] }));
+      caja.cobrar(cobroEnEfectivo({ monto: 300, asistentes: ["beto"] }));
+      caja.cobrar(cobroEnEfectivo({ monto: 200, asistentes: ["dario"] }));
+      caja.repartir("carla", dia(4));
+
+      expect(caja.nombresConCreditosPendientes()).toEqual(["dario", "beto"]);
+    });
   });
 
   describe("aplicación de créditos", () => {

@@ -7,7 +7,7 @@ import type { Entorno } from "./Entorno.ts";
 import { monto } from "./Formato.ts";
 import { porNombre } from "./Orden.ts";
 
-const ultimaTransicionDe = (participante: Participante) => participante.historial().at(-1)!.fecha().getTime();
+const ultimoCambioDe = (participante: Participante) => participante.fechaDelUltimoCambio().getTime();
 
 // Primero quienes requieren atención (los que no están participando), del cambio más reciente al más antiguo;
 // después los que están participando, por nombre.
@@ -15,8 +15,8 @@ const porAtencionYNombre = (uno: Participante, otro: Participante): number => {
   const unoParticipa = uno.estado() === "participando";
   const otroParticipa = otro.estado() === "participando";
   if (unoParticipa !== otroParticipa) return unoParticipa ? 1 : -1;
-  if (!unoParticipa && ultimaTransicionDe(uno) !== ultimaTransicionDe(otro)) {
-    return ultimaTransicionDe(otro) - ultimaTransicionDe(uno);
+  if (!unoParticipa && ultimoCambioDe(uno) !== ultimoCambioDe(otro)) {
+    return ultimoCambioDe(otro) - ultimoCambioDe(uno);
   }
 
   return porNombre(uno, otro);

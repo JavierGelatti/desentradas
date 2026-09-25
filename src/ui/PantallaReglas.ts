@@ -62,7 +62,7 @@ export class PantallaReglas {
   }
 
   private _tablaDeVersiones(): HTMLTableElement | undefined {
-    const anteriores = this._entorno.grupo().historialDeReglas().slice(0, -1).reverse();
+    const anteriores = this._entorno.grupo().reglasAnteriores().toReversed();
     return tabla(
       undefined,
       ["Rigieron desde", "Tolerancia", "Monto por falta", "Interés"],

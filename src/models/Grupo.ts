@@ -38,6 +38,10 @@ export class Grupo {
     return this._historialDeReglas;
   }
 
+  reglasAnteriores(): readonly Reglas[] {
+    return this._historialDeReglas.slice(0, -1);
+  }
+
   reglasVigentesAl(fecha: Date): Reglas {
     const vigentes = this._historialDeReglas.findLast((reglas) => reglas.rigeDesde() <= fecha);
     if (vigentes === undefined) throw new Error("No hay reglas vigentes en esa fecha");
