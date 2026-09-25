@@ -15,7 +15,10 @@ export class CrearGrupo implements Comando {
   }
 
   constructor(nombreDelGrupo: string, reglas: Reglas) {
-    this._nombreDelGrupo = nombreDelGrupo;
+    const nombreLimpio = nombreDelGrupo.trim();
+    if (nombreLimpio === "") throw new Error("El nombre del grupo no puede estar vacío");
+
+    this._nombreDelGrupo = nombreLimpio;
     this._reglas = reglas;
   }
 

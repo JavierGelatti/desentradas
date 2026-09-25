@@ -42,6 +42,18 @@ describe("CrearGrupo", () => {
     expect(comando.reglas()).toBe(reglasIniciales);
   });
 
+  it("el nombre del grupo se guarda sin espacios al principio ni al final", () => {
+    const comando = new CrearGrupo("  Fútbol de los jueves ", reglas());
+
+    expect(comando.nombreDelGrupo()).toBe("Fútbol de los jueves");
+  });
+
+  it("el nombre del grupo no puede estar vacío", () => {
+    expect(() => {
+      new CrearGrupo("   ", reglas());
+    }).toThrow("El nombre del grupo no puede estar vacío");
+  });
+
   it("no se puede crear el grupo si ya fue creado", () => {
     const grupo = nuevoGrupo();
     const comando = new CrearGrupo("Fútbol de los jueves", reglas());

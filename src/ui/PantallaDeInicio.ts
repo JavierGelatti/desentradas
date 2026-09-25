@@ -38,7 +38,7 @@ export class PantallaDeInicio {
     evento.preventDefault();
     const creado = intentar(() => {
       const reglas = reglasDesde(formulario, this._entorno.ahora());
-      this._entorno.aplicacion().crearGrupo(valorDe(formulario, "nombreDelGrupo").trim(), reglas);
+      this._entorno.aplicacion().crearGrupo(valorDe(formulario, "nombreDelGrupo"), reglas);
     }, errores);
     if (creado) this._entorno.refrescar();
   }
