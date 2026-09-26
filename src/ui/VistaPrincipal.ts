@@ -1,7 +1,7 @@
 import type { Almacenamiento } from "../app/Almacenamiento.ts";
 import type { Aplicacion } from "../app/Aplicacion.ts";
 import type { Grupo } from "../models/Grupo.ts";
-import { crear, intentar } from "./dom.ts";
+import { crear, type Hijo, intentar, mostrarDialogo } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { PantallaCaja } from "./PantallaCaja.ts";
 import { PantallaDeInicio } from "./PantallaDeInicio.ts";
@@ -10,17 +10,27 @@ import { PantallaHistorial } from "./PantallaHistorial.ts";
 import { PantallaParticipantes } from "./PantallaParticipantes.ts";
 import { PantallaReglas } from "./PantallaReglas.ts";
 
-type NombreDePantalla = "participantes" | "caja" | "evento" | "historial" | "reglas";
+interface Pantalla {
+  elemento(): HTMLElement;
+}
 
-const pantallas: readonly [NombreDePantalla, string][] = [
-  ["participantes", "Participantes"],
-  ["caja", "Caja"],
-  ["evento", "Evento"],
-  ["historial", "Historial"],
-  ["reglas", "Reglas"],
-];
+// Las pestañas, en el orden en que se muestran; el nombre de cada una es su hash.
+const pantallas = {
+  participantes: { titulo: "Participantes", Pantalla: PantallaParticipantes },
+  caja: { titulo: "Caja", Pantalla: PantallaCaja },
+  evento: { titulo: "Evento", Pantalla: PantallaEvento },
+  historial: { titulo: "Historial", Pantalla: PantallaHistorial },
+  reglas: { titulo: "Reglas", Pantalla: PantallaReglas },
+} satisfies Record<string, { titulo: string; Pantalla: new (entorno: Entorno) => Pantalla }>;
 
-const esNombreDePantalla = (texto: string): texto is NombreDePantalla => pantallas.some(([nombre]) => nombre === texto);
+type NombreDePantalla = keyof typeof pantallas;
+
+const esNombreDePantalla = (texto: string): texto is NombreDePantalla => Object.hasOwn(pantallas, texto);
+
+const pantallaDelHash = (): NombreDePantalla | undefined => {
+  const nombre = location.hash.slice(1);
+  return esNombreDePantalla(nombre) ? nombre : undefined;
+};
 
 // Encabezado, pestañas y la pantalla actual. Se vuelve a dibujar entera después de cada comando.
 export class VistaPrincipal implements Entorno {
@@ -40,7 +50,7 @@ export class VistaPrincipal implements Entorno {
 
   montarEn(raiz: HTMLElement): void {
     this._raiz = raiz;
-    window.addEventListener("hashchange", () => this._irSegunElHash());
+    this._seguirElHashMientrasEsteEn(raiz);
     this._irA(this._pantallaActual);
   }
 
@@ -57,9 +67,7 @@ export class VistaPrincipal implements Entorno {
   }
 
   refrescar(): void {
-    if (this._raiz === undefined) throw new Error("La vista no está montada");
-
-    this._raiz.replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
+    this._raizMontada().replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
   }
 
   // Si falla no se refresca, para que la alerta siga a la vista.
@@ -67,9 +75,7 @@ export class VistaPrincipal implements Entorno {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // Si lo deshecho dejó una planilla de asistencia que antes no había (deshacer un cierre la restaura),
-  // se muestra la pantalla del evento; si no, se queda donde está.
-  // La creación deshecha vuelve al formulario inicial con lo que se había cargado.
+  // Deshacer un cierre restaura su planilla de asistencia, y entonces se pasa a la pantalla del evento.
   deshacer(): void {
     const habiaPlanillaDeAsistencia = this._aplicacion.tienePlanillaDeAsistencia();
     this._aplicacion.deshacer();
@@ -80,22 +86,38 @@ export class VistaPrincipal implements Entorno {
     }
   }
 
+  mostrarDialogo(...contenido: Hijo[]): HTMLDialogElement {
+    return mostrarDialogo(this._raizMontada(), ...contenido);
+  }
+
+  private _raizMontada(): HTMLElement {
+    if (this._raiz === undefined) throw new Error("La vista no está montada");
+
+    return this._raiz;
+  }
+
   private _pantallaInicial(): NombreDePantalla {
     if (this._aplicacion.tienePlanillaDeAsistencia()) return "evento";
 
-    const delHash = location.hash.slice(1);
-    if (esNombreDePantalla(delHash)) return delHash;
-
     const ultima = this._ultimaPantalla.leer() ?? "";
-    return esNombreDePantalla(ultima) ? ultima : "evento";
+    return pantallaDelHash() ?? (esNombreDePantalla(ultima) ? ultima : "evento");
   }
 
   // Una vista cuya raíz salió del documento ya no es la que se ve; si siguiera, pisaría la pantalla guardada y el hash.
-  private _irSegunElHash(): void {
-    if (!this._raiz?.isConnected) return;
+  private _seguirElHashMientrasEsteEn(raiz: HTMLElement): void {
+    const seguirElHash = () => {
+      if (raiz.isConnected) {
+        this._irSegunElHash();
+      } else {
+        window.removeEventListener("hashchange", seguirElHash);
+      }
+    };
+    window.addEventListener("hashchange", seguirElHash);
+  }
 
-    const pantalla = location.hash.slice(1);
-    if (esNombreDePantalla(pantalla) && pantalla !== this._pantallaActual) this._irA(pantalla);
+  private _irSegunElHash(): void {
+    const pantalla = pantallaDelHash();
+    if (pantalla !== undefined && pantalla !== this._pantallaActual) this._irA(pantalla);
   }
 
   private _irA(pantalla: NombreDePantalla): void {
@@ -106,38 +128,25 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _encabezado(): HTMLElement {
-    if (!this._aplicacion.tieneGrupo()) return crear("header", {}, crear("h1", {}, "Eventos recurrentes"));
-
+    const tieneGrupo = this._aplicacion.tieneGrupo();
     return crear(
       "header",
       {},
-      crear("h1", {}, this._aplicacion.grupo().nombre()),
-      crear(
-        "nav",
-        {},
-        ...pantallas.map(([nombre, titulo]) =>
-          crear("a", { href: `#${nombre}`, "aria-current": nombre === this._pantallaActual && "page" }, titulo),
+      crear("h1", {}, tieneGrupo ? this.grupo().nombre() : "Eventos recurrentes"),
+      tieneGrupo &&
+        crear(
+          "nav",
+          {},
+          ...Object.entries(pantallas).map(([nombre, { titulo }]) =>
+            crear("a", { href: `#${nombre}`, "aria-current": nombre === this._pantallaActual && "page" }, titulo),
+          ),
         ),
-      ),
     );
   }
 
   private _pantalla(): HTMLElement {
-    if (!this._aplicacion.tieneGrupo()) {
-      return new PantallaDeInicio(this, this._aplicacion.creacionDeshecha()).elemento();
-    }
+    if (!this._aplicacion.tieneGrupo()) return new PantallaDeInicio(this).elemento();
 
-    switch (this._pantallaActual) {
-      case "participantes":
-        return new PantallaParticipantes(this).elemento();
-      case "caja":
-        return new PantallaCaja(this).elemento();
-      case "evento":
-        return new PantallaEvento(this).elemento();
-      case "historial":
-        return new PantallaHistorial(this).elemento();
-      case "reglas":
-        return new PantallaReglas(this).elemento();
-    }
+    return new pantallas[this._pantallaActual].Pantalla(this).elemento();
   }
 }

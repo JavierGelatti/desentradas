@@ -2,37 +2,35 @@ import type { Movimiento } from "../models/Movimiento.ts";
 import type { Saldo } from "../models/Saldo.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { anexar, boton, crear, desplegable, fila, tabla } from "./dom.ts";
+import { boton, crear, desplegable, fila, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora, monto } from "./Formato.ts";
-import { alfabetico } from "./Orden.ts";
+import { porNombre } from "./Orden.ts";
 
 const porDeudaYNombre = (uno: Saldo, otro: Saldo): number => {
   if (uno.debe() !== otro.debe()) return uno.debe() ? -1 : 1;
 
-  return alfabetico(uno.nombre(), otro.nombre());
+  return porNombre(uno, otro);
 };
 
 // Lo que cada uno debe o tiene por recibir, y la plata que ya entró y salió.
 export class PantallaCaja {
   private _entorno: Entorno;
-  private _seccion: HTMLElement;
 
   constructor(entorno: Entorno) {
     this._entorno = entorno;
-    this._seccion = crear("section");
   }
 
   elemento(): HTMLElement {
     const saldos = this._entorno.grupo().saldosAl(this._entorno.ahora()).toSorted(porDeudaYNombre);
-    anexar(
-      this._seccion,
+    return crear(
+      "section",
+      {},
       crear("h2", {}, "Caja"),
       saldos.length > 0 && this._totales(saldos),
       this._tablaDeSaldos(saldos) ?? crear("p", {}, "Todavía no hay nada que cobrar ni repartir"),
       desplegable("Movimientos", this._tablaDeMovimientos()),
     );
-    return this._seccion;
   }
 
   private _totales(saldos: readonly Saldo[]): HTMLParagraphElement {
@@ -50,9 +48,8 @@ export class PantallaCaja {
   }
 
   private _filaDeSaldo(saldo: Saldo): HTMLTableRowElement {
-    const nombre = saldo.nombre();
     return fila(
-      nombre,
+      saldo.nombre(),
       monto(saldo.monto()),
       saldo.debe()
         ? boton("Cobrar", () => this._abrirCobro(saldo))
@@ -77,7 +74,7 @@ export class PantallaCaja {
     const nombre = saldo.nombre();
     new DialogoDeCobro(this._entorno, nombre, -saldo.monto(), (monto) =>
       this._entorno.aplicacion().cobrar(nombre, monto, this._entorno.ahora()),
-    ).abrirEn(this._seccion);
+    ).abrir();
   }
 
   private _abrirReparto(saldo: Saldo): void {
@@ -88,6 +85,6 @@ export class PantallaCaja {
       [crear("p", {}, `Se le van a entregar ${monto(saldo.monto())}.`)],
       "Repartir",
       () => this._entorno.aplicacion().repartir(nombre, this._entorno.ahora()),
-    ).abrirEn(this._seccion);
+    ).abrir();
   }
 }

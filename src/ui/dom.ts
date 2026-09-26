@@ -23,13 +23,30 @@ export const crear = <Etiqueta extends keyof HTMLElementTagNameMap>(
   return elemento;
 };
 
-export const anexar = (elemento: HTMLElement, ...hijos: Hijo[]): void => {
+const anexar = (elemento: HTMLElement, ...hijos: Hijo[]): void => {
   elemento.append(...hijos.filter((hijo) => hijo !== false && hijo !== undefined));
 };
 
 // Un botón que no envía el formulario en el que está.
 export const boton = (texto: string, alHacerClic: () => void): HTMLButtonElement =>
   crear("button", { type: "button", onclick: alHacerClic }, texto);
+
+export const botonDeEnvio = (texto: string): HTMLButtonElement => crear("button", { type: "submit" }, texto);
+
+// Un formulario que no navega al enviarse: ejecuta la acción con el formulario ya completo.
+export const formulario = (alEnviar: (formulario: HTMLFormElement) => void, ...hijos: Hijo[]): HTMLFormElement => {
+  const elemento = crear(
+    "form",
+    {
+      onsubmit: (evento: Event) => {
+        evento.preventDefault();
+        alEnviar(elemento);
+      },
+    },
+    ...hijos,
+  );
+  return elemento;
+};
 
 // Una tabla sin filas no se muestra.
 export const tabla = (
@@ -65,18 +82,14 @@ export const mostrarDialogo = (contenedor: HTMLElement, ...contenido: Hijo[]): H
   return dialogo;
 };
 
-// Sólo para mirar; los formularios van en un Dialogo.
-export const abrirDialogo = (contenedor: HTMLElement, titulo: string, ...contenido: Hijo[]): void => {
-  const dialogo = mostrarDialogo(
-    contenedor,
-    crear("h3", {}, titulo),
-    ...contenido,
-    crear(
-      "p",
-      {},
-      boton("Cerrar", () => dialogo.close()),
-    ),
-  );
+// El navegador guarda el contenido como un archivo con ese nombre.
+export const descargar = (nombreDelArchivo: string, contenido: string, tipo: string): void => {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  const enlace = crear("a", { href: url, download: nombreDelArchivo });
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(url);
 };
 
 export const alerta = (): HTMLOutputElement => crear("output", { role: "alert" });
@@ -103,8 +116,9 @@ export const valorDe = (formulario: HTMLFormElement, nombre: string): string => 
 };
 
 export const numeroDe = (formulario: HTMLFormElement, nombre: string): number => {
-  const numero = Number(valorDe(formulario, nombre));
-  if (valorDe(formulario, nombre).trim() === "" || Number.isNaN(numero)) throw new Error("Falta un número");
+  const valor = valorDe(formulario, nombre);
+  const numero = Number(valor);
+  if (valor.trim() === "" || Number.isNaN(numero)) throw new Error("Falta un número");
 
   return numero;
 };

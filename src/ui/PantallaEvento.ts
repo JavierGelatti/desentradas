@@ -1,9 +1,9 @@
 import type { PlanillaDeAsistencia } from "../app/PlanillaDeAsistencia.ts";
 import type { Participante } from "../models/Participante.ts";
-import { campoDeTexto } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { alerta, boton, crear, fila, tabla, valorDe } from "./dom.ts";
+import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
+import { alerta, boton, botonDeEnvio, crear, fila, formulario, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
@@ -11,17 +11,17 @@ import { alfabetico, porNombre } from "./Orden.ts";
 // La pantalla de la noche: se empieza el evento, se marca quién vino y se cierra o se cancela.
 export class PantallaEvento {
   private _entorno: Entorno;
-  private _seccion: HTMLElement;
   private _errores: HTMLOutputElement;
 
   constructor(entorno: Entorno) {
     this._entorno = entorno;
-    this._seccion = crear("section");
     this._errores = alerta();
   }
 
   elemento(): HTMLElement {
-    this._seccion.append(
+    return crear(
+      "section",
+      {},
       crear("h2", {}, "Evento"),
       this._entorno.aplicacion().tienePlanillaDeAsistencia()
         ? this._formulario()
@@ -31,13 +31,11 @@ export class PantallaEvento {
             boton("Empezar evento", () => this._empezar()),
           ),
     );
-    return this._seccion;
   }
 
   private _formulario(): HTMLFormElement {
-    return crear(
-      "form",
-      { onsubmit: (evento: Event) => this._pedirConfirmacion(evento) },
+    return formulario(
+      () => this._pedirConfirmacion(),
       this._tablaDeAsistencia() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
         "p",
@@ -50,7 +48,7 @@ export class PantallaEvento {
         {},
         boton("Cancelar", () => this._cancelar()),
         " ",
-        crear("button", { type: "submit" }, "Cerrar evento"),
+        botonDeEnvio("Cerrar evento"),
       ),
     );
   }
@@ -71,20 +69,17 @@ export class PantallaEvento {
         [crear("p", {}, "Se van a perder las marcas de asistencia.")],
         "Descartar",
         () => this._entorno.aplicacion().descartarPlanillaDeAsistencia(),
-      ).abrirEn(this._seccion);
+      ).abrir();
     }
   }
 
   private _tablaDeAsistencia(): HTMLTableElement | undefined {
+    const posiblesAsistentes = this._entorno.grupo().posiblesAsistentes().toSorted(porNombre);
     return tabla(
       "Asistencia",
       ["Asiste", "Nombre", "Estado", ""],
-      this._listados().map((participante) => this._filaDe(participante)),
+      posiblesAsistentes.map((participante) => this._filaDe(participante)),
     );
-  }
-
-  private _listados(): Participante[] {
-    return this._entorno.grupo().posiblesAsistentes().toSorted(porNombre);
   }
 
   private _filaDe(participante: Participante): HTMLTableRowElement {
@@ -106,13 +101,10 @@ export class PantallaEvento {
     if (participante.soloLeFaltaPagarParaAsistir()) {
       return boton("Cobrar y habilitar", () => this._abrirCobro(participante));
     }
+    if (!this._planillaDeAsistencia().asiste(nombre)) return false;
 
     const pendiente = this._entorno.grupo().caja().montoPendienteDe(nombre);
-    if (this._planillaDeAsistencia().asiste(nombre) && pendiente > 0) {
-      return boton(`Repartir ${monto(pendiente)}`, () => this._repartir(nombre));
-    }
-
-    return false;
+    return pendiente > 0 && boton(`Repartir ${monto(pendiente)}`, () => this._repartir(nombre));
   }
 
   private _planillaDeAsistencia(): PlanillaDeAsistencia {
@@ -133,7 +125,7 @@ export class PantallaEvento {
     const deuda = participante.deudaAl(this._entorno.ahora());
     new DialogoDeCobro(this._entorno, nombre, deuda, (monto) =>
       this._entorno.aplicacion().cobrarEnLaPuerta(nombre, monto, this._entorno.ahora()),
-    ).abrirEn(this._seccion);
+    ).abrir();
   }
 
   private _repartir(nombre: string): void {
@@ -144,13 +136,12 @@ export class PantallaEvento {
   }
 
   private _abrirIngreso(): void {
-    new Dialogo(this._entorno, "Vino alguien nuevo", [campoDeTexto("Nombre", "nombre")], "Registrar", (formulario) => {
-      this._entorno.aplicacion().ingresarAsistente(valorDe(formulario, "nombre"), this._entorno.ahora());
-    }).abrirEn(this._seccion);
+    new DialogoDeRegistro(this._entorno, "Vino alguien nuevo", (nombre) =>
+      this._entorno.aplicacion().ingresarAsistente(nombre, this._entorno.ahora()),
+    ).abrir();
   }
 
-  private _pedirConfirmacion(evento: Event): void {
-    evento.preventDefault();
+  private _pedirConfirmacion(): void {
     const ausentes = this._entorno.aplicacion().ausentesEnPlanillaDeAsistencia().toSorted(alfabetico);
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
     new Dialogo(
@@ -162,6 +153,6 @@ export class PantallaEvento {
       ],
       "Confirmar",
       () => this._entorno.aplicacion().cerrarEventoSegunPlanillaDeAsistencia(this._entorno.ahora()),
-    ).abrirEn(this._seccion);
+    ).abrir();
   }
 }

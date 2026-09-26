@@ -1,7 +1,6 @@
 import type { Participante } from "../models/Participante.ts";
-import { campoDeTexto } from "./Campos.ts";
-import { Dialogo } from "./Dialogo.ts";
-import { alerta, anexar, boton, crear, desplegable, fila, tabla, valorDe } from "./dom.ts";
+import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
+import { alerta, boton, crear, desplegable, fila, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { porNombre } from "./Orden.ts";
 
@@ -22,18 +21,17 @@ const porAtencionYNombre = (uno: Participante, otro: Participante): number => {
 
 export class PantallaParticipantes {
   private _entorno: Entorno;
-  private _seccion: HTMLElement;
   private _erroresDeReingreso: HTMLOutputElement;
 
   constructor(entorno: Entorno) {
     this._entorno = entorno;
-    this._seccion = crear("section");
     this._erroresDeReingreso = alerta();
   }
 
   elemento(): HTMLElement {
-    anexar(
-      this._seccion,
+    return crear(
+      "section",
+      {},
       crear("h2", {}, "Participantes"),
       this._tablaDeActivos() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
@@ -43,7 +41,6 @@ export class PantallaParticipantes {
       ),
       desplegable("Participaciones finalizadas", this._tablaDeFinalizados(), this._erroresDeReingreso),
     );
-    return this._seccion;
   }
 
   private _tablaDeActivos(): HTMLTableElement | undefined {
@@ -79,15 +76,9 @@ export class PantallaParticipantes {
 
   // Registrar queda fechado en el momento en que se hace.
   private _abrirIngreso(): void {
-    new Dialogo(
-      this._entorno,
-      "Registrar participante",
-      [campoDeTexto("Nombre", "nombre")],
-      "Registrar",
-      (formulario) => {
-        this._entorno.aplicacion().ingresar(valorDe(formulario, "nombre"), this._entorno.ahora());
-      },
-    ).abrirEn(this._seccion);
+    new DialogoDeRegistro(this._entorno, "Registrar participante", (nombre) =>
+      this._entorno.aplicacion().ingresar(nombre, this._entorno.ahora()),
+    ).abrir();
   }
 
   // El reingreso no se confirma: se hace en el momento, y si el modelo lo rechaza se avisa junto a la tabla.

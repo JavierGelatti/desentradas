@@ -1,4 +1,4 @@
-import { alerta, boton, crear, intentar, mostrarDialogo } from "./dom.ts";
+import { alerta, boton, botonDeEnvio, crear, formulario, type Hijo } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 
 // Un formulario secundario en un <dialog> nativo: al confirmar ejecuta la acción y, si el modelo la rechaza,
@@ -29,33 +29,45 @@ export class Dialogo {
     this._elemento = undefined;
   }
 
-  abrirEn(contenedor: HTMLElement): void {
-    const formulario = crear(
-      "form",
-      { method: "dialog", onsubmit: (evento: Event) => this._confirmar(evento, formulario) },
-      crear("h3", {}, this._titulo),
-      ...this._campos,
-      this._errores,
-      crear(
-        "p",
-        {},
-        boton("Cancelar", () => this._cerrar()),
-        " ",
-        crear("button", { type: "submit" }, this._textoDeConfirmacion),
+  abrir(): void {
+    this._elemento = this._entorno.mostrarDialogo(
+      formulario(
+        (completado) => this._confirmar(completado),
+        crear("h3", {}, this._titulo),
+        ...this._campos,
+        this._errores,
+        crear(
+          "p",
+          {},
+          boton("Cancelar", () => this._cerrar()),
+          " ",
+          botonDeEnvio(this._textoDeConfirmacion),
+        ),
       ),
     );
-    this._elemento = mostrarDialogo(contenedor, formulario);
   }
 
   private _cerrar(): void {
     this._elemento?.close();
   }
 
-  private _confirmar(evento: Event, formulario: HTMLFormElement): void {
-    evento.preventDefault();
-    if (!intentar(() => this._alConfirmar(formulario), this._errores)) return;
-
-    this._cerrar();
-    this._entorno.refrescar();
+  private _confirmar(formulario: HTMLFormElement): void {
+    this._entorno.intentarYRefrescar(() => {
+      this._alConfirmar(formulario);
+      this._cerrar();
+    }, this._errores);
   }
 }
+
+// Sólo para mirar; los formularios van en un Dialogo.
+export const mostrarEnDialogo = (entorno: Entorno, titulo: string, ...contenido: Hijo[]): void => {
+  const dialogo = entorno.mostrarDialogo(
+    crear("h3", {}, titulo),
+    ...contenido,
+    crear(
+      "p",
+      {},
+      boton("Cerrar", () => dialogo.close()),
+    ),
+  );
+};

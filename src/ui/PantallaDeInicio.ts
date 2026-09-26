@@ -1,44 +1,41 @@
-import type { CrearGrupo } from "../app/comandos/CrearGrupo.ts";
 import { campoDeTexto } from "./Campos.ts";
-import { alerta, crear, valorDe } from "./dom.ts";
+import { alerta, botonDeEnvio, crear, formulario, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
 
 // Lo único que se ve hasta que el grupo está creado. Las reglas iniciales rigen desde el momento de crearlo.
+// Si se deshizo la creación, el formulario vuelve con lo que se había cargado.
 export class PantallaDeInicio {
   private _entorno: Entorno;
-  private _creacionAnterior: CrearGrupo | undefined;
+  private _errores: HTMLOutputElement;
 
-  constructor(entorno: Entorno, creacionAnterior?: CrearGrupo) {
+  constructor(entorno: Entorno) {
     this._entorno = entorno;
-    this._creacionAnterior = creacionAnterior;
+    this._errores = alerta();
   }
 
   elemento(): HTMLElement {
     const aviso = this._entorno.aplicacion().avisoDeInicio();
-    const errores = alerta();
-    const formulario = crear(
-      "form",
-      { onsubmit: (evento: Event) => this._crearGrupo(evento, formulario, errores) },
-      campoDeTexto("Nombre del grupo", "nombreDelGrupo", this._creacionAnterior?.nombreDelGrupo() ?? ""),
-      ...camposDeReglas(this._creacionAnterior?.reglas()),
-      errores,
-      crear("button", { type: "submit" }, "Crear"),
-    );
+    const creacionAnterior = this._entorno.aplicacion().creacionDeshecha();
     return crear(
       "section",
       {},
       crear("h2", {}, "Crear el grupo"),
       aviso !== undefined && crear("p", { role: "alert" }, aviso),
-      formulario,
+      formulario(
+        (completado) => this._crearGrupo(completado),
+        campoDeTexto("Nombre del grupo", "nombreDelGrupo", creacionAnterior?.nombreDelGrupo() ?? ""),
+        ...camposDeReglas(creacionAnterior?.reglas()),
+        this._errores,
+        botonDeEnvio("Crear"),
+      ),
     );
   }
 
-  private _crearGrupo(evento: Event, formulario: HTMLFormElement, errores: HTMLOutputElement): void {
-    evento.preventDefault();
+  private _crearGrupo(formulario: HTMLFormElement): void {
     this._entorno.intentarYRefrescar(() => {
       const reglas = reglasDesde(formulario, this._entorno.ahora());
       this._entorno.aplicacion().crearGrupo(valorDe(formulario, "nombreDelGrupo"), reglas);
-    }, errores);
+    }, this._errores);
   }
 }

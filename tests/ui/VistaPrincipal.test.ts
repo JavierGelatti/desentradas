@@ -5,7 +5,7 @@ import type { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { fechaYHora } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
-import { ahora, nuevaAplicacion } from "../app/factories.ts";
+import { ahora, aplicacionConGrupo, nuevaAplicacion } from "../app/factories.ts";
 import { dia, reglas } from "../models/factories.ts";
 
 const nuevosAlmacenamientos = () => ({
@@ -16,7 +16,7 @@ const nuevosAlmacenamientos = () => ({
 
 const almacenamientosConGrupoSinParticipantes = () => {
   const almacenamientos = nuevosAlmacenamientos();
-  nuevaAplicacion(almacenamientos).crearGrupo("Fútbol de los jueves", reglas());
+  aplicacionConGrupo(almacenamientos);
   return almacenamientos;
 };
 
@@ -29,6 +29,15 @@ const almacenamientosConGrupo = () => {
   return almacenamientos;
 };
 
+// ana faltó dos veces y pagó su morosidad, así que ya no participa.
+const almacenamientosConAnaFinalizada = () => {
+  const almacenamientos = almacenamientosConGrupo();
+  const aplicacion = nuevaAplicacion(almacenamientos);
+  aplicacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
+  aplicacion.cobrar("ana", 1000, dia(4));
+  return almacenamientos;
+};
+
 const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   const aplicacion = nuevaAplicacion(almacenamientos);
   const raiz = document.body.appendChild(document.createElement("div"));
@@ -36,38 +45,40 @@ const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   return { aplicacion, almacenamientos, raiz };
 };
 
+// Como recargar la página o abrirla en otro dispositivo: sólo queda lo que hay en los almacenamientos.
+const recargar = (almacenamientos: ReturnType<typeof nuevosAlmacenamientos>) => {
+  document.body.replaceChildren();
+  return montar(almacenamientos);
+};
+
 const textoDe = (elemento: Element) => elemento.textContent?.replace(/\s+/g, " ").trim() ?? "";
 
+const buscar = <T extends Element>(selector: string, coincide: (texto: string) => boolean, raiz: ParentNode) =>
+  [...raiz.querySelectorAll<T>(selector)].find((elemento) => coincide(textoDe(elemento)));
+
 const elementoConTexto = <T extends Element>(selector: string, texto: string, raiz: ParentNode = document): T => {
-  const encontrado = [...raiz.querySelectorAll<T>(selector)].find((elemento) => textoDe(elemento) === texto);
+  const encontrado = buscar<T>(selector, (textoDelElemento) => textoDelElemento === texto, raiz);
   if (encontrado === undefined) throw new Error(`No se encontró <${selector}> con el texto "${texto}"`);
 
   return encontrado;
 };
 
 const hayElementoConTexto = (selector: string, texto: string, raiz: ParentNode = document) =>
-  [...raiz.querySelectorAll(selector)].some((elemento) => textoDe(elemento) === texto);
+  buscar(selector, (textoDelElemento) => textoDelElemento === texto, raiz) !== undefined;
 
-const boton = (texto: string, raiz: ParentNode = document) =>
-  elementoConTexto<HTMLButtonElement>("button", texto, raiz);
+const hacerClic = (textoDelBoton: string, raiz: ParentNode = document) =>
+  elementoConTexto<HTMLButtonElement>("button", textoDelBoton, raiz).click();
 
-const hacerClic = (textoDelBoton: string, raiz: ParentNode = document) => boton(textoDelBoton, raiz).click();
+const etiqueta = (texto: string, raiz: ParentNode = document) =>
+  buscar<HTMLLabelElement>("label", (textoDeLaEtiqueta) => textoDeLaEtiqueta.startsWith(texto), raiz);
 
-const etiqueta = (texto: string, raiz: ParentNode = document) => {
-  const label = [...raiz.querySelectorAll("label")].find((label) => textoDe(label).startsWith(texto));
-  if (label === undefined) throw new Error(`No se encontró la etiqueta "${texto}"`);
-
-  return label;
-};
-
-const hayEtiqueta = (texto: string, raiz: ParentNode = document) =>
-  [...raiz.querySelectorAll("label")].some((label) => textoDe(label).startsWith(texto));
+const hayEtiqueta = (texto: string, raiz: ParentNode = document) => etiqueta(texto, raiz) !== undefined;
 
 const campo = (texto: string, raiz: ParentNode = document) => {
-  const label = etiqueta(texto, raiz);
-  if (label.control == null) throw new Error(`No se encontró el campo "${texto}"`);
+  const control = etiqueta(texto, raiz)?.control;
+  if (control == null) throw new Error(`No se encontró el campo "${texto}"`);
 
-  return label.control as HTMLInputElement;
+  return control as HTMLInputElement;
 };
 
 const completar = (etiqueta: string, valor: string, raiz: ParentNode = document) => {
@@ -104,14 +115,16 @@ const nombresDeParticipantes = (aplicacion: Aplicacion) =>
     .participantes()
     .map((participante) => participante.nombre());
 
-const pantallaActual = () => textoDe(document.querySelector("main h2")!);
+const pantallaActual = (raiz: ParentNode = document) => textoDe(raiz.querySelector("main h2")!);
 
 const hayDesplegable = (titulo: string) => hayElementoConTexto("summary", titulo);
 
 // El cambio de hash se avisa en una tarea aparte, como en el navegador.
+const esperarElCambioDeHash = () => new Promise((resolver) => setTimeout(resolver, 0));
+
 const navegarA = async (pestania: string) => {
   elementoConTexto<HTMLAnchorElement>("nav a", pestania).click();
-  await new Promise((resolver) => setTimeout(resolver, 0));
+  await esperarElCambioDeHash();
 };
 
 const textosDeLasCeldas = (fila: Element) => [...fila.querySelectorAll("td")].map(textoDe);
@@ -124,6 +137,8 @@ const fila = (nombre: string) => {
 };
 
 const casillaDeAsistencia = (nombre: string) => fila(nombre).querySelector<HTMLInputElement>("input[type=checkbox]")!;
+
+const hayDialogoAbierto = () => document.querySelector("dialog[open]") !== null;
 
 const dialogoAbierto = () => {
   const dialogo = document.querySelector<HTMLDialogElement>("dialog[open]");
@@ -152,9 +167,8 @@ describe("VistaPrincipal", () => {
 
     const preparacion = nuevaAplicacion(almacenamientos);
     preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
-    preparacion.cobrar("ana", 1000, dia(4));
-    document.body.replaceChildren();
-    montar(almacenamientos);
+    preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+    recargar(almacenamientos);
     await navegarA("Participantes");
     expect(hayDesplegable("Participaciones finalizadas")).toBe(true);
     expect(fila("ana")).toBeDefined();
@@ -167,9 +181,9 @@ describe("VistaPrincipal", () => {
     document.body.replaceChildren();
 
     location.hash = "#caja";
-    await new Promise((resolver) => setTimeout(resolver, 0));
+    await esperarElCambioDeHash();
 
-    expect(textoDe(raiz.querySelector("main h2")!)).toBe("Evento");
+    expect(pantallaActual(raiz)).toBe("Evento");
   });
 
   describe("formulario inicial", () => {
@@ -245,11 +259,7 @@ describe("VistaPrincipal", () => {
 
   describe("pantalla de participantes", () => {
     it("registrar un participante y reingresar a uno finalizado se fechan en el momento en que se hacen", async () => {
-      const almacenamientos = almacenamientosConGrupo();
-      const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
-      preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConAnaFinalizada());
       await navegarA("Participantes");
 
       hacerClic("Registrar participante");
@@ -263,16 +273,12 @@ describe("VistaPrincipal", () => {
     });
 
     it("reingresar no pide confirmación", async () => {
-      const almacenamientos = almacenamientosConGrupo();
-      const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
-      preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConAnaFinalizada());
       await navegarA("Participantes");
 
       hacerClic("Reingresar", fila("ana"));
 
-      expect(document.querySelector("dialog[open]")).toBeNull();
+      expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
     });
 
@@ -407,7 +413,7 @@ describe("VistaPrincipal", () => {
 
       hacerClic("Cancelar");
 
-      expect(document.querySelector("dialog[open]")).toBeNull();
+      expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(almacenamientos.planilla.leer()).toBeUndefined();
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(true);
@@ -469,9 +475,8 @@ describe("VistaPrincipal", () => {
       hacerClic("Empezar evento");
       casillaDeAsistencia("beto").click();
       almacenamientos.pantalla.guardar("participantes");
-      document.body.replaceChildren();
 
-      montar(almacenamientos);
+      recargar(almacenamientos);
 
       expect(pantallaActual()).toBe("Evento");
       expect(casillaDeAsistencia("beto").checked).toBe(true);
@@ -580,10 +585,9 @@ describe("VistaPrincipal", () => {
       const { aplicacion: original } = montar(almacenamientosConGrupo());
       await navegarA("Historial");
       const exportado = await exportar();
-      document.body.replaceChildren();
       const almacenamientos = nuevosAlmacenamientos();
       nuevaAplicacion(almacenamientos).crearGrupo("Otro grupo", reglas());
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = recargar(almacenamientos);
       await navegarA("Historial");
 
       elegirArchivo("Importar", exportado);

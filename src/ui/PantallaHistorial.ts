@@ -1,6 +1,6 @@
 import type { Asistencia, Comando } from "../app/Comando.ts";
-import { Dialogo } from "./Dialogo.ts";
-import { abrirDialogo, alerta, anexar, boton, crear, fila, intentar, tabla } from "./dom.ts";
+import { Dialogo, mostrarEnDialogo } from "./Dialogo.ts";
+import { alerta, boton, crear, descargar, fila, intentar, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora } from "./Formato.ts";
 import { alfabetico } from "./Orden.ts";
@@ -9,23 +9,24 @@ import { alfabetico } from "./Orden.ts";
 // Exportar descarga la bitácora como JSON e importar reemplaza todo lo de este dispositivo por un JSON.
 export class PantallaHistorial {
   private _entorno: Entorno;
-  private _seccion: HTMLElement;
   private _errores: HTMLOutputElement;
 
   constructor(entorno: Entorno) {
     this._entorno = entorno;
-    this._seccion = crear("section");
     this._errores = alerta();
   }
 
   elemento(): HTMLElement {
-    anexar(this._seccion, crear("h2", {}, "Historial"), this._errores, this._tabla(), this._copiaDeSeguridad());
-    return this._seccion;
+    return crear("section", {}, crear("h2", {}, "Historial"), this._errores, this._tabla(), this._copiaDeSeguridad());
   }
 
   private _copiaDeSeguridad(): HTMLElement {
-    const archivo = crear("input", { type: "file", name: "archivo", accept: ".json,application/json" });
-    archivo.addEventListener("change", () => this._leerParaImportar(archivo));
+    const archivo = crear("input", {
+      type: "file",
+      name: "archivo",
+      accept: ".json,application/json",
+      onchange: () => this._leerParaImportar(archivo),
+    });
     return crear(
       "form",
       { onsubmit: (evento: Event) => evento.preventDefault() },
@@ -40,13 +41,7 @@ export class PantallaHistorial {
   }
 
   private _exportar(): void {
-    const contenido = new Blob([this._entorno.aplicacion().exportar()], { type: "application/json" });
-    const url = URL.createObjectURL(contenido);
-    const enlace = crear("a", { href: url, download: `${this._entorno.grupo().nombre()}.json` });
-    this._seccion.append(enlace);
-    enlace.click();
-    enlace.remove();
-    URL.revokeObjectURL(url);
+    descargar(`${this._entorno.grupo().nombre()}.json`, this._entorno.aplicacion().exportar(), "application/json");
   }
 
   private _leerParaImportar(entrada: HTMLInputElement): void {
@@ -68,7 +63,7 @@ export class PantallaHistorial {
     );
     new Dialogo(this._entorno, "Importar", [aviso], "Reemplazar", () => {
       this._entorno.aplicacion().importar(texto);
-    }).abrirEn(this._seccion);
+    }).abrir();
   }
 
   private _tabla(): HTMLTableElement | undefined {
@@ -100,7 +95,11 @@ export class PantallaHistorial {
     const filas = [...asistencia.presentes, ...asistencia.ausentes]
       .toSorted(alfabetico)
       .map((nombre) => fila(nombre, presentes.has(nombre) ? "Presente" : "Ausente"));
-    abrirDialogo(this._seccion, `Evento del ${fechaYHora(fecha)}`, tabla(undefined, ["Nombre", "Asistencia"], filas));
+    mostrarEnDialogo(
+      this._entorno,
+      `Evento del ${fechaYHora(fecha)}`,
+      tabla(undefined, ["Nombre", "Asistencia"], filas),
+    );
   }
 
   private _deshacer(): void {
