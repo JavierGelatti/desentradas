@@ -286,13 +286,25 @@ input[type="checkbox"] {
   accent-color: var(--tinta);
 }
 
-/* Texto arriba, control abajo. */
+/* Texto arriba, control abajo. El ancho alcanza para que las preguntas de las reglas entren en una línea. */
 form > label,
 dialog label {
   display: grid;
   gap: 0.25rem;
-  max-width: 20rem;
+  max-width: 24rem;
   margin: 1rem 0;
+}
+
+/* La unidad de un valor (el $ de un monto, el % de un porcentaje) va pegada al control, en su misma línea. */
+label > span:has(> input) {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* Los párrafos de las pantallas son totales, avisos o filas de botones. */

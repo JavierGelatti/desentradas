@@ -11,11 +11,13 @@ const tiposDeInteres: readonly [TipoDeInteres, string][] = [
   ["mensual", "Porcentaje por mes"],
 ];
 
-// Cómo se llama el valor que pide cada política; las que no lo usan no lo piden.
-const etiquetaDelValor: Record<TipoDeInteres, string | undefined> = {
+// Qué pregunta cada política por su valor y con qué unidad se escribe, antes o después del número; las que no lo
+// usan no lo piden.
+type ValorDelInteres = { pregunta: string; antes?: string; despues?: string };
+const valorQuePide: Record<TipoDeInteres, ValorDelInteres | undefined> = {
   "sin interés": undefined,
-  "fijo por día": "Monto por día",
-  mensual: "Porcentaje mensual",
+  "fijo por día": { pregunta: "¿Cuánto se cobra por día de mora?", antes: "$" },
+  mensual: { pregunta: "¿Qué porcentaje se cobra por mes de mora?", despues: "%" },
 };
 
 // El tipo y el valor con los que se muestra una política en el formulario.
@@ -27,42 +29,62 @@ const interesDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
 
 // Los campos de unas reglas, prellenados con las dadas; se leen con reglasDesde.
 export const camposDeReglas = (reglas?: Reglas): HTMLElement[] => [
-  campoNumerico("Tolerancia de faltas", "toleranciaDeFaltas", reglas?.toleranciaDeFaltas() ?? 1, 1),
-  campoNumerico("Monto por falta", "montoPorFalta", reglas?.montoPorFalta() ?? 1, 1),
+  campoNumerico(
+    "¿Cuántas faltas se toleran antes de quedar afuera?",
+    "toleranciaDeFaltas",
+    reglas?.toleranciaDeFaltas() ?? 1,
+    1,
+  ),
+  campoNumerico("¿Cuánto se paga por falta?", "montoPorFalta", reglas?.montoPorFalta() ?? 1, 1),
   ...camposDeInteres(reglas?.politicaDeInteres() ?? new SinInteres()),
 ];
 
-// El campo del valor sigue a la política elegida: cambia de nombre, y para las políticas que no lo usan
+// El campo del valor sigue a la política elegida: cambia de pregunta y de unidad, y para las políticas que no lo usan
 // no está en la página.
 const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
   const [tipoInicial, valorInicial] = interesDe(politica);
-  const tipo = campoDeOpciones("Interés", "tipoDeInteres", tiposDeInteres, tipoInicial);
-  const nombreDelValor = document.createTextNode("");
+  const tipo = campoDeOpciones(
+    "¿Cómo se calcula el interés en caso de no pagar?",
+    "tipoDeInteres",
+    tiposDeInteres,
+    tipoInicial,
+  );
+  const preguntaDelValor = document.createTextNode("");
+  const unidadAntes = document.createTextNode("");
+  const unidadDespues = document.createTextNode("");
   const campoDelValor = crear(
     "label",
     {},
-    nombreDelValor,
-    crear("input", {
-      type: "number",
-      name: "valorDelInteres",
-      value: valorInicial,
-      min: 1,
-      required: true,
-    }),
+    preguntaDelValor,
+    crear(
+      "span",
+      {},
+      unidadAntes,
+      crear("input", {
+        type: "number",
+        name: "valorDelInteres",
+        value: valorInicial,
+        min: 1,
+        required: true,
+      }),
+      unidadDespues,
+    ),
   );
-  const etiquetaElegida = () => etiquetaDelValor[controlDe(tipo).value as TipoDeInteres];
+  const valorElegido = () => valorQuePide[controlDe(tipo).value as TipoDeInteres];
   const ajustar = () => {
-    const etiqueta = etiquetaElegida();
-    if (etiqueta === undefined) {
+    const valor = valorElegido();
+    if (valor === undefined) {
       campoDelValor.remove();
     } else {
-      nombreDelValor.textContent = `${etiqueta} `;
+      preguntaDelValor.textContent = `${valor.pregunta} `;
+      unidadAntes.textContent = valor.antes ?? "";
+      unidadDespues.textContent = valor.despues ?? "";
       tipo.after(campoDelValor);
     }
   };
   controlDe(tipo).addEventListener("change", ajustar);
   ajustar();
-  return etiquetaElegida() === undefined ? [tipo] : [tipo, campoDelValor];
+  return valorElegido() === undefined ? [tipo] : [tipo, campoDelValor];
 };
 
 export const reglasDesde = (formulario: HTMLFormElement, rigeDesde: Date): Reglas =>

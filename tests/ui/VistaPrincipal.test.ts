@@ -194,8 +194,8 @@ describe("VistaPrincipal", () => {
       expect(hayEtiqueta("Rige desde")).toBe(false);
 
       completar("Nombre del grupo", "Fútbol de los jueves");
-      completar("Tolerancia de faltas", "2");
-      completar("Monto por falta", "1000");
+      completar("¿Cuántas faltas se toleran", "2");
+      completar("¿Cuánto se paga por falta?", "1000");
       hacerClic("Crear");
 
       expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
@@ -213,21 +213,21 @@ describe("VistaPrincipal", () => {
       expect(pantallaActual()).toBe("Evento");
     });
 
-    it("el valor del interés sólo se pide para las políticas que lo usan, con el nombre propio de cada una", () => {
+    it("el valor del interés sólo se pide para las políticas que lo usan, con la pregunta propia de cada una", () => {
       const { aplicacion } = montar();
-      expect(campo("Interés").value).toBe("sin interés");
+      expect(campo("¿Cómo se calcula el interés").value).toBe("sin interés");
       expect(document.querySelector("[name=valorDelInteres]")).toBeNull();
 
-      completar("Interés", "fijo por día");
-      expect(hayEtiqueta("Monto por día")).toBe(true);
-      expect(hayEtiqueta("Porcentaje mensual")).toBe(false);
-      completar("Interés", "mensual");
-      expect(hayEtiqueta("Monto por día")).toBe(false);
-      expect(hayEtiqueta("Porcentaje mensual")).toBe(true);
-      completar("Porcentaje mensual", "5");
+      completar("¿Cómo se calcula el interés", "fijo por día");
+      expect(hayEtiqueta("¿Cuánto se cobra por día de mora?")).toBe(true);
+      expect(hayEtiqueta("¿Qué porcentaje se cobra por mes de mora?")).toBe(false);
+      completar("¿Cómo se calcula el interés", "mensual");
+      expect(hayEtiqueta("¿Cuánto se cobra por día de mora?")).toBe(false);
+      expect(hayEtiqueta("¿Qué porcentaje se cobra por mes de mora?")).toBe(true);
+      completar("¿Qué porcentaje se cobra por mes de mora?", "5");
       completar("Nombre del grupo", "Fútbol de los jueves");
-      completar("Tolerancia de faltas", "2");
-      completar("Monto por falta", "1000");
+      completar("¿Cuántas faltas se toleran", "2");
+      completar("¿Cuánto se paga por falta?", "1000");
       hacerClic("Crear");
 
       const politica = aplicacion.grupo().reglas().politicaDeInteres();
@@ -249,11 +249,11 @@ describe("VistaPrincipal", () => {
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(pantallaActual()).toBe("Crear el grupo");
       expect(campo("Nombre del grupo").value).toBe("Fútbol de los jueves");
-      expect(campo("Tolerancia de faltas").value).toBe("3");
-      expect(campo("Monto por falta").value).toBe("1500");
-      expect(campo("Interés").value).toBe("fijo por día");
-      expect(hayEtiqueta("Monto por día")).toBe(true);
-      expect(campo("Monto por día").value).toBe("10");
+      expect(campo("¿Cuántas faltas se toleran").value).toBe("3");
+      expect(campo("¿Cuánto se paga por falta?").value).toBe("1500");
+      expect(campo("¿Cómo se calcula el interés").value).toBe("fijo por día");
+      expect(hayEtiqueta("¿Cuánto se cobra por día de mora?")).toBe(true);
+      expect(campo("¿Cuánto se cobra por día de mora?").value).toBe("10");
     });
   });
 
@@ -501,7 +501,7 @@ describe("VistaPrincipal", () => {
       await navegarA("Reglas");
       expect(hayEtiqueta("Rige desde")).toBe(false);
 
-      completar("Monto por falta", "1500");
+      completar("¿Cuánto se paga por falta?", "1500");
       hacerClic("Cambiar reglas");
 
       expect(aplicacion.grupo().reglas().montoPorFalta()).toBe(1500);
