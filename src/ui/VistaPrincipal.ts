@@ -3,18 +3,18 @@ import type { Aplicacion } from "../app/Aplicacion.ts";
 import type { Grupo } from "../models/Grupo.ts";
 import { crear, intentar } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
+import { PantallaCaja } from "./PantallaCaja.ts";
 import { PantallaDeInicio } from "./PantallaDeInicio.ts";
 import { PantallaEvento } from "./PantallaEvento.ts";
 import { PantallaHistorial } from "./PantallaHistorial.ts";
 import { PantallaParticipantes } from "./PantallaParticipantes.ts";
 import { PantallaReglas } from "./PantallaReglas.ts";
-import { PantallaRepartos } from "./PantallaRepartos.ts";
 
-type NombreDePantalla = "participantes" | "repartos" | "evento" | "historial" | "reglas";
+type NombreDePantalla = "participantes" | "caja" | "evento" | "historial" | "reglas";
 
 const pantallas: readonly [NombreDePantalla, string][] = [
   ["participantes", "Participantes"],
-  ["repartos", "Repartos"],
+  ["caja", "Caja"],
   ["evento", "Evento"],
   ["historial", "Historial"],
   ["reglas", "Reglas"],
@@ -127,8 +127,8 @@ export class VistaPrincipal implements Entorno {
     switch (this._pantallaActual) {
       case "participantes":
         return new PantallaParticipantes(this).elemento();
-      case "repartos":
-        return new PantallaRepartos(this).elemento();
+      case "caja":
+        return new PantallaCaja(this).elemento();
       case "evento":
         return new PantallaEvento(this).elemento();
       case "historial":

@@ -150,9 +150,8 @@ describe("VistaPrincipal", () => {
     montar(almacenamientos);
     await navegarA("Participantes");
     expect(hayDesplegable("Participaciones finalizadas")).toBe(false);
-    await navegarA("Repartos");
-    expect(document.querySelector("table")).toBeNull();
-    expect(hayDesplegable("Repartos hechos")).toBe(false);
+    await navegarA("Caja");
+    expect(hayDesplegable("Movimientos")).toBe(false);
     await navegarA("Reglas");
     expect(hayDesplegable("Versiones anteriores")).toBe(false);
 
@@ -164,6 +163,8 @@ describe("VistaPrincipal", () => {
     await navegarA("Participantes");
     expect(hayDesplegable("Participaciones finalizadas")).toBe(true);
     expect(fila("ana")).toBeDefined();
+    await navegarA("Caja");
+    expect(hayDesplegable("Movimientos")).toBe(true);
   });
 
   describe("formulario inicial", () => {
@@ -185,7 +186,7 @@ describe("VistaPrincipal", () => {
       expect(textoDe(document.querySelector("h1")!)).toBe("Fútbol de los jueves");
       expect([...document.querySelectorAll("nav a")].map(textoDe)).toEqual([
         "Participantes",
-        "Repartos",
+        "Caja",
         "Evento",
         "Historial",
         "Reglas",
@@ -270,23 +271,6 @@ describe("VistaPrincipal", () => {
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
     });
 
-    it("se puede cobrar a un moroso, y sigue en la tabla mientras deba", async () => {
-      const almacenamientos = almacenamientosConGrupo();
-      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]);
-      const { aplicacion } = montar(almacenamientos);
-      await navegarA("Participantes");
-      expect(textoDe(fila("ana"))).toContain("moroso");
-
-      hacerClic("Cobrar", fila("ana"));
-      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
-      completar("Monto", "400", dialogoAbierto());
-      hacerClic("Cobrar", dialogoAbierto());
-
-      expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(ahora())).toBe(600);
-      expect(textoDe(fila("ana"))).toContain("moroso");
-      expect(boton("Cobrar", fila("ana"))).toBeDefined();
-    });
-
     it("sin participaciones activas dice que todavía no hay nadie", async () => {
       montar(almacenamientosConGrupoSinParticipantes());
 
@@ -297,13 +281,70 @@ describe("VistaPrincipal", () => {
     });
   });
 
-  describe("pantalla de repartos", () => {
-    it("sin créditos pendientes dice que todavía no hay nada que repartir", async () => {
+  describe("pantalla de caja", () => {
+    it("se puede cobrar a un moroso, y sigue en la tabla mientras deba", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]); // ana queda morosa
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Caja");
+      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "-$ 1.000", "Cobrar"]);
+
+      hacerClic("Cobrar", fila("ana"));
+      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      completar("Monto", "400", dialogoAbierto());
+      hacerClic("Cobrar", dialogoAbierto());
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(ahora())).toBe(600);
+      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "-$ 600", "Cobrar"]);
+    });
+
+    it("los saldos muestran primero a quienes deben y después a quienes tienen por recibir, cada grupo por nombre, incluso si ya no participan", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.cerrarEvento(dia(3), ["carla", "dani"], ["ana", "beto"]); // ana queda morosa
+      preparacion.ingresar("fede", dia(3));
+      preparacion.ingresar("eva", dia(3));
+      preparacion.cerrarEvento(dia(4), ["carla", "dani"], ["beto", "fede", "eva"]); // beto queda moroso
+      preparacion.cobrar("beto", 1000, dia(4)); // beto queda finalizado
+      preparacion.cobrar("ana", 1000, dia(5)); // beto recibe su parte por haber ido al primer evento
+      montar(almacenamientos);
+
+      await navegarA("Caja");
+
+      expect(hayElementoConTexto("p", "Por cobrar $ 2.000 · Por repartir $ 2.000")).toBe(true);
+      expect(filasDe(elementoConTexto("caption", "Saldos").parentElement!)).toEqual([
+        ["eva", "-$ 1.000", "Cobrar"],
+        ["fede", "-$ 1.000", "Cobrar"],
+        ["beto", "$ 334", "Repartir"],
+        ["carla", "$ 833", "Repartir"],
+        ["dani", "$ 833", "Repartir"],
+      ]);
+    });
+
+    it("repartir entrega los créditos pendientes y queda entre los movimientos, que no incluyen los cobros hechos con créditos", async () => {
+      const almacenamientos = almacenamientosConGrupo();
+      const preparacion = nuevaAplicacion(almacenamientos);
+      preparacion.cobrar("ana", 1000, dia(3)); // beto recibe 334, carla y dani 333
+      preparacion.cerrarEvento(dia(4), ["beto", "carla"], ["ana", "dani"]); // el crédito de dani se aplica a su deuda
+      const { aplicacion } = montar(almacenamientos);
+      await navegarA("Caja");
+
+      hacerClic("Repartir", fila("beto"));
+      hacerClic("Repartir", dialogoAbierto());
+
+      expect(aplicacion.grupo().caja().montoPendienteDe("beto")).toBe(0);
+      expect(filasDe(elementoConTexto("summary", "Movimientos").parentElement!)).toEqual([
+        [fechaYHora(ahora()), "reparto", "beto", "$ 501"],
+        [fechaYHora(dia(3)), "cobro", "ana", "$ 1.000"],
+      ]);
+    });
+
+    it("sin saldos dice que todavía no hay nada que cobrar ni repartir", async () => {
       montar(almacenamientosConGrupoSinParticipantes());
 
-      await navegarA("Repartos");
+      await navegarA("Caja");
 
-      expect(hayElementoConTexto("p", "Todavía no hay nada que repartir")).toBe(true);
+      expect(hayElementoConTexto("p", "Todavía no hay nada que cobrar ni repartir")).toBe(true);
       expect(document.querySelector("table")).toBeNull();
     });
   });
