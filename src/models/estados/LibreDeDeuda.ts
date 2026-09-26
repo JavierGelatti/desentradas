@@ -1,4 +1,4 @@
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
 import { Estado, type NombreDeEstado } from "./Estado.ts";
 import { Finalizado } from "./Finalizado.ts";
@@ -20,7 +20,7 @@ export class LibreDeDeuda extends Estado {
     return new Participando();
   }
 
-  override falto(_evento: Evento, reglas: Reglas): Estado {
+  override falto(_encuentro: Encuentro, reglas: Reglas): Estado {
     const faltas = this._faltas + 1;
     if (reglas.superaLaTolerancia(faltas)) return new Finalizado("por faltas");
 

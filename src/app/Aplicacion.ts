@@ -5,7 +5,7 @@ import type { Comando } from "./Comando.ts";
 import { CrearGrupo } from "./comandos/CrearGrupo.ts";
 import { Ingresar } from "./comandos/Ingresar.ts";
 import { Reingresar } from "./comandos/Reingresar.ts";
-import { CerrarEvento } from "./comandos/CerrarEvento.ts";
+import { RegistrarEncuentro } from "./comandos/RegistrarEncuentro.ts";
 import { Cobrar } from "./comandos/Cobrar.ts";
 import { Repartir } from "./comandos/Repartir.ts";
 import { CambiarReglas } from "./comandos/CambiarReglas.ts";
@@ -84,8 +84,8 @@ export class Aplicacion {
     this._ejecutar(new Reingresar(nombre, fecha));
   }
 
-  cerrarEvento(fecha: Date, asistentes: Iterable<string>, ausentes: Iterable<string>): void {
-    this._ejecutar(new CerrarEvento(fecha, asistentes, ausentes));
+  registrarEncuentro(fecha: Date, asistentes: Iterable<string>, ausentes: Iterable<string>): void {
+    this._ejecutar(new RegistrarEncuentro(fecha, asistentes, ausentes));
   }
 
   ingresarAsistente(nombre: string, fecha: Date): void {
@@ -108,9 +108,9 @@ export class Aplicacion {
       .filter((nombre) => !planilla.asiste(nombre));
   }
 
-  cerrarEventoSegunPlanillaDeAsistencia(fecha: Date): void {
+  registrarEncuentroSegunPlanillaDeAsistencia(fecha: Date): void {
     const planilla = this.planillaDeAsistencia();
-    this.cerrarEvento(fecha, planilla.asistentes(), this.ausentesEnPlanillaDeAsistencia());
+    this.registrarEncuentro(fecha, planilla.asistentes(), this.ausentesEnPlanillaDeAsistencia());
     this.descartarPlanillaDeAsistencia();
   }
 

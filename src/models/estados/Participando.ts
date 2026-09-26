@@ -1,4 +1,4 @@
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
 import { Estado, type NombreDeEstado } from "./Estado.ts";
 import { EnDeuda } from "./EnDeuda.ts";
@@ -12,8 +12,8 @@ export class Participando extends Estado {
     return this;
   }
 
-  override falto(evento: Evento, reglas: Reglas): Estado {
-    return new EnDeuda(reglas.deudaPorFaltarA(evento));
+  override falto(encuentro: Encuentro, reglas: Reglas): Estado {
+    return new EnDeuda(reglas.deudaPorFaltarA(encuentro));
   }
 
   override puedeAsistir(): boolean {

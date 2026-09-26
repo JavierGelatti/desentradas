@@ -1,16 +1,16 @@
-import type { Evento } from "./Evento.ts";
+import type { Encuentro } from "./Encuentro.ts";
 import type { PoliticaDeInteres } from "./PoliticaDeInteres.ts";
 
 export class Deuda {
   private _monto: number;
-  private _eventoFaltado: Evento;
+  private _encuentroFaltado: Encuentro;
   private _politicaDeInteres: PoliticaDeInteres;
   private _enMoraDesde: Date | undefined;
   private _ultimoPago: Date | undefined;
 
-  constructor(monto: number, eventoFaltado: Evento, politicaDeInteres: PoliticaDeInteres) {
+  constructor(monto: number, encuentroFaltado: Encuentro, politicaDeInteres: PoliticaDeInteres) {
     this._monto = monto;
-    this._eventoFaltado = eventoFaltado;
+    this._encuentroFaltado = encuentroFaltado;
     this._politicaDeInteres = politicaDeInteres;
     this._enMoraDesde = undefined;
     this._ultimoPago = undefined;
@@ -20,8 +20,8 @@ export class Deuda {
     return this._monto;
   }
 
-  eventoFaltado(): Evento {
-    return this._eventoFaltado;
+  encuentroFaltado(): Encuentro {
+    return this._encuentroFaltado;
   }
 
   estaEnMora(): boolean {
@@ -47,7 +47,7 @@ export class Deuda {
   // El interés devengado se capitaliza: el resto queda como nueva base y, en mora, vuelve a correr desde el pago.
   pagar(fecha: Date, monto: number): void {
     if (monto <= 0) throw new Error("El monto del pago debe ser positivo");
-    this._asertarQueNoEsAnteriorAlEventoFaltado(fecha);
+    this._asertarQueNoEsAnteriorAlEncuentroFaltado(fecha);
     this._asertarQueNoEsAnteriorAlUltimoPago(fecha);
     const montoALaFecha = this.montoAl(fecha);
     if (monto > montoALaFecha) throw new Error("El pago no puede superar la deuda");
@@ -57,8 +57,8 @@ export class Deuda {
     this._ultimoPago = fecha;
   }
 
-  private _asertarQueNoEsAnteriorAlEventoFaltado(fecha: Date): void {
-    if (fecha < this._eventoFaltado.fecha()) throw new Error("El cobro no puede ser anterior al evento faltado");
+  private _asertarQueNoEsAnteriorAlEncuentroFaltado(fecha: Date): void {
+    if (fecha < this._encuentroFaltado.fecha()) throw new Error("El cobro no puede ser anterior al encuentro faltado");
   }
 
   private _asertarQueNoEsAnteriorAlUltimoPago(fecha: Date): void {

@@ -8,8 +8,8 @@ import type { Entorno } from "./Entorno.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
 
-// La pantalla de la noche: se empieza el evento, se marca quién vino y se cierra o se cancela.
-export class PantallaEvento {
+// La pantalla de la noche: se empieza el encuentro, se marca quién vino y se cierra o se cancela.
+export class PantallaEncuentro {
   private _entorno: Entorno;
   private _errores: HTMLOutputElement;
 
@@ -22,13 +22,13 @@ export class PantallaEvento {
     return crear(
       "section",
       {},
-      crear("h2", {}, "Evento"),
+      crear("h2", {}, "Encuentro"),
       this._entorno.aplicacion().tienePlanillaDeAsistencia()
         ? this._formulario()
         : crear(
             "p",
             {},
-            boton("Empezar evento", () => this._empezar()),
+            boton("Empezar encuentro", () => this._empezar()),
           ),
     );
   }
@@ -43,7 +43,7 @@ export class PantallaEvento {
         {},
         boton("Cancelar", () => this._cancelar()),
         " ",
-        botonDeEnvio("Cerrar evento"),
+        botonDeEnvio("Registrar encuentro"),
       ),
     );
   }
@@ -60,7 +60,7 @@ export class PantallaEvento {
     } else {
       new Dialogo(
         this._entorno,
-        "Cancelar evento",
+        "Cancelar encuentro",
         [crear("p", {}, "Se van a perder las marcas de asistencia.")],
         "Descartar",
         () => this._entorno.aplicacion().descartarPlanillaDeAsistencia(),
@@ -143,13 +143,13 @@ export class PantallaEvento {
     const aviso = ausentes.length === 0 ? "Nadie queda ausente." : `Quedan ausentes: ${ausentes.join(", ")}.`;
     new Dialogo(
       this._entorno,
-      "Cerrar evento",
+      "Registrar encuentro",
       [
-        crear("p", {}, `Se va a registrar el evento con fecha ${fechaYHora(this._entorno.ahora())}.`),
+        crear("p", {}, `Se va a registrar el encuentro con fecha ${fechaYHora(this._entorno.ahora())}.`),
         crear("p", {}, aviso),
       ],
       "Confirmar",
-      () => this._entorno.aplicacion().cerrarEventoSegunPlanillaDeAsistencia(this._entorno.ahora()),
+      () => this._entorno.aplicacion().registrarEncuentroSegunPlanillaDeAsistencia(this._entorno.ahora()),
     ).abrir();
   }
 }

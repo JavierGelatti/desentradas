@@ -1,5 +1,5 @@
 import { Deuda } from "./Deuda.ts";
-import type { Evento } from "./Evento.ts";
+import type { Encuentro } from "./Encuentro.ts";
 import type { PoliticaDeInteres } from "./PoliticaDeInteres.ts";
 
 export class Reglas {
@@ -43,7 +43,7 @@ export class Reglas {
     return faltas > this._toleranciaDeFaltas;
   }
 
-  deudaPorFaltarA(evento: Evento): Deuda {
-    return new Deuda(this._montoPorFalta, evento, this._politicaDeInteres);
+  deudaPorFaltarA(encuentro: Encuentro): Deuda {
+    return new Deuda(this._montoPorFalta, encuentro, this._politicaDeInteres);
   }
 }

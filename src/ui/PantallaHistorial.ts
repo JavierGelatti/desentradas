@@ -93,7 +93,7 @@ export class PantallaHistorial {
       .map((nombre) => fila(nombre, presentes.has(nombre) ? "Presente" : "Ausente"));
     mostrarEnDialogo(
       this._entorno,
-      `Evento del ${fechaYHora(fecha)}`,
+      `Encuentro del ${fechaYHora(fecha)}`,
       tabla(undefined, ["Nombre", "Asistencia"], filas),
     );
   }

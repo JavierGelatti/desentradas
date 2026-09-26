@@ -1,5 +1,5 @@
 import type { Credito } from "./Credito.ts";
-import type { Evento } from "./Evento.ts";
+import type { Encuentro } from "./Encuentro.ts";
 import type { Movimiento, TipoDeMovimiento } from "./Movimiento.ts";
 
 export type OrigenDeCobro = "efectivo" | Credito;
@@ -8,10 +8,10 @@ export class Cobro implements Movimiento {
   private _deudor: string;
   private _monto: number;
   private _fecha: Date;
-  private _eventoFaltado: Evento;
+  private _encuentroFaltado: Encuentro;
   private _origen: OrigenDeCobro;
 
-  constructor(deudor: string, monto: number, fecha: Date, eventoFaltado: Evento, origen: OrigenDeCobro) {
+  constructor(deudor: string, monto: number, fecha: Date, encuentroFaltado: Encuentro, origen: OrigenDeCobro) {
     if (monto <= 0) throw new Error("El monto del cobro debe ser positivo");
     if (origen !== "efectivo" && origen.acreedor() !== deudor) {
       throw new Error("Un crédito sólo se aplica a una deuda de su dueño");
@@ -20,7 +20,7 @@ export class Cobro implements Movimiento {
     this._deudor = deudor;
     this._monto = monto;
     this._fecha = fecha;
-    this._eventoFaltado = eventoFaltado;
+    this._encuentroFaltado = encuentroFaltado;
     this._origen = origen;
   }
 
@@ -44,8 +44,8 @@ export class Cobro implements Movimiento {
     return this._fecha;
   }
 
-  eventoFaltado(): Evento {
-    return this._eventoFaltado;
+  encuentroFaltado(): Encuentro {
+    return this._encuentroFaltado;
   }
 
   origen(): OrigenDeCobro {

@@ -1,17 +1,17 @@
 import { Cobro } from "../../src/models/Cobro.ts";
 import { Credito } from "../../src/models/Credito.ts";
 import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
-import { Evento } from "../../src/models/Evento.ts";
+import { Encuentro } from "../../src/models/Encuentro.ts";
 import { Grupo } from "../../src/models/Grupo.ts";
 import { Reglas } from "../../src/models/Reglas.ts";
 import { type PoliticaDeInteres, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
 
 export const dia = (numero: number) => new Date(`2026-09-${String(numero).padStart(2, "0")}T19:00:00`);
 
-export const nuevoEvento = ({
+export const nuevoEncuentro = ({
   numero = 1,
   asistentes = ["otra persona"],
-}: { numero?: number; asistentes?: string[] } = {}) => new Evento(dia(numero), asistentes);
+}: { numero?: number; asistentes?: string[] } = {}) => new Encuentro(dia(numero), asistentes);
 
 export const reglas = ({
   rigeDesde = dia(1),
@@ -34,9 +34,9 @@ export const cobroEnEfectivo = ({
   monto = 1000,
   numero = 3,
   asistentes = ["beto", "carla"],
-  evento = nuevoEvento({ numero: 2, asistentes }),
-}: { deudor?: string; monto?: number; numero?: number; asistentes?: string[]; evento?: Evento } = {}) =>
-  new Cobro(deudor, monto, dia(numero), evento, "efectivo");
+  encuentro = nuevoEncuentro({ numero: 2, asistentes }),
+}: { deudor?: string; monto?: number; numero?: number; asistentes?: string[]; encuentro?: Encuentro } = {}) =>
+  new Cobro(deudor, monto, dia(numero), encuentro, "efectivo");
 
 export const nuevoCredito = ({
   acreedor = "beto",

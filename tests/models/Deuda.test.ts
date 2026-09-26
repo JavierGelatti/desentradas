@@ -1,20 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { Deuda } from "../../src/models/Deuda.ts";
-import { dia, nuevoEvento } from "./factories.ts";
+import { dia, nuevoEncuentro } from "./factories.ts";
 import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
 
 const montoPorFalta = 1000;
 const interesDiario = 10;
 
-const nuevaDeuda = (evento = nuevoEvento()) => new Deuda(montoPorFalta, evento, new InteresFijoPorDia(interesDiario));
+const nuevaDeuda = (encuentro = nuevoEncuentro()) =>
+  new Deuda(montoPorFalta, encuentro, new InteresFijoPorDia(interesDiario));
 
 describe("Deuda", () => {
-  it("se origina por faltar a un evento, por un monto, y no nace en mora", () => {
-    const evento = nuevoEvento();
-    const deuda = nuevaDeuda(evento);
+  it("se origina por faltar a un encuentro, por un monto, y no nace en mora", () => {
+    const encuentro = nuevoEncuentro();
+    const deuda = nuevaDeuda(encuentro);
 
     expect(deuda.monto()).toBe(montoPorFalta);
-    expect(deuda.eventoFaltado()).toBe(evento);
+    expect(deuda.encuentroFaltado()).toBe(encuentro);
     expect(deuda.estaEnMora()).toBe(false);
   });
 
@@ -121,12 +122,12 @@ describe("Deuda", () => {
       expect(deuda.montoAl(dia(5))).toBe(600);
     });
 
-    it("no se puede pagar en una fecha anterior al evento faltado", () => {
-      const deuda = nuevaDeuda(nuevoEvento({ numero: 9 }));
+    it("no se puede pagar en una fecha anterior al encuentro faltado", () => {
+      const deuda = nuevaDeuda(nuevoEncuentro({ numero: 9 }));
 
       expect(() => {
         deuda.pagar(dia(8), 100);
-      }).toThrow("El cobro no puede ser anterior al evento faltado");
+      }).toThrow("El cobro no puede ser anterior al encuentro faltado");
     });
   });
 });

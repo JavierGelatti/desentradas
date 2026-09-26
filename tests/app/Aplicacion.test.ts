@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
-import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
+import { RegistrarEncuentro } from "../../src/app/comandos/RegistrarEncuentro.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { dia, reglas } from "../models/factories.ts";
 import { type Almacenamientos, aplicacionConGrupo, nuevaAplicacion } from "./factories.ts";
@@ -16,13 +16,13 @@ const aplicacionConAnaYBeto = (almacenamientos: Almacenamientos = {}) => {
 
 const aplicacionConDeudaDeAna = (almacenamientos: Almacenamientos = {}) => {
   const aplicacion = aplicacionConAnaYBeto(almacenamientos);
-  aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
+  aplicacion.registrarEncuentro(dia(2), ["beto"], ["ana"]);
   return aplicacion;
 };
 
 const aplicacionConAnaMorosa = () => {
   const aplicacion = aplicacionConDeudaDeAna();
-  aplicacion.cerrarEvento(dia(3), ["beto"], ["ana"]);
+  aplicacion.registrarEncuentro(dia(3), ["beto"], ["ana"]);
   return aplicacion;
 };
 
@@ -114,12 +114,12 @@ describe("Aplicacion", () => {
       expect(aplicacion.grupo().participanteActivo("ana")).toBeDefined();
     });
 
-    it("cerrar evento registra el evento con sus asistentes en el grupo", () => {
+    it("registrar encuentro registra el encuentro con sus asistentes en el grupo", () => {
       const aplicacion = aplicacionConAnaYBeto();
 
-      aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
+      aplicacion.registrarEncuentro(dia(2), ["beto"], ["ana"]);
 
-      expect(aplicacion.grupo().eventos()).toHaveLength(1);
+      expect(aplicacion.grupo().encuentros()).toHaveLength(1);
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
     });
 
@@ -179,7 +179,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.grupo().eventos()).toEqual([]);
+      expect(aplicacion.grupo().encuentros()).toEqual([]);
       expect(aplicacion.comandos().at(-1)).toBeInstanceOf(Ingresar);
     });
 
@@ -209,7 +209,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.creacionDeshecha()).toBeUndefined();
     });
 
-    it("deshacer un comando sobre el grupo que no es un cierre no empieza una planilla de asistencia ni deja una creación deshecha", () => {
+    it("deshacer un comando sobre el grupo que no registra un encuentro no empieza una planilla de asistencia ni deja una creación deshecha", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
 
@@ -291,36 +291,36 @@ describe("Aplicacion", () => {
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["ana"]);
     });
 
-    it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla, y la descarta", () => {
+    it("registrar el encuentro según la planilla lo registra en la fecha dada con los asistentes de la planilla, y la descarta", () => {
       const aplicacion = aplicacionConAnaYBeto();
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
+      aplicacion.registrarEncuentroSegunPlanillaDeAsistencia(dia(3));
 
-      const [evento] = aplicacion.grupo().eventos();
-      expect(evento.fecha()).toEqual(dia(3));
-      expect(evento.asistentes()).toEqual(new Set(["beto"]));
+      const [encuentro] = aplicacion.grupo().encuentros();
+      expect(encuentro.fecha()).toEqual(dia(3));
+      expect(encuentro.asistentes()).toEqual(new Set(["beto"]));
       expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
     });
 
-    it("cerrar el evento según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
+    it("registrar el encuentro según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
       const aplicacion = aplicacionConGrupo();
       ["ana", "beto", "carla"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
+      aplicacion.registrarEncuentroSegunPlanillaDeAsistencia(dia(3));
 
-      const cierre = aplicacion.comandos().at(-1) as CerrarEvento;
-      expect(cierre.asistencia().ausentes).toEqual(["ana", "carla"]);
+      const registro = aplicacion.comandos().at(-1) as RegistrarEncuentro;
+      expect(registro.asistencia().ausentes).toEqual(["ana", "carla"]);
     });
 
-    it("un cierre que el grupo rechaza deja la planilla como estaba", () => {
+    it("un registro de encuentro que el grupo rechaza deja la planilla como estaba", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       expect(() => {
-        aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(2));
-      }).toThrow("El evento debe ser posterior al último registrado");
+        aplicacion.registrarEncuentroSegunPlanillaDeAsistencia(dia(2));
+      }).toThrow("El encuentro debe ser posterior al último registrado");
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
@@ -407,14 +407,14 @@ describe("Aplicacion", () => {
       expect(aplicacion.ausentesEnPlanillaDeAsistencia()).toEqual(["beto"]);
     });
 
-    it("no se puede cerrar el evento según la planilla sin una planilla de asistencia empezada", () => {
+    it("no se puede registrar el encuentro según la planilla sin una planilla de asistencia empezada", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
 
       expect(() => {
-        aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
+        aplicacion.registrarEncuentroSegunPlanillaDeAsistencia(dia(3));
       }).toThrow("No hay una planilla de asistencia empezada");
-      expect(aplicacion.grupo().eventos()).toEqual([]);
+      expect(aplicacion.grupo().encuentros()).toEqual([]);
     });
 
     it("no se puede ingresar un asistente sin una planilla de asistencia empezada", () => {
@@ -426,7 +426,7 @@ describe("Aplicacion", () => {
       expect(aplicacion.grupo().participanteActivo("carla")).toBeUndefined();
     });
 
-    it("deshacer el cierre de un evento restaura su planilla", () => {
+    it("deshacer el registro de un encuentro restaura su planilla", () => {
       const aplicacion = aplicacionConDeudaDeAna();
 
       aplicacion.deshacer();
@@ -457,7 +457,7 @@ describe("Aplicacion", () => {
     it("deshacer un cobro desmarca a quien dejó de estar habilitado por el crédito aplicado", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.ingresar("carla", dia(2));
-      aplicacion.cerrarEvento(dia(3), ["carla"], ["ana", "beto"]);
+      aplicacion.registrarEncuentro(dia(3), ["carla"], ["ana", "beto"]);
       const planilla = aplicacion.empezarPlanillaDeAsistencia();
       aplicacion.cobrar("ana", 1000, dia(4)); // el crédito de beto por la falta de ana salda su deuda
       planilla.marcarComoPresente("beto");

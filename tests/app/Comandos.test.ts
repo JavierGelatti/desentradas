@@ -2,19 +2,19 @@ import { describe, expect, it } from "vitest";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { Reingresar } from "../../src/app/comandos/Reingresar.ts";
-import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
+import { RegistrarEncuentro } from "../../src/app/comandos/RegistrarEncuentro.ts";
 import { Cobrar } from "../../src/app/comandos/Cobrar.ts";
 import { Repartir } from "../../src/app/comandos/Repartir.ts";
 import { CambiarReglas } from "../../src/app/comandos/CambiarReglas.ts";
 import { comandoDesdeJson } from "../../src/app/json/ComandoJson.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
-import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "../models/factories.ts";
+import { desempate, dia, nuevoEncuentro, nuevoGrupo, reglas } from "../models/factories.ts";
 
 const grupoConDeudaDeAna = () => {
   const grupo = nuevoGrupo();
   grupo.ingresar("ana", dia(1));
   grupo.ingresar("beto", dia(1));
-  grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
   return grupo;
 };
 
@@ -51,7 +51,7 @@ describe("CrearGrupo", () => {
     expect(comando.reglas()).toBe(reglasIniciales);
   });
 
-  it("no tiene asistencia, porque no es el cierre de un evento", () => {
+  it("no tiene asistencia, porque no es el registro de un encuentro", () => {
     const comando = new CrearGrupo("Fútbol de los jueves", reglas());
 
     const asistencia = comando.asistencia();
@@ -88,7 +88,7 @@ describe("ComandoSobreElGrupo", () => {
     expect(grupo.participanteActivo("ana")).toBeDefined();
   });
 
-  it("no tiene asistencia salvo que sea el cierre de un evento", () => {
+  it("no tiene asistencia salvo que sea el registro de un encuentro", () => {
     const comando = new Ingresar("ana", dia(1));
 
     const asistencia = comando.asistencia();
@@ -129,7 +129,7 @@ describe("Ingresar", () => {
 describe("Reingresar", () => {
   it("vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
     const grupo = grupoConDeudaDeAna();
-    grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] })); // ana queda morosa
+    grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana queda morosa
     grupo.cobrar("ana", 1000, dia(10)); // y finalizada por pagar la morosidad
     const [ana] = grupo.participantesFinalizados();
     const comando = new Reingresar("ana", dia(11));
@@ -150,23 +150,23 @@ describe("Reingresar", () => {
   });
 });
 
-describe("CerrarEvento", () => {
-  it("registra el evento en el grupo con su fecha y sus asistentes", () => {
+describe("RegistrarEncuentro", () => {
+  it("registra el encuentro en el grupo con su fecha y sus asistentes", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
-    const comando = new CerrarEvento(dia(2), ["beto"], ["ana"]);
+    const comando = new RegistrarEncuentro(dia(2), ["beto"], ["ana"]);
 
     comando.ejecutar(grupo, desempate);
 
-    const [evento] = grupo.eventos();
-    expect(evento.fecha()).toEqual(dia(2));
-    expect(evento.asistentes()).toEqual(new Set(["beto"]));
+    const [encuentro] = grupo.encuentros();
+    expect(encuentro.fecha()).toEqual(dia(2));
+    expect(encuentro.asistentes()).toEqual(new Set(["beto"]));
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 
   it("recuerda la asistencia: quiénes vinieron y qué posibles asistentes no", () => {
-    const comando = new CerrarEvento(dia(2), ["beto"], ["ana", "carla"]);
+    const comando = new RegistrarEncuentro(dia(2), ["beto"], ["ana", "carla"]);
 
     const asistencia = comando.asistencia();
 
@@ -174,12 +174,12 @@ describe("CerrarEvento", () => {
   });
 
   it("se convierte a JSON con la fecha en formato ISO, los asistentes y los ausentes, y vuelve igual", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla"], ["ana"]);
+    const comando = new RegistrarEncuentro(dia(2), ["beto", "carla"], ["ana"]);
 
     const json = comando.aJson();
 
     expect(json).toEqual({
-      tipo: "cerrar evento",
+      tipo: "registrar encuentro",
       fecha: dia(2).toISOString(),
       asistentes: ["beto", "carla"],
       ausentes: ["ana"],
@@ -291,8 +291,8 @@ describe("Descripción de los comandos", () => {
     expect(comando.describir()).toBe("Reingreso de ana");
   });
 
-  it("cerrar evento lleva la fecha del evento y se describe con cuántos vinieron de los posibles asistentes", () => {
-    const comando = new CerrarEvento(dia(2), ["beto", "carla", "dani"], ["ana"]);
+  it("registrar encuentro lleva la fecha del encuentro y se describe con cuántos vinieron de los posibles asistentes", () => {
+    const comando = new RegistrarEncuentro(dia(2), ["beto", "carla", "dani"], ["ana"]);
 
     expect(comando.fecha()).toEqual(dia(2));
     expect(comando.describir()).toBe("3/4 presentes");

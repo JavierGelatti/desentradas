@@ -19,7 +19,8 @@ export class DesempateAleatorioReproducible implements Desempate {
   }
 
   private _datosDe(cobro: Cobro): string {
-    return [cobro.deudor(), cobro.fecha().getTime(), cobro.monto(), cobro.eventoFaltado().fecha().getTime()].join("|");
+    const encuentroFaltado = cobro.encuentroFaltado();
+    return [cobro.deudor(), cobro.fecha().getTime(), cobro.monto(), encuentroFaltado.fecha().getTime()].join("|");
   }
 }
 

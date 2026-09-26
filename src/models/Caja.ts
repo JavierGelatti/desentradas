@@ -82,7 +82,7 @@ export class Caja {
   }
 
   private _distribuirEnCreditos(cobro: Cobro): Credito[] {
-    const asistentes = this._desempate.ordenar(cobro.eventoFaltado().asistentes(), cobro);
+    const asistentes = this._desempate.ordenar(cobro.encuentroFaltado().asistentes(), cobro);
     const parte = Math.floor(cobro.monto() / asistentes.length);
     const sobrante = cobro.monto() % asistentes.length;
     return asistentes

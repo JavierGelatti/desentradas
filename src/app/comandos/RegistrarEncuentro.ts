@@ -1,18 +1,18 @@
 import type { Aplicacion } from "../Aplicacion.ts";
 import type { Asistencia } from "../Comando.ts";
 import type { ComandoJson } from "../json/ComandoJson.ts";
-import { Evento } from "../../models/Evento.ts";
+import { Encuentro } from "../../models/Encuentro.ts";
 import type { Grupo } from "../../models/Grupo.ts";
 import { fecha, type Objeto, textos } from "../json/Campos.ts";
 import { ComandoSobreElGrupo } from "./ComandoSobreElGrupo.ts";
 
-export class CerrarEvento extends ComandoSobreElGrupo {
+export class RegistrarEncuentro extends ComandoSobreElGrupo {
   private _fecha: Date;
   private _asistentes: readonly string[];
   private _ausentes: readonly string[];
 
-  static desdeJson(campos: Objeto): CerrarEvento {
-    return new CerrarEvento(fecha(campos, "fecha"), textos(campos, "asistentes"), textos(campos, "ausentes"));
+  static desdeJson(campos: Objeto): RegistrarEncuentro {
+    return new RegistrarEncuentro(fecha(campos, "fecha"), textos(campos, "asistentes"), textos(campos, "ausentes"));
   }
 
   constructor(fecha: Date, asistentes: Iterable<string>, ausentes: Iterable<string>) {
@@ -23,7 +23,7 @@ export class CerrarEvento extends ComandoSobreElGrupo {
   }
 
   protected ejecutarEn(grupo: Grupo): void {
-    grupo.cerrarEvento(new Evento(this._fecha, this._asistentes));
+    grupo.registrarEncuentro(new Encuentro(this._fecha, this._asistentes));
   }
 
   fecha(): Date {
@@ -45,7 +45,7 @@ export class CerrarEvento extends ComandoSobreElGrupo {
 
   aJson(): ComandoJson {
     return {
-      tipo: "cerrar evento",
+      tipo: "registrar encuentro",
       fecha: this._fecha.toISOString(),
       asistentes: this._asistentes,
       ausentes: this._ausentes,

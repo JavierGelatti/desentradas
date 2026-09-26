@@ -2,7 +2,7 @@ import { Caja } from "./Caja.ts";
 import type { OrigenDeCobro } from "./Cobro.ts";
 import type { Credito } from "./Credito.ts";
 import type { Desempate } from "./Desempate.ts";
-import type { Evento } from "./Evento.ts";
+import type { Encuentro } from "./Encuentro.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Reparto } from "./Reparto.ts";
 import { Participante } from "./Participante.ts";
@@ -11,7 +11,7 @@ import { Saldo } from "./Saldo.ts";
 export class Grupo {
   private _nombre: string;
   private _historialDeReglas: Reglas[];
-  private _eventos: Evento[];
+  private _encuentros: Encuentro[];
   private _participantes: Participante[];
   private _caja: Caja;
 
@@ -21,7 +21,7 @@ export class Grupo {
 
     this._nombre = nombreLimpio;
     this._historialDeReglas = [reglasIniciales];
-    this._eventos = [];
+    this._encuentros = [];
     this._participantes = [];
     this._caja = new Caja(desempate);
   }
@@ -31,9 +31,9 @@ export class Grupo {
   }
 
   cambiarReglas(reglas: Reglas): void {
-    this._asertarQueRigenDespuesDelUltimoEvento(reglas);
+    this._asertarQueRigenDespuesDelUltimoEncuentro(reglas);
 
-    if (this._esPosteriorAlUltimoEvento(this.reglas().rigeDesde())) this._historialDeReglas.pop();
+    if (this._esPosteriorAlUltimoEncuentro(this.reglas().rigeDesde())) this._historialDeReglas.pop();
     this._historialDeReglas.push(reglas);
   }
 
@@ -92,25 +92,25 @@ export class Grupo {
     return this._caja.repartir(nombre, fecha);
   }
 
-  cerrarEvento(evento: Evento): void {
-    this._asertarQueEsPosteriorAlUltimoEvento(evento);
-    this._asertarQueNoEsAnteriorAlUltimoMovimiento("El evento", evento.fecha());
-    this._asertarQuePuedenAsistir(evento);
-    const reglas = this.reglasVigentesAl(evento.fecha());
+  registrarEncuentro(encuentro: Encuentro): void {
+    this._asertarQueEsPosteriorAlUltimoEncuentro(encuentro);
+    this._asertarQueNoEsAnteriorAlUltimoMovimiento("El encuentro", encuentro.fecha());
+    this._asertarQuePuedenAsistir(encuentro);
+    const reglas = this.reglasVigentesAl(encuentro.fecha());
 
-    this._participantesDelEvento(evento).forEach((participante) => {
-      if (evento.asistio(participante.nombre())) {
-        participante.voy(evento);
+    this._participantesDelEncuentro(encuentro).forEach((participante) => {
+      if (encuentro.asistio(participante.nombre())) {
+        participante.voy(encuentro);
       } else {
-        participante.falto(evento, reglas);
-        this._aplicarCreditosPendientesDe(participante, evento.fecha());
+        participante.falto(encuentro, reglas);
+        this._aplicarCreditosPendientesDe(participante, encuentro.fecha());
       }
     });
-    this._eventos.push(evento);
+    this._encuentros.push(encuentro);
   }
 
-  eventos(): readonly Evento[] {
-    return this._eventos;
+  encuentros(): readonly Encuentro[] {
+    return this._encuentros;
   }
 
   caja(): Caja {
@@ -121,7 +121,7 @@ export class Grupo {
     return this._participantes.filter((participante) => participante.estaActivo());
   }
 
-  // Quienes se esperan en el próximo evento: los morosos no pueden asistir ni pagando.
+  // Quienes se esperan en el próximo encuentro: los morosos no pueden asistir ni pagando.
   posiblesAsistentes(): readonly Participante[] {
     return this._participantes.filter((participante) => participante.esPosibleAsistente());
   }
@@ -149,8 +149,8 @@ export class Grupo {
     return this._participanteFinalizado(nombre.trim()) !== undefined;
   }
 
-  private _participantesDelEvento(evento: Evento): readonly Participante[] {
-    return this.participantes().filter((participante) => !participante.ingresoDespuesDe(evento));
+  private _participantesDelEncuentro(encuentro: Encuentro): readonly Participante[] {
+    return this.participantes().filter((participante) => !participante.ingresoDespuesDe(encuentro));
   }
 
   private _participanteActivoLlamado(nombre: string): Participante {
@@ -181,41 +181,43 @@ export class Grupo {
     }
   }
 
-  private _asertarQuePuedenAsistir(evento: Evento): void {
-    for (const nombre of evento.asistentes()) {
+  private _asertarQuePuedenAsistir(encuentro: Encuentro): void {
+    for (const nombre of encuentro.asistentes()) {
       const participante = this.participanteActivo(nombre);
       if (participante === undefined) throw new Error(`${nombre} no es un participante activo`);
-      if (participante.ingresoDespuesDe(evento)) throw new Error(`${nombre} ingresó después del evento`);
+      if (participante.ingresoDespuesDe(encuentro)) throw new Error(`${nombre} ingresó después del encuentro`);
       if (!participante.puedeAsistir()) throw new Error(`${nombre} no puede asistir`);
     }
   }
 
-  private _asertarQueEsPosteriorAlUltimoEvento(evento: Evento): void {
-    if (!this._esPosteriorAlUltimoEvento(evento.fecha())) {
-      throw new Error("El evento debe ser posterior al último registrado");
+  private _asertarQueEsPosteriorAlUltimoEncuentro(encuentro: Encuentro): void {
+    if (!this._esPosteriorAlUltimoEncuentro(encuentro.fecha())) {
+      throw new Error("El encuentro debe ser posterior al último registrado");
     }
   }
 
   private _asertarQueNoEsAnteriorAlUltimoMovimiento(movimiento: string, fecha: Date): void {
-    if (this._huboEventosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último evento`);
+    if (this._huboEncuentrosDespuesDe(fecha)) {
+      throw new Error(`${movimiento} no puede ser anterior al último encuentro`);
+    }
     const posterior = this._caja.movimientoPosteriorA(fecha);
     if (posterior !== undefined) {
       throw new Error(`${movimiento} no puede ser anterior al último ${posterior.tipo()}`);
     }
   }
 
-  private _asertarQueRigenDespuesDelUltimoEvento(reglas: Reglas): void {
-    if (!this._esPosteriorAlUltimoEvento(reglas.rigeDesde())) {
-      throw new Error("Las nuevas reglas deben regir desde después del último evento registrado");
+  private _asertarQueRigenDespuesDelUltimoEncuentro(reglas: Reglas): void {
+    if (!this._esPosteriorAlUltimoEncuentro(reglas.rigeDesde())) {
+      throw new Error("Las nuevas reglas deben regir desde después del último encuentro registrado");
     }
   }
 
-  private _esPosteriorAlUltimoEvento(fecha: Date): boolean {
-    return this._eventos.every((evento) => evento.fecha() < fecha);
+  private _esPosteriorAlUltimoEncuentro(fecha: Date): boolean {
+    return this._encuentros.every((encuentro) => encuentro.fecha() < fecha);
   }
 
-  private _huboEventosDespuesDe(fecha: Date): boolean {
-    return this._eventos.some((evento) => evento.fecha() > fecha);
+  private _huboEncuentrosDespuesDe(fecha: Date): boolean {
+    return this._encuentros.some((encuentro) => encuentro.fecha() > fecha);
   }
 
   private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {

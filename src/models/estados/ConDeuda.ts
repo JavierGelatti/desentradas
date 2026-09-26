@@ -1,5 +1,5 @@
 import type { Deuda } from "../Deuda.ts";
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import { Estado } from "./Estado.ts";
 
 export abstract class ConDeuda extends Estado {
@@ -17,8 +17,8 @@ export abstract class ConDeuda extends Estado {
     return this._estadoAlSaldar();
   }
 
-  override eventoAdeudado(): Evento {
-    return this._deuda.eventoFaltado();
+  override encuentroAdeudado(): Encuentro {
+    return this._deuda.encuentroFaltado();
   }
 
   override faltas(): number {

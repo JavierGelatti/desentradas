@@ -1,4 +1,4 @@
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
 import { ConDeuda } from "./ConDeuda.ts";
 import type { Estado, NombreDeEstado } from "./Estado.ts";
@@ -10,8 +10,8 @@ export class EnDeuda extends ConDeuda {
     return "en deuda";
   }
 
-  override falto(evento: Evento, _reglas: Reglas): Estado {
-    this._deuda.entrarEnMora(evento.fecha());
+  override falto(encuentro: Encuentro, _reglas: Reglas): Estado {
+    this._deuda.entrarEnMora(encuentro.fecha());
     return new Moroso(this._deuda);
   }
 

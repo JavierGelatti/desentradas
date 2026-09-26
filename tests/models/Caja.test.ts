@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Caja } from "../../src/models/Caja.ts";
 import { Cobro } from "../../src/models/Cobro.ts";
-import { cobroEnEfectivo, desempate, dia, nuevoEvento } from "./factories.ts";
+import { cobroEnEfectivo, desempate, dia, nuevoEncuentro } from "./factories.ts";
 
 const nuevaCaja = () => new Caja(desempate);
 
 describe("Caja", () => {
   describe("distribución de cobros", () => {
-    it("un cobro se distribuye en créditos iguales entre los asistentes al evento faltado", () => {
+    it("un cobro se distribuye en créditos iguales entre los asistentes al encuentro faltado", () => {
       const caja = nuevaCaja();
       const cobro = cobroEnEfectivo({ monto: 1000 });
 
@@ -189,7 +189,7 @@ describe("Caja", () => {
       const caja = nuevaCaja();
       const [credito] = caja.cobrar(cobroEnEfectivo({ deudor: "ana", monto: 1000, numero: 3, asistentes: ["beto"] }));
       const aplicado = caja.aplicar(credito, 400);
-      caja.cobrar(new Cobro("beto", 400, dia(4), nuevoEvento({ numero: 4, asistentes: ["carla"] }), aplicado));
+      caja.cobrar(new Cobro("beto", 400, dia(4), nuevoEncuentro({ numero: 4, asistentes: ["carla"] }), aplicado));
 
       const movimientos = caja.movimientos();
 

@@ -5,7 +5,7 @@ import { crear, type Hijo, intentar, mostrarDialogo } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { PantallaCaja } from "./PantallaCaja.ts";
 import { PantallaDeInicio } from "./PantallaDeInicio.ts";
-import { PantallaEvento } from "./PantallaEvento.ts";
+import { PantallaEncuentro } from "./PantallaEncuentro.ts";
 import { PantallaHistorial } from "./PantallaHistorial.ts";
 import { PantallaParticipantes } from "./PantallaParticipantes.ts";
 import { PantallaReglas } from "./PantallaReglas.ts";
@@ -18,7 +18,7 @@ interface Pantalla {
 const pantallas = {
   participantes: { titulo: "Participantes", Pantalla: PantallaParticipantes },
   caja: { titulo: "Caja", Pantalla: PantallaCaja },
-  evento: { titulo: "Evento", Pantalla: PantallaEvento },
+  encuentro: { titulo: "Encuentro", Pantalla: PantallaEncuentro },
   historial: { titulo: "Historial", Pantalla: PantallaHistorial },
   reglas: { titulo: "Reglas", Pantalla: PantallaReglas },
 } satisfies Record<string, { titulo: string; Pantalla: new (entorno: Entorno) => Pantalla }>;
@@ -75,12 +75,12 @@ export class VistaPrincipal implements Entorno {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // Deshacer un cierre restaura su planilla de asistencia, y entonces se pasa a la pantalla del evento.
+  // Deshacer el registro de un encuentro restaura su planilla de asistencia, y entonces se pasa a la pantalla del encuentro.
   deshacer(): void {
     const habiaPlanillaDeAsistencia = this._aplicacion.tienePlanillaDeAsistencia();
     this._aplicacion.deshacer();
     if (!habiaPlanillaDeAsistencia && this._aplicacion.tienePlanillaDeAsistencia()) {
-      this._irA("evento");
+      this._irA("encuentro");
     } else {
       this.refrescar();
     }
@@ -97,10 +97,10 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _pantallaInicial(): NombreDePantalla {
-    if (this._aplicacion.tienePlanillaDeAsistencia()) return "evento";
+    if (this._aplicacion.tienePlanillaDeAsistencia()) return "encuentro";
 
     const ultima = this._ultimaPantalla.leer() ?? "";
-    return pantallaDelHash() ?? (esNombreDePantalla(ultima) ? ultima : "evento");
+    return pantallaDelHash() ?? (esNombreDePantalla(ultima) ? ultima : "encuentro");
   }
 
   // Una vista cuya raíz salió del documento ya no es la que se ve; si siguiera, pisaría la pantalla guardada y el hash.

@@ -1,4 +1,4 @@
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
 import type { Accion } from "../Transicion.ts";
 import { TransicionInvalida } from "./TransicionInvalida.ts";
@@ -24,7 +24,7 @@ export abstract class Estado {
     throw new TransicionInvalida("voy", this.nombre());
   }
 
-  falto(_evento: Evento, _reglas: Reglas): Estado {
+  falto(_encuentro: Encuentro, _reglas: Reglas): Estado {
     throw new TransicionInvalida("falto", this.nombre());
   }
 
@@ -32,7 +32,7 @@ export abstract class Estado {
     throw new TransicionInvalida("pago", this.nombre());
   }
 
-  eventoAdeudado(): Evento {
+  encuentroAdeudado(): Encuentro {
     throw new TransicionInvalida("pago", this.nombre());
   }
 
@@ -44,7 +44,7 @@ export abstract class Estado {
     return false;
   }
 
-  // Puede asistir ahora, o podría después de pagar: es a quien se espera en el próximo evento.
+  // Puede asistir ahora, o podría después de pagar: es a quien se espera en el próximo encuentro.
   esPosibleAsistente(): boolean {
     return this.puedeAsistir() || this.soloLeFaltaPagarParaAsistir();
   }

@@ -1,5 +1,5 @@
 import { Cobro, type OrigenDeCobro } from "./Cobro.ts";
-import type { Evento } from "./Evento.ts";
+import type { Encuentro } from "./Encuentro.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Estado, MotivoDeFinalizacion, NombreDeEstado } from "./estados/Estado.ts";
 import { Participando } from "./estados/Participando.ts";
@@ -16,16 +16,16 @@ export class Participante {
     this._historial = [Transicion.ingreso(fechaDeIngreso, this._estado.nombre())];
   }
 
-  voy(evento: Evento): void {
-    this._transicionar("voy", evento.fecha(), this._estado.voy());
+  voy(encuentro: Encuentro): void {
+    this._transicionar("voy", encuentro.fecha(), this._estado.voy());
   }
 
-  falto(evento: Evento, reglas: Reglas): void {
-    this._transicionar("falto", evento.fecha(), this._estado.falto(evento, reglas));
+  falto(encuentro: Encuentro, reglas: Reglas): void {
+    this._transicionar("falto", encuentro.fecha(), this._estado.falto(encuentro, reglas));
   }
 
   pago(fecha: Date, monto: number, origen: OrigenDeCobro): Cobro {
-    const cobro = new Cobro(this._nombre, monto, fecha, this._estado.eventoAdeudado(), origen);
+    const cobro = new Cobro(this._nombre, monto, fecha, this._estado.encuentroAdeudado(), origen);
     this._transicionar("pago", fecha, this._estado.pago(fecha, monto));
     return cobro;
   }
@@ -53,8 +53,8 @@ export class Participante {
     return this._historial.findLast((transicion) => transicion.iniciaParticipacion())!.fecha();
   }
 
-  ingresoDespuesDe(evento: Evento): boolean {
-    return this.fechaDeIngreso() > evento.fecha();
+  ingresoDespuesDe(encuentro: Encuentro): boolean {
+    return this.fechaDeIngreso() > encuentro.fecha();
   }
 
   fechaDelUltimoCambio(): Date {

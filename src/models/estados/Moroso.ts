@@ -1,4 +1,4 @@
-import type { Evento } from "../Evento.ts";
+import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
 import { ConDeuda } from "./ConDeuda.ts";
 import type { Estado, NombreDeEstado } from "./Estado.ts";
@@ -9,7 +9,7 @@ export class Moroso extends ConDeuda {
     return "moroso";
   }
 
-  override falto(_evento: Evento, _reglas: Reglas): Estado {
+  override falto(_encuentro: Encuentro, _reglas: Reglas): Estado {
     return this;
   }
 
