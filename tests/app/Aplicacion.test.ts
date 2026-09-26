@@ -6,13 +6,17 @@ import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
-import { nuevaPlanillaDeAsistencia } from "./factories.ts";
 
-const nuevaAplicacion = (almacenamiento = new AlmacenamientoEnMemoria()) =>
-  new Aplicacion(almacenamiento, desempate, nuevaPlanillaDeAsistencia());
+const nuevaAplicacion = (
+  almacenamiento = new AlmacenamientoEnMemoria(),
+  almacenamientoDePlanilla = new AlmacenamientoEnMemoria(),
+) => new Aplicacion(almacenamiento, desempate, almacenamientoDePlanilla);
 
-const aplicacionConGrupo = (almacenamiento = new AlmacenamientoEnMemoria()) => {
-  const aplicacion = nuevaAplicacion(almacenamiento);
+const aplicacionConGrupo = (
+  almacenamiento = new AlmacenamientoEnMemoria(),
+  almacenamientoDePlanilla = new AlmacenamientoEnMemoria(),
+) => {
+  const aplicacion = nuevaAplicacion(almacenamiento, almacenamientoDePlanilla);
   aplicacion.crearGrupo("Fútbol de los jueves", reglas());
   return aplicacion;
 };
@@ -224,7 +228,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
       expect(aplicacion.creacionDeshecha()).toBeUndefined();
     });
 
@@ -250,12 +254,55 @@ describe("Aplicacion", () => {
   });
 
   describe("planilla de asistencia", () => {
+    it("empezar la planilla de asistencia la deja sin asistentes y guardada", () => {
+      const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
+      const aplicacion = aplicacionConGrupo(new AlmacenamientoEnMemoria(), almacenamientoDePlanilla);
+
+      const planilla = aplicacion.empezarPlanillaDeAsistencia();
+
+      expect(aplicacion.planillaDeAsistencia()).toBe(planilla);
+      expect(planilla.asistentes()).toEqual([]);
+      expect(JSON.parse(almacenamientoDePlanilla.leer()!)).toEqual({ asistentes: [] });
+    });
+
+    it("no se puede empezar una planilla de asistencia ya empezada", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("ana");
+
+      expect(() => {
+        aplicacion.empezarPlanillaDeAsistencia();
+      }).toThrow("Ya hay una planilla de asistencia empezada");
+      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["ana"]);
+    });
+
+    it("descartar la planilla de asistencia deja a la aplicación sin planilla y borra lo guardado", () => {
+      const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
+      const aplicacion = aplicacionConGrupo(new AlmacenamientoEnMemoria(), almacenamientoDePlanilla);
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("ana");
+
+      aplicacion.descartarPlanillaDeAsistencia();
+
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(almacenamientoDePlanilla.leer()).toBeUndefined();
+    });
+
+    it("una aplicación nueva sobre el mismo almacenamiento recupera la planilla de asistencia empezada", () => {
+      const almacenamiento = new AlmacenamientoEnMemoria();
+      const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
+      aplicacionConGrupo(almacenamiento, almacenamientoDePlanilla)
+        .empezarPlanillaDeAsistencia()
+        .marcarComoPresente("ana");
+
+      const aplicacion = nuevaAplicacion(almacenamiento, almacenamientoDePlanilla);
+
+      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["ana"]);
+    });
+
     it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
@@ -267,8 +314,7 @@ describe("Aplicacion", () => {
     it("cerrar el evento según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
       const aplicacion = aplicacionConGrupo();
       ["ana", "beto", "carla"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
@@ -280,43 +326,41 @@ describe("Aplicacion", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.ingresar("ana", dia(1));
       aplicacion.ingresar("beto", dia(1));
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
     });
 
     it("un cierre que el grupo rechaza deja la planilla como estaba", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       expect(() => {
         aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(2));
       }).toThrow("El evento debe ser posterior al último registrado");
-      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
     });
 
     it("cobrar en la puerta toda la deuda deja a la persona marcada como presente", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("libre de deuda");
-      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(true);
     });
 
     it("un pago parcial en la puerta no marca a la persona, porque sigue sin poder asistir", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.cobrarEnLaPuerta("ana", 400, dia(3));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(dia(3))).toBe(600);
-      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(false);
     });
 
     it("no se puede cobrar en la puerta a un moroso, porque pagar no lo habilita a asistir", () => {
@@ -338,48 +382,67 @@ describe("Aplicacion", () => {
 
     it("ingresar como asistente a alguien nuevo lo deja participando desde la fecha del ingreso y marcado como presente", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.ingresarAsistente("carla", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")?.historial().at(0)?.fecha()).toEqual(dia(3));
-      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(true);
     });
 
     it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del ingreso y lo deja marcado como presente", () => {
       const aplicacion = aplicacionConAnaMorosa();
       aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.ingresarAsistente("ana", dia(5));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
       expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(5));
-      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(true);
     });
 
     it("ingresar como asistente toma el nombre sin espacios al principio ni al final", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.ingresarAsistente(" carla ", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")).toBeDefined();
-      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(true);
     });
 
     it("quedan ausentes los posibles asistentes sin marcar, incluso quien está en deuda", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       expect(aplicacion.ausentesEnPlanillaDeAsistencia()).toEqual(["ana"]);
     });
 
     it("un moroso no figura entre los ausentes en la planilla", () => {
       const aplicacion = aplicacionConAnaMorosa();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       expect(aplicacion.ausentesEnPlanillaDeAsistencia()).toEqual(["beto"]);
+    });
+
+    it("no se puede cerrar el evento según la planilla sin una planilla de asistencia empezada", () => {
+      const aplicacion = aplicacionConGrupo();
+      aplicacion.ingresar("ana", dia(1));
+
+      expect(() => {
+        aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
+      }).toThrow("No hay una planilla de asistencia empezada");
+      expect(aplicacion.grupo().eventos()).toEqual([]);
+    });
+
+    it("no se puede ingresar un asistente sin una planilla de asistencia empezada", () => {
+      const aplicacion = aplicacionConGrupo();
+
+      expect(() => {
+        aplicacion.ingresarAsistente("carla", dia(3));
+      }).toThrow("No hay una planilla de asistencia empezada");
+      expect(aplicacion.grupo().participanteActivo("carla")).toBeUndefined();
     });
 
     it("deshacer el cierre de un evento restaura su planilla", () => {
@@ -387,72 +450,70 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(true);
-      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia()).toBeDefined();
+      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
     });
 
     it("deshacer un cobro en la puerta desmarca a la persona, que vuelve a no poder asistir", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
       aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(false);
     });
 
     it("deshacer el ingreso de un asistente desmarca a la persona, que ya no es participante", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
       aplicacion.ingresarAsistente("carla", dia(3));
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(false);
     });
 
     it("deshacer un cobro desmarca a quien dejó de estar habilitado por el crédito aplicado", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.ingresar("carla", dia(2));
       aplicacion.cerrarEvento(dia(3), ["carla"], ["ana", "beto"]);
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
       aplicacion.cobrar("ana", 1000, dia(4)); // el crédito de beto por la falta de ana salda su deuda
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.planillaDeAsistencia()?.marcarComoPresente("beto");
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().asiste("beto")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()?.asiste("beto")).toBe(false);
     });
 
     it("deshacer no toca las marcas de quienes siguen pudiendo asistir", () => {
       const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("beto");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
       aplicacion.ingresarAsistente("carla", dia(3));
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
     });
 
     it("deshacer la creación del grupo descarta la planilla de asistencia", () => {
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().empezar();
+      aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
     });
 
     it("importar una bitácora descarta la planilla", () => {
       const exportado = aplicacionConDeudaDeAna().exportar();
       const aplicacion = aplicacionConGrupo();
-      aplicacion.planillaDeAsistencia().empezar();
-      aplicacion.planillaDeAsistencia().marcarComoPresente("carla");
+      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("carla");
 
       aplicacion.importar(exportado);
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
     });
   });
 

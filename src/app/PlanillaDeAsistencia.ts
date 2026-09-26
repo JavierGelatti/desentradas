@@ -1,20 +1,28 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { objeto, textos } from "./json/Campos.ts";
 
+// La planilla de una noche: quién vino. Existe sólo mientras hay un evento en curso.
 export class PlanillaDeAsistencia {
   private _almacenamiento: Almacenamiento;
-  private _empezada: boolean;
   private _asistentes: Set<string>;
 
-  constructor(almacenamiento: Almacenamiento) {
-    this._almacenamiento = almacenamiento;
-    this._empezada = false;
-    this._asistentes = new Set();
-    this._cargar();
+  static guardadaEn(almacenamiento: Almacenamiento): PlanillaDeAsistencia | undefined {
+    const texto = almacenamiento.leer();
+    if (texto === undefined) return undefined;
+
+    try {
+      const campos = objeto(JSON.parse(texto), "La planilla de asistencia");
+      return new PlanillaDeAsistencia(almacenamiento, textos(campos, "asistentes"));
+    } catch {
+      almacenamiento.borrar();
+      return undefined;
+    }
   }
 
-  existe(): boolean {
-    return this._empezada;
+  constructor(almacenamiento: Almacenamiento, asistentes: Iterable<string>) {
+    this._almacenamiento = almacenamiento;
+    this._asistentes = new Set(asistentes);
+    this._guardar();
   }
 
   asistentes(): readonly string[] {
@@ -25,63 +33,26 @@ export class PlanillaDeAsistencia {
     return this._asistentes.has(nombre);
   }
 
-  empezar(): void {
-    if (this.existe()) throw new Error("Ya hay una planilla de asistencia empezada");
-
-    this.restaurar([]);
-  }
-
-  restaurar(asistentes: Iterable<string>): void {
-    this._empezada = true;
-    this._asistentes = new Set(asistentes);
-    this._guardar();
-  }
-
   marcarComoPresente(nombre: string): void {
-    this._asertarQueEstaEmpezada();
-
     this._asistentes.add(nombre);
     this._guardar();
   }
 
   desmarcarComoPresente(nombre: string): void {
-    this._asertarQueEstaEmpezada();
-
     this._asistentes.delete(nombre);
     this._guardar();
   }
 
   conservarSoloA(criterio: (nombre: string) => boolean): void {
-    this._asertarQueEstaEmpezada();
-
     this._asistentes = new Set(this.asistentes().filter(criterio));
     this._guardar();
   }
 
   descartar(): void {
-    this._empezada = false;
-    this._asistentes = new Set();
     this._almacenamiento.borrar();
-  }
-
-  private _asertarQueEstaEmpezada(): void {
-    if (!this.existe()) throw new Error("No hay una planilla de asistencia empezada");
   }
 
   private _guardar(): void {
     this._almacenamiento.guardar(JSON.stringify({ asistentes: this.asistentes() }));
-  }
-
-  private _cargar(): void {
-    const texto = this._almacenamiento.leer();
-    if (texto === undefined) return;
-
-    try {
-      const campos = objeto(JSON.parse(texto), "La planilla de asistencia");
-      this._asistentes = new Set(textos(campos, "asistentes"));
-      this._empezada = true;
-    } catch {
-      this._almacenamiento.borrar();
-    }
   }
 }

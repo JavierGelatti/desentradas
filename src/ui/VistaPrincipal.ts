@@ -71,9 +71,9 @@ export class VistaPrincipal implements Entorno {
   // se muestra la pantalla del evento; si no, se queda donde está.
   // La creación deshecha vuelve al formulario inicial con lo que se había cargado.
   deshacer(): void {
-    const habiaPlanillaDeAsistencia = this._aplicacion.planillaDeAsistencia().existe();
+    const habiaPlanillaDeAsistencia = this._aplicacion.tienePlanillaDeAsistencia();
     this._aplicacion.deshacer();
-    if (!habiaPlanillaDeAsistencia && this._aplicacion.planillaDeAsistencia().existe()) {
+    if (!habiaPlanillaDeAsistencia && this._aplicacion.tienePlanillaDeAsistencia()) {
       this._irA("evento");
     } else {
       this.refrescar();
@@ -81,7 +81,7 @@ export class VistaPrincipal implements Entorno {
   }
 
   private _pantallaInicial(): NombreDePantalla {
-    if (this._aplicacion.planillaDeAsistencia().existe()) return "evento";
+    if (this._aplicacion.tienePlanillaDeAsistencia()) return "evento";
 
     const delHash = location.hash.slice(1);
     if (esNombreDePantalla(delHash)) return delHash;

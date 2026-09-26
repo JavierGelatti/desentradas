@@ -5,7 +5,7 @@ import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { aEntradaDeFecha, fechaYHora } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
-import { ahora, nuevaPlanillaDeAsistencia } from "../app/factories.ts";
+import { ahora } from "../app/factories.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
 
 const nuevosAlmacenamientos = () => ({
@@ -17,7 +17,7 @@ const nuevosAlmacenamientos = () => ({
 type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
 
 const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
-  new Aplicacion(almacenamientos.bitacora, desempate, nuevaPlanillaDeAsistencia(almacenamientos.planilla));
+  new Aplicacion(almacenamientos.bitacora, desempate, almacenamientos.planilla);
 
 const almacenamientosConGrupoSinParticipantes = () => {
   const almacenamientos = nuevosAlmacenamientos();
@@ -323,7 +323,7 @@ describe("VistaPrincipal", () => {
 
       hacerClic("Empezar evento");
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(true);
+      expect(aplicacion.planillaDeAsistencia()).toBeDefined();
       expect(casillaDeAsistencia("beto").checked).toBe(false);
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(false);
     });
@@ -361,7 +361,7 @@ describe("VistaPrincipal", () => {
       hacerClic("Cancelar");
 
       expect(document.querySelector("dialog[open]")).toBeNull();
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
       expect(almacenamientos.planilla.leer()).toBeUndefined();
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(true);
     });
@@ -376,7 +376,7 @@ describe("VistaPrincipal", () => {
       expect(textoDe(dialogoAbierto())).toContain("Se van a perder las marcas de asistencia.");
       hacerClic("Descartar", dialogoAbierto());
 
-      expect(aplicacion.planillaDeAsistencia().existe()).toBe(false);
+      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(true);
     });
 
@@ -490,8 +490,7 @@ describe("VistaPrincipal", () => {
     it("deshacer un comando que no es un cierre, con una planilla empezada, deja la pantalla del historial", async () => {
       const almacenamientos = almacenamientosConGrupo();
       const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.planillaDeAsistencia().empezar();
-      preparacion.planillaDeAsistencia().marcarComoPresente("beto");
+      preparacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
       preparacion.cobrar("ana", 500, dia(3));
       montar(almacenamientos);
       await navegarA("Historial");

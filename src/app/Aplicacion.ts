@@ -1,6 +1,6 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { Bitacora } from "./Bitacora.ts";
-import type { PlanillaDeAsistencia } from "./PlanillaDeAsistencia.ts";
+import { PlanillaDeAsistencia } from "./PlanillaDeAsistencia.ts";
 import type { Comando } from "./Comando.ts";
 import { CrearGrupo } from "./comandos/CrearGrupo.ts";
 import { Ingresar } from "./comandos/Ingresar.ts";
@@ -16,15 +16,17 @@ import type { Reglas } from "../models/Reglas.ts";
 export class Aplicacion {
   private _almacenamiento: Almacenamiento;
   private _desempate: Desempate;
-  private _planillaDeAsistencia: PlanillaDeAsistencia;
+  private _almacenamientoDePlanilla: Almacenamiento;
+  private _planillaDeAsistencia: PlanillaDeAsistencia | undefined;
   private _bitacora: Bitacora;
   private _avisoDeInicio: string | undefined;
   private _creacionDeshecha: CrearGrupo | undefined;
 
-  constructor(almacenamiento: Almacenamiento, desempate: Desempate, planillaDeAsistencia: PlanillaDeAsistencia) {
+  constructor(almacenamiento: Almacenamiento, desempate: Desempate, almacenamientoDePlanilla: Almacenamiento) {
     this._almacenamiento = almacenamiento;
     this._desempate = desempate;
-    this._planillaDeAsistencia = planillaDeAsistencia;
+    this._almacenamientoDePlanilla = almacenamientoDePlanilla;
+    this._planillaDeAsistencia = PlanillaDeAsistencia.guardadaEn(almacenamientoDePlanilla);
     this._bitacora = new Bitacora(desempate);
     this._avisoDeInicio = undefined;
     this._creacionDeshecha = undefined;
@@ -43,8 +45,29 @@ export class Aplicacion {
     return this._avisoDeInicio;
   }
 
-  planillaDeAsistencia(): PlanillaDeAsistencia {
+  tienePlanillaDeAsistencia(): boolean {
+    return this._planillaDeAsistencia !== undefined;
+  }
+
+  planillaDeAsistencia(): PlanillaDeAsistencia | undefined {
     return this._planillaDeAsistencia;
+  }
+
+  empezarPlanillaDeAsistencia(): PlanillaDeAsistencia {
+    this._asertarQueNoHayPlanillaDeAsistencia();
+
+    return this.restaurarPlanillaDeAsistencia([]);
+  }
+
+  restaurarPlanillaDeAsistencia(asistentes: Iterable<string>): PlanillaDeAsistencia {
+    const planilla = new PlanillaDeAsistencia(this._almacenamientoDePlanilla, asistentes);
+    this._planillaDeAsistencia = planilla;
+    return planilla;
+  }
+
+  descartarPlanillaDeAsistencia(): void {
+    this._planillaDeAsistencia?.descartar();
+    this._planillaDeAsistencia = undefined;
   }
 
   crearGrupo(nombreDelGrupo: string, reglasIniciales: Reglas): void {
@@ -64,13 +87,14 @@ export class Aplicacion {
   }
 
   ingresarAsistente(nombre: string, fecha: Date): void {
+    const planilla = this._planillaDeAsistenciaEmpezada();
     const nombreLimpio = nombre.trim();
     if (this.grupo().yaParticipo(nombreLimpio)) {
       this.reingresar(nombreLimpio, fecha);
     } else {
       this.ingresar(nombreLimpio, fecha);
     }
-    this._planillaDeAsistencia.marcarComoPresente(nombreLimpio);
+    planilla.marcarComoPresente(nombreLimpio);
   }
 
   // Nota: el modelo igual registra la falta a todos los participantes activos, morosos incluidos.
@@ -78,12 +102,13 @@ export class Aplicacion {
     return this.grupo()
       .posiblesAsistentes()
       .map((participante) => participante.nombre())
-      .filter((nombre) => !this._planillaDeAsistencia.asiste(nombre));
+      .filter((nombre) => !this._planillaDeAsistenciaEmpezada().asiste(nombre));
   }
 
   cerrarEventoSegunPlanillaDeAsistencia(fecha: Date): void {
-    this.cerrarEvento(fecha, this._planillaDeAsistencia.asistentes(), this.ausentesEnPlanillaDeAsistencia());
-    this._planillaDeAsistencia.descartar();
+    const planilla = this._planillaDeAsistenciaEmpezada();
+    this.cerrarEvento(fecha, planilla.asistentes(), this.ausentesEnPlanillaDeAsistencia());
+    this.descartarPlanillaDeAsistencia();
   }
 
   cobrar(nombre: string, monto: number, fecha: Date): void {
@@ -92,9 +117,10 @@ export class Aplicacion {
 
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
     this._asertarQueSoloLeFaltaPagar(nombre);
+    const planilla = this._planillaDeAsistenciaEmpezada();
 
     this.cobrar(nombre, monto, fecha);
-    if (this._puedeAsistir(nombre)) this._planillaDeAsistencia.marcarComoPresente(nombre);
+    if (this._puedeAsistir(nombre)) planilla.marcarComoPresente(nombre);
   }
 
   repartir(nombre: string, fecha: Date): void {
@@ -137,7 +163,7 @@ export class Aplicacion {
   importar(texto: string): void {
     this._bitacora = this._bitacoraDesde(texto);
     this._guardar();
-    this._planillaDeAsistencia.descartar();
+    this.descartarPlanillaDeAsistencia();
   }
 
   private _ejecutar(comando: Comando): void {
@@ -148,9 +174,17 @@ export class Aplicacion {
 
   // La planilla no está en la bitácora: al deshacer puede quedar marcado quien ya no puede asistir.
   private _desmarcarAQuienesNoPuedenAsistir(): void {
-    if (!this._planillaDeAsistencia.existe()) return;
+    this._planillaDeAsistencia?.conservarSoloA((nombre) => this._puedeAsistir(nombre));
+  }
 
-    this._planillaDeAsistencia.conservarSoloA((nombre) => this._puedeAsistir(nombre));
+  private _planillaDeAsistenciaEmpezada(): PlanillaDeAsistencia {
+    if (this._planillaDeAsistencia === undefined) throw new Error("No hay una planilla de asistencia empezada");
+
+    return this._planillaDeAsistencia;
+  }
+
+  private _asertarQueNoHayPlanillaDeAsistencia(): void {
+    if (this.tienePlanillaDeAsistencia()) throw new Error("Ya hay una planilla de asistencia empezada");
   }
 
   private _puedeAsistir(nombre: string): boolean {
