@@ -6,8 +6,7 @@ import { porNombre } from "./Orden.ts";
 
 const ultimoCambioDe = (participante: Participante) => participante.fechaDelUltimoCambio().getTime();
 
-// Primero quienes requieren atención (los que no están al día), del cambio más reciente al más antiguo;
-// después los que están al día, por nombre.
+// Primero quienes no están al día, del cambio más reciente al más antiguo; después los que están al día, por nombre.
 const porAtencionYNombre = (uno: Participante, otro: Participante): number => {
   const unoAlDia = uno.estaAlDia();
   const otroAlDia = otro.estaAlDia();
@@ -80,14 +79,12 @@ export class PantallaParticipantes {
     );
   }
 
-  // Registrar queda fechado en el momento en que se hace.
   private _abrirIngreso(): void {
     new DialogoDeRegistro(this._entorno, "Registrar participante", (nombre) =>
       this._entorno.aplicacion().ingresar(nombre, this._entorno.ahora()),
     ).abrir();
   }
 
-  // El reingreso no se confirma: se hace en el momento, y si el modelo lo rechaza se avisa junto a la tabla.
   private _reingresar(nombre: string): void {
     this._entorno.intentarYRefrescar(() => {
       this._entorno.aplicacion().reingresar(nombre, this._entorno.ahora());

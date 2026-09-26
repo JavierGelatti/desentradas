@@ -1,4 +1,3 @@
-// Montos en pesos enteros y fechas con hora, siempre en hora local y formato es-AR.
 const formatoDeMonto = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 
 const formatoDeFecha = new Intl.DateTimeFormat("es-AR", {

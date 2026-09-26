@@ -1,9 +1,6 @@
 import { alerta, boton, botonDeEnvio, crear, formulario, type Hijo } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 
-// Un formulario secundario en un <dialog> nativo: al confirmar ejecuta la acción y, si el modelo la rechaza,
-// muestra el mensaje adentro del diálogo para que se pueda corregir y reintentar. Si sale bien, se cierra
-// y la vista se vuelve a dibujar.
 export class Dialogo {
   private _entorno: Entorno;
   private _titulo: string;
@@ -66,7 +63,6 @@ export class Dialogo {
   }
 }
 
-// Sólo para mirar; los formularios van en un Dialogo.
 export const mostrarEnDialogo = (entorno: Entorno, titulo: string, ...contenido: Hijo[]): void => {
   const dialogo = entorno.mostrarDialogo(
     crear("h3", {}, titulo),

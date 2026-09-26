@@ -67,15 +67,13 @@ export class Grupo {
     return participante;
   }
 
-  // Quien reingresa pasa al final, así los participantes quedan en orden de ingreso.
   reingresar(nombre: string, fecha: Date): Participante {
     const nombreLimpio = nombre.trim();
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
     const participante = this._participanteFinalizadoLlamado(nombreLimpio);
 
     participante.reingresar(fecha);
-    this._participantes.splice(this._participantes.indexOf(participante), 1);
-    this._participantes.push(participante);
+    this._moverAlFinal(participante);
     return participante;
   }
 
@@ -121,7 +119,6 @@ export class Grupo {
     return this._participantes.filter((participante) => participante.estaActivo());
   }
 
-  // Quienes se esperan en el próximo encuentro: los morosos no pueden asistir ni pagando.
   posiblesAsistentes(): readonly Participante[] {
     return this._participantes.filter((participante) => participante.esPosibleAsistente());
   }
@@ -130,7 +127,7 @@ export class Grupo {
     return this._participantes.filter((participante) => !participante.estaActivo());
   }
 
-  // Nadie debe y tiene créditos pendientes a la vez: los créditos se aplican apenas aparece la deuda.
+  // Ningún nombre se repite: quien debe no tiene créditos pendientes.
   saldosAl(fecha: Date): readonly Saldo[] {
     const deudas = this._participantes
       .map((participante) => new Saldo(participante.nombre(), -participante.deudaAl(fecha)))
@@ -141,12 +138,22 @@ export class Grupo {
     return [...deudas, ...creditos];
   }
 
+  participante(nombre: string): Participante | undefined {
+    return this._participantes.find((participante) => participante.nombre() === nombre);
+  }
+
   participanteActivo(nombre: string): Participante | undefined {
     return this.participantes().find((participante) => participante.nombre() === nombre);
   }
 
   yaParticipo(nombre: string): boolean {
     return this._participanteFinalizado(nombre.trim()) !== undefined;
+  }
+
+  // Para que los participantes queden en orden de ingreso.
+  private _moverAlFinal(participante: Participante): void {
+    this._participantes.splice(this._participantes.indexOf(participante), 1);
+    this._participantes.push(participante);
   }
 
   private _participantesDelEncuentro(encuentro: Encuentro): readonly Participante[] {

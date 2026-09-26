@@ -13,7 +13,6 @@ const porDeudaYNombre = (uno: Saldo, otro: Saldo): number => {
   return porNombre(uno, otro);
 };
 
-// Lo que cada uno debe o tiene por recibir, y la plata que ya entró y salió.
 export class PantallaCaja {
   private _entorno: Entorno;
 
@@ -64,11 +63,8 @@ export class PantallaCaja {
     );
   }
 
-  // Quien tiene por recibir puede haber dejado de participar.
   private _estadoDe(nombre: string): string {
-    const grupo = this._entorno.grupo();
-    const participantes = [...grupo.participantes(), ...grupo.participantesFinalizados()];
-    return participantes.find((participante) => participante.nombre() === nombre)?.estado() ?? "";
+    return this._entorno.grupo().participante(nombre)?.estado() ?? "";
   }
 
   private _tablaDeMovimientos(): HTMLElement | undefined {

@@ -26,6 +26,12 @@ const aplicacionConAnaMorosa = () => {
   return aplicacion;
 };
 
+const aplicacionConAnaFinalizada = () => {
+  const aplicacion = aplicacionConAnaMorosa();
+  aplicacion.cobrar("ana", 1000, dia(4));
+  return aplicacion;
+};
+
 describe("Aplicacion", () => {
   describe("creación del grupo", () => {
     it("una aplicación nueva no tiene grupo", () => {
@@ -142,8 +148,7 @@ describe("Aplicacion", () => {
     });
 
     it("reingresar vuelve a dejar como participante activo a quien ya participó", () => {
-      const aplicacion = aplicacionConAnaMorosa();
-      aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pagar la morosidad
+      const aplicacion = aplicacionConAnaFinalizada();
 
       aplicacion.reingresar("ana", dia(11));
 
@@ -372,8 +377,7 @@ describe("Aplicacion", () => {
     });
 
     it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del ingreso y lo deja marcado como presente", () => {
-      const aplicacion = aplicacionConAnaMorosa();
-      aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
+      const aplicacion = aplicacionConAnaFinalizada();
       aplicacion.empezarPlanillaDeAsistencia();
 
       aplicacion.ingresarAsistente("ana", dia(5));

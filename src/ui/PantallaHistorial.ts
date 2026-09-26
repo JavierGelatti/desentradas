@@ -5,8 +5,6 @@ import { alerta, boton, crear, descargar, fila, intentar, tabla } from "./dom.ts
 import type { Entorno } from "./Entorno.ts";
 import { alfabetico } from "./Orden.ts";
 
-// La bitácora, del último comando al primero. Sólo el último se puede deshacer.
-// Exportar descarga la bitácora como JSON e importar reemplaza todo lo de este dispositivo por un JSON.
 export class PantallaHistorial {
   private _entorno: Entorno;
   private _errores: HTMLOutputElement;

@@ -20,8 +20,7 @@ const almacenamientosConGrupoSinParticipantes = () => {
   return almacenamientos;
 };
 
-// ana faltó al primer encuentro y está en deuda; beto, carla y dani están participando.
-const almacenamientosConGrupo = () => {
+const almacenamientosConDeudaDeAna = () => {
   const almacenamientos = almacenamientosConGrupoSinParticipantes();
   const aplicacion = nuevaAplicacion(almacenamientos);
   ["ana", "beto", "carla", "dani"].forEach((nombre) => aplicacion.ingresar(nombre, dia(1)));
@@ -29,12 +28,15 @@ const almacenamientosConGrupo = () => {
   return almacenamientos;
 };
 
-// ana faltó dos veces y pagó su morosidad, así que ya no participa.
+const almacenamientosConAnaMorosa = () => {
+  const almacenamientos = almacenamientosConDeudaDeAna();
+  nuevaAplicacion(almacenamientos).registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana"]);
+  return almacenamientos;
+};
+
 const almacenamientosConAnaFinalizada = () => {
-  const almacenamientos = almacenamientosConGrupo();
-  const aplicacion = nuevaAplicacion(almacenamientos);
-  aplicacion.registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana"]);
-  aplicacion.cobrar("ana", 1000, dia(4));
+  const almacenamientos = almacenamientosConAnaMorosa();
+  nuevaAplicacion(almacenamientos).cobrar("ana", 1000, dia(4));
   return almacenamientos;
 };
 
@@ -45,7 +47,6 @@ const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   return { aplicacion, almacenamientos, raiz };
 };
 
-// Como recargar la página o abrirla en otro dispositivo: sólo queda lo que hay en los almacenamientos.
 const recargar = (almacenamientos: ReturnType<typeof nuevosAlmacenamientos>) => {
   document.body.replaceChildren();
   return montar(almacenamientos);
@@ -87,7 +88,6 @@ const completar = (etiqueta: string, valor: string, raiz: ParentNode = document)
   control.dispatchEvent(new Event("change", { bubbles: true }));
 };
 
-// El navegador descargaría el archivo; acá se captura el contenido y se evita que el enlace navegue.
 const exportar = async () => {
   const crearUrl = vi.spyOn(URL, "createObjectURL");
   const clic = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
@@ -156,7 +156,7 @@ describe("VistaPrincipal", () => {
   });
 
   it("las tablas sin filas no se muestran, ni el desplegable que las contiene, hasta que tienen algo que mostrar", async () => {
-    const almacenamientos = almacenamientosConGrupo();
+    const almacenamientos = almacenamientosConDeudaDeAna();
     montar(almacenamientos);
     await navegarA("Participantes");
     expect(hayDesplegable("Participaciones finalizadas")).toBe(false);
@@ -177,7 +177,7 @@ describe("VistaPrincipal", () => {
   });
 
   it("una vista que ya no está en el documento deja de seguir la navegación", async () => {
-    const { raiz } = montar(almacenamientosConGrupo());
+    const { raiz } = montar(almacenamientosConDeudaDeAna());
     document.body.replaceChildren();
 
     location.hash = "#caja";
@@ -294,8 +294,7 @@ describe("VistaPrincipal", () => {
 
   describe("pantalla de caja", () => {
     it("se puede cobrar a un moroso, y sigue en la tabla mientras deba", async () => {
-      const almacenamientos = almacenamientosConGrupo();
-      nuevaAplicacion(almacenamientos).registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana"]); // ana queda morosa
+      const almacenamientos = almacenamientosConAnaMorosa();
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Caja");
       expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "moroso", "-$ 1.000", "Cobrar"]);
@@ -311,7 +310,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("los saldos muestran primero a quienes deben y después a quienes tienen por recibir, cada grupo por nombre, incluso si ya no participan", async () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.registrarEncuentro(dia(3), ["carla", "dani"], ["ana", "beto"]); // ana queda morosa
       preparacion.ingresar("fede", dia(3));
@@ -335,7 +334,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("repartir entrega los créditos pendientes y queda entre los movimientos, que no incluyen los cobros hechos con créditos", async () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.cobrar("ana", 1000, dia(3)); // beto recibe 334, carla y dani 333
       preparacion.registrarEncuentro(dia(4), ["beto", "carla"], ["ana", "dani"]); // el crédito de dani se aplica a su deuda
@@ -366,7 +365,7 @@ describe("VistaPrincipal", () => {
 
   describe("pantalla del encuentro", () => {
     it("antes de empezar el encuentro sólo se puede empezarlo", () => {
-      montar(almacenamientosConGrupo());
+      montar(almacenamientosConDeudaDeAna());
 
       const botones = [...document.querySelectorAll("main button")].map(textoDe);
 
@@ -375,7 +374,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("empezar el encuentro abre la planilla de asistencia sin nadie marcado", () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
 
       hacerClic("Empezar encuentro");
 
@@ -385,7 +384,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("registrar el encuentro toma como presentes a los marcados, incluso a quien pagó en la puerta, descarta la planilla y pasa al historial", () => {
-      const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
+      const { aplicacion, almacenamientos } = montar(almacenamientosConDeudaDeAna());
       expect(pantallaActual()).toBe("Encuentro");
 
       hacerClic("Empezar encuentro");
@@ -415,7 +414,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("descartar el encuentro sin nadie marcado no pide confirmación", () => {
-      const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
+      const { aplicacion, almacenamientos } = montar(almacenamientosConDeudaDeAna());
       hacerClic("Empezar encuentro");
 
       hacerClic("Descartar");
@@ -427,7 +426,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("descartar el encuentro con alguien marcado pide confirmación antes de perder las marcas", () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
       hacerClic("Empezar encuentro");
       casillaDeAsistencia("beto").click();
 
@@ -441,7 +440,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("volver de la confirmación de descarte conserva la planilla de asistencia con sus marcas", () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
       hacerClic("Empezar encuentro");
       casillaDeAsistencia("beto").click();
       hacerClic("Descartar");
@@ -454,7 +453,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("la confirmación del registro dice que el encuentro lleva la fecha del momento de registrarlo", () => {
-      montar(almacenamientosConGrupo());
+      montar(almacenamientosConDeudaDeAna());
       hacerClic("Empezar encuentro");
 
       hacerClic("Registrar encuentro");
@@ -463,7 +462,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("la confirmación del registro nombra a los posibles asistentes sin marcar, incluso a quien está en deuda", () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.ingresar("eva", dia(2));
       preparacion.registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana", "eva"]); // ana queda morosa y eva en deuda
@@ -478,7 +477,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("si sólo quedan sin marcar los morosos, la confirmación del registro dice que nadie queda ausente", () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       nuevaAplicacion(almacenamientos).registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana"]);
       montar(almacenamientos);
 
@@ -490,7 +489,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("la planilla de asistencia sobrevive a una recarga y vuelve a abrir la pantalla del encuentro", () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       montar(almacenamientos);
       hacerClic("Empezar encuentro");
       casillaDeAsistencia("beto").click();
@@ -516,7 +515,7 @@ describe("VistaPrincipal", () => {
 
   describe("pantalla de reglas", () => {
     it("las reglas cambiadas rigen desde el momento del cambio", async () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
       await navegarA("Reglas");
       expect(hayEtiqueta("Rige desde")).toBe(false);
 
@@ -543,7 +542,7 @@ describe("VistaPrincipal", () => {
 
   describe("pantalla del historial", () => {
     it("deshacer el registro de un encuentro restaura su planilla de asistencia", async () => {
-      const { aplicacion } = montar(almacenamientosConGrupo());
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
       await navegarA("Historial");
       expect(pantallaActual()).toBe("Historial");
 
@@ -560,7 +559,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("deshacer un comando que no es un registro de encuentro, con una planilla empezada, deja la pantalla del historial", async () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       const preparacion = nuevaAplicacion(almacenamientos);
       preparacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
       preparacion.cobrar("ana", 500, dia(3));
@@ -573,7 +572,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("deshacer un comando que no es un registro de encuentro, sin planilla empezada, deja la pantalla del historial", async () => {
-      const almacenamientos = almacenamientosConGrupo();
+      const almacenamientos = almacenamientosConDeudaDeAna();
       nuevaAplicacion(almacenamientos).cobrar("ana", 500, dia(3));
       montar(almacenamientos);
       await navegarA("Historial");
@@ -584,7 +583,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("un encuentro registrado dice cuántos vinieron de los posibles asistentes, y su detalle quién estuvo presente y quién ausente", async () => {
-      montar(almacenamientosConGrupo());
+      montar(almacenamientosConDeudaDeAna());
       await navegarA("Historial");
 
       hacerClic("Ver", fila("Encuentro con 3/4 presentes"));
@@ -602,7 +601,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("importar en un dispositivo nuevo lo exportado en otro reproduce los mismos participantes", async () => {
-      const { aplicacion: original } = montar(almacenamientosConGrupo());
+      const { aplicacion: original } = montar(almacenamientosConDeudaDeAna());
       await navegarA("Historial");
       const exportado = await exportar();
       const almacenamientos = nuevosAlmacenamientos();

@@ -1,6 +1,5 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 
-// Lo mínimo que se usa de un Storage del navegador (localStorage), para poder reemplazarlo en las pruebas.
 export type StorageDeClaves = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export class AlmacenamientoEnStorage implements Almacenamiento {

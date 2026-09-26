@@ -99,7 +99,7 @@ export class Aplicacion {
     planilla.marcarComoPresente(nombreLimpio);
   }
 
-  // Nota: el modelo igual registra la falta a todos los participantes activos, morosos incluidos.
+  // El modelo igual registra la falta a todos los participantes activos, morosos incluidos.
   ausentesEnPlanillaDeAsistencia(): string[] {
     const planilla = this.planillaDeAsistencia();
     return this.grupo()
@@ -161,7 +161,6 @@ export class Aplicacion {
     return JSON.stringify(this._bitacora.aJson(), null, 2);
   }
 
-  // Se lee y ejecuta completa antes de reemplazar la bitácora actual: si falla, no cambia nada.
   importar(texto: string): void {
     this._bitacora = this._bitacoraDesde(texto);
     this._guardar();
@@ -174,7 +173,6 @@ export class Aplicacion {
     this._guardar();
   }
 
-  // La planilla no está en la bitácora: al deshacer puede quedar marcado quien ya no puede asistir.
   private _desmarcarAQuienesNoPuedenAsistir(): void {
     this._planillaDeAsistencia?.conservarSoloA((nombre) => this._puedeAsistir(nombre));
   }

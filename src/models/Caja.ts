@@ -55,7 +55,6 @@ export class Caja {
     return this._repartos;
   }
 
-  // Un cobro hecho con un crédito no mueve plata: no entra ni sale de la caja.
   movimientos(): readonly Movimiento[] {
     const cobrosEnEfectivo = this._cobros.filter((cobro) => cobro.esEnEfectivo());
     return [...cobrosEnEfectivo, ...this._repartos].sort((uno, otro) => uno.fecha().getTime() - otro.fecha().getTime());

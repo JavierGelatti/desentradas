@@ -1,6 +1,5 @@
 import { crear } from "./dom.ts";
 
-// Campos de formulario: cada uno es un <label> con su control adentro.
 const campo = (etiqueta: string, control: HTMLElement): HTMLLabelElement => crear("label", {}, `${etiqueta} `, control);
 
 export const controlDe = (campo: HTMLLabelElement): HTMLInputElement | HTMLSelectElement =>

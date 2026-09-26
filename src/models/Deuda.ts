@@ -44,7 +44,7 @@ export class Deuda {
     return this._politicaDeInteres.montoConInteres(this._monto, this._enMoraDesde, fecha);
   }
 
-  // El interés devengado se capitaliza: el resto queda como nueva base y, en mora, vuelve a correr desde el pago.
+  // El interés devengado se capitaliza y, en mora, vuelve a correr desde el pago.
   pagar(fecha: Date, monto: number): void {
     if (monto <= 0) throw new Error("El monto del pago debe ser positivo");
     this._asertarQueNoEsAnteriorAlEncuentroFaltado(fecha);

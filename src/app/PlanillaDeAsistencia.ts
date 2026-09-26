@@ -1,7 +1,6 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { objeto, textos } from "./json/Campos.ts";
 
-// Existe sólo mientras hay un encuentro en curso.
 export class PlanillaDeAsistencia {
   private _almacenamiento: Almacenamiento;
   private _asistentes: Set<string>;

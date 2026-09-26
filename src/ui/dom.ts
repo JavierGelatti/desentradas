@@ -1,4 +1,3 @@
-// Creación de elementos y lectura de formularios, para no depender de ningún framework.
 type Atributos = Record<string, string | number | boolean | EventListener | undefined>;
 
 // Un hijo en false o undefined no se agrega, para poder escribir `condicion && elemento`.
@@ -27,13 +26,11 @@ const anexar = (elemento: HTMLElement, ...hijos: Hijo[]): void => {
   elemento.append(...hijos.filter((hijo) => hijo !== false && hijo !== undefined));
 };
 
-// Un botón que no envía el formulario en el que está.
 export const boton = (texto: string, alHacerClic: () => void): HTMLButtonElement =>
   crear("button", { type: "button", onclick: alHacerClic }, texto);
 
 export const botonDeEnvio = (texto: string): HTMLButtonElement => crear("button", { type: "submit" }, texto);
 
-// Un formulario que no navega al enviarse: ejecuta la acción con el formulario ya completo.
 export const formulario = (alEnviar: (formulario: HTMLFormElement) => void, ...hijos: Hijo[]): HTMLFormElement => {
   const elemento = crear(
     "form",
@@ -48,7 +45,7 @@ export const formulario = (alEnviar: (formulario: HTMLFormElement) => void, ...h
   return elemento;
 };
 
-// Una tabla sin filas no se muestra. Va envuelta para que, si es más ancha que la pantalla, se desplace sola.
+// Va envuelta para que, si es más ancha que la pantalla, se desplace sola.
 export const tabla = (
   titulo: string | undefined,
   encabezados: readonly string[],
@@ -70,7 +67,6 @@ export const tabla = (
         ),
       );
 
-// Sin filas, en lugar de la tabla va el aviso, con el pie suelto debajo.
 export const tablaOAviso = (
   titulo: string | undefined,
   encabezados: readonly string[],
@@ -82,7 +78,6 @@ export const tablaOAviso = (
   return elemento !== undefined ? [elemento] : [crear("p", {}, aviso), pie !== undefined && crear("p", {}, pie)];
 };
 
-// Un desplegable sin contenido no se muestra. La alerta acompaña al contenido, pero no decide si se muestra.
 export const desplegable = (
   titulo: string,
   contenido: HTMLElement | undefined,
@@ -92,7 +87,6 @@ export const desplegable = (
 export const fila = (...celdas: Hijo[]): HTMLTableRowElement =>
   crear("tr", {}, ...celdas.map((celda) => crear("td", {}, celda)));
 
-// Al cerrarse sale del documento, para no acumular diálogos ocultos.
 export const mostrarDialogo = (contenedor: HTMLElement, ...contenido: Hijo[]): HTMLDialogElement => {
   const dialogo = crear("dialog", { onclose: () => dialogo.remove() }, ...contenido);
   contenedor.append(dialogo);
@@ -100,7 +94,6 @@ export const mostrarDialogo = (contenedor: HTMLElement, ...contenido: Hijo[]): H
   return dialogo;
 };
 
-// El navegador guarda el contenido como un archivo con ese nombre.
 export const descargar = (nombreDelArchivo: string, contenido: string, tipo: string): void => {
   const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
   const enlace = crear("a", { href: url, download: nombreDelArchivo });
@@ -112,7 +105,6 @@ export const descargar = (nombreDelArchivo: string, contenido: string, tipo: str
 
 export const alerta = (): HTMLOutputElement => crear("output", { role: "alert" });
 
-// Ejecuta la acción y muestra en la alerta el mensaje del error si falla. Devuelve si salió bien.
 export const intentar = (accion: () => void, alerta: HTMLOutputElement): boolean => {
   try {
     alerta.textContent = "";

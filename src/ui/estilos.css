@@ -76,7 +76,7 @@ header:has(nav) + main > section > h2 {
   display: none;
 }
 
-/* Sin pestañas, la pantalla es sólo el formulario de creación: va centrado, con las etiquetas sobre sus campos. */
+/* Sin pestañas, la pantalla es el formulario de creación del grupo. */
 header:not(:has(nav)) + main > section {
   text-align: center;
 
@@ -95,7 +95,6 @@ header:not(:has(nav)) + main > section {
   }
 }
 
-/* La envoltura hace que una tabla más ancha que el teléfono se desplace sola. */
 div:has(> table) {
   overflow-x: auto;
   margin: 1rem 0;
@@ -147,7 +146,7 @@ button {
   cursor: pointer;
 }
 
-/* En el escritorio, en una fila de datos el botón mide lo que una línea de texto, para no agrandar la fila. */
+/* Los botones de una fila de datos no la agrandan. */
 @media (min-width: 40rem) {
   tbody button {
     padding-block: 0;
@@ -155,7 +154,6 @@ button {
   }
 }
 
-/* Dos botones en una celda se separan también cuando el ancho los apila. */
 td > span:has(> button + button) {
   display: inline-flex;
   flex-wrap: wrap;
@@ -163,7 +161,6 @@ td > span:has(> button + button) {
   gap: 0.25rem;
 }
 
-/* En el teléfono las tablas se aprietan para que entren. */
 @media (width < 40rem) {
   table {
     font-size: 0.9rem;
@@ -286,7 +283,7 @@ input[type="checkbox"] {
   accent-color: var(--tinta);
 }
 
-/* Texto arriba, control abajo. El ancho alcanza para que las preguntas de las reglas entren en una línea. */
+/* El ancho alcanza para que las preguntas de las reglas entren en una línea. */
 form > label,
 dialog label {
   display: grid;
@@ -295,7 +292,7 @@ dialog label {
   margin: 1rem 0;
 }
 
-/* La unidad de un valor (el $ de un monto, el % de un porcentaje) va pegada al control, en su misma línea. */
+/* La unidad ($, %) va pegada al control, en su misma línea. */
 label > span:has(> input) {
   display: flex;
   align-items: center;
@@ -313,14 +310,13 @@ dialog p:has(button) {
   text-align: center;
 }
 
-/* Los totales van separados por un punto medio, como el detalle de las fichas. */
+/* Los totales van separados por un punto medio. */
 main p > span + span::before {
   content: "·";
   margin-inline: 0.75rem;
   color: var(--tinta);
 }
 
-/* La plata que falta cobrar va en rojo y la que hay para repartir en verde, para encontrarlas sin leer. */
 .debe {
   color: var(--negativo);
 }

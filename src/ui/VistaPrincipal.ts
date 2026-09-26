@@ -14,7 +14,6 @@ interface Pantalla {
   elemento(): HTMLElement;
 }
 
-// Las pestañas, en el orden en que se muestran; el nombre de cada una es su hash.
 const pantallas = {
   participantes: { titulo: "Participantes", Pantalla: PantallaParticipantes },
   caja: { titulo: "Caja", Pantalla: PantallaCaja },
@@ -32,7 +31,6 @@ const pantallaDelHash = (): NombreDePantalla | undefined => {
   return esNombreDePantalla(nombre) ? nombre : undefined;
 };
 
-// Encabezado, pestañas y la pantalla actual. Se vuelve a dibujar entera después de cada comando.
 export class VistaPrincipal implements Entorno {
   private _aplicacion: Aplicacion;
   private _ultimaPantalla: Almacenamiento;
@@ -75,11 +73,11 @@ export class VistaPrincipal implements Entorno {
     if (intentar(accion, errores)) this.refrescar();
   }
 
-  // Deshacer el registro de un encuentro restaura su planilla de asistencia, y entonces se pasa a la pantalla del encuentro.
   deshacer(): void {
     const habiaPlanillaDeAsistencia = this._aplicacion.tienePlanillaDeAsistencia();
     this._aplicacion.deshacer();
-    if (!habiaPlanillaDeAsistencia && this._aplicacion.tienePlanillaDeAsistencia()) {
+    const seRestauroUnaPlanilla = !habiaPlanillaDeAsistencia && this._aplicacion.tienePlanillaDeAsistencia();
+    if (seRestauroUnaPlanilla) {
       this._irA("encuentro");
     } else {
       this.refrescar();
@@ -107,7 +105,6 @@ export class VistaPrincipal implements Entorno {
     return pantallaDelHash() ?? (esNombreDePantalla(ultima) ? ultima : "encuentro");
   }
 
-  // Una vista cuya raíz salió del documento ya no es la que se ve; si siguiera, pisaría la pantalla guardada y el hash.
   private _seguirElHashMientrasEsteEn(raiz: HTMLElement): void {
     const seguirElHash = () => {
       if (raiz.isConnected) {

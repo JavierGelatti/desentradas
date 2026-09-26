@@ -24,7 +24,7 @@ export class DesempateAleatorioReproducible implements Desempate {
   }
 }
 
-// Hash de 53 bits de un string (cyrb53).
+// Hash de 53 bits de un string.
 const cyrb53 = (texto: string): number => {
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;

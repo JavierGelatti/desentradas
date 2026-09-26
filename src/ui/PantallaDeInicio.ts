@@ -3,8 +3,6 @@ import { alerta, botonDeEnvio, crear, formulario, valorDe } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
 
-// Lo único que se ve hasta que el grupo está creado. Las reglas iniciales rigen desde el momento de crearlo.
-// Si se deshizo la creación, el formulario vuelve con lo que se había cargado.
 export class PantallaDeInicio {
   private _entorno: Entorno;
   private _errores: HTMLOutputElement;

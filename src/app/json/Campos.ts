@@ -1,4 +1,3 @@
-// Lectura de campos de un JSON de origen desconocido: cualquier desvío del formato esperado es un error.
 export type Objeto = Record<string, unknown>;
 
 export const formatoInvalido = (detalle: string): Error => new Error(`Formato inválido: ${detalle}`);
@@ -48,15 +47,14 @@ export const textos = (objeto: Objeto, campo: string): string[] => {
   return valor;
 };
 
-// Elige el lector según el "tipo" del objeto; `desconocido` es el mensaje para un tipo sin lector.
 export const segunTipo = <T>(
   objeto: Objeto,
   lectores: Record<string, (campos: Objeto) => T>,
-  desconocido: string,
+  mensajeSiNoHayLector: string,
 ): T => {
   const tipo = texto(objeto, "tipo");
   const lector = Object.hasOwn(lectores, tipo) ? lectores[tipo] : undefined;
-  if (lector === undefined) throw formatoInvalido(`${desconocido} "${tipo}"`);
+  if (lector === undefined) throw formatoInvalido(`${mensajeSiNoHayLector} "${tipo}"`);
 
   return lector(objeto);
 };

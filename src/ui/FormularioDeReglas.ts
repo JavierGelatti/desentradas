@@ -11,23 +11,19 @@ const tiposDeInteres: readonly [TipoDeInteres, string][] = [
   ["mensual", "Porcentaje por mes"],
 ];
 
-// Qué pregunta cada política por su valor y con qué unidad se escribe, antes o después del número; las que no lo
-// usan no lo piden.
-type ValorDelInteres = { pregunta: string; antes?: string; despues?: string };
+type ValorDelInteres = { pregunta: string; unidadAntes?: string; unidadDespues?: string };
 const valorQuePide: Record<TipoDeInteres, ValorDelInteres | undefined> = {
   "sin interés": undefined,
-  "fijo por día": { pregunta: "¿Cuánto se cobra por día de mora?", antes: "$" },
-  mensual: { pregunta: "¿Qué porcentaje se cobra por mes de mora?", despues: "%" },
+  "fijo por día": { pregunta: "¿Cuánto se cobra por día de mora?", unidadAntes: "$" },
+  mensual: { pregunta: "¿Qué porcentaje se cobra por mes de mora?", unidadDespues: "%" },
 };
 
-// El tipo y el valor con los que se muestra una política en el formulario.
-const interesDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
+const tipoYValorDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
   if (politica instanceof InteresFijoPorDia) return ["fijo por día", politica.montoPorDia()];
   if (politica instanceof InteresMensual) return ["mensual", politica.porcentaje()];
   return ["sin interés", 1];
 };
 
-// Los campos de unas reglas, prellenados con las dadas; se leen con reglasDesde.
 export const camposDeReglas = (reglas?: Reglas): HTMLElement[] => [
   campoNumerico(
     "¿Cuántas faltas se toleran antes de quedar afuera?",
@@ -39,10 +35,8 @@ export const camposDeReglas = (reglas?: Reglas): HTMLElement[] => [
   ...camposDeInteres(reglas?.politicaDeInteres() ?? new SinInteres()),
 ];
 
-// El campo del valor sigue a la política elegida: cambia de pregunta y de unidad, y para las políticas que no lo usan
-// no está en la página.
 const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
-  const [tipoInicial, valorInicial] = interesDe(politica);
+  const [tipoInicial, valorInicial] = tipoYValorDe(politica);
   const tipo = campoDeOpciones(
     "¿Cómo se calcula el interés en caso de no pagar?",
     "tipoDeInteres",
@@ -77,8 +71,8 @@ const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
       campoDelValor.remove();
     } else {
       preguntaDelValor.textContent = `${valor.pregunta} `;
-      unidadAntes.textContent = valor.antes ?? "";
-      unidadDespues.textContent = valor.despues ?? "";
+      unidadAntes.textContent = valor.unidadAntes ?? "";
+      unidadDespues.textContent = valor.unidadDespues ?? "";
       tipo.after(campoDelValor);
     }
   };

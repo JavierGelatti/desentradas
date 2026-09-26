@@ -8,13 +8,12 @@ const VERSION = 1;
 
 export type BitacoraJson = { version: typeof VERSION; comandos: ComandoJson[] };
 
-// La bitácora es la verdad: el grupo es siempre el resultado de ejecutar todos sus comandos en orden.
+// El grupo es siempre el resultado de ejecutar todos los comandos en orden.
 export class Bitacora {
   private _desempate: Desempate;
   private _comandos: Comando[];
   private _grupo: Grupo | undefined;
 
-  // Ejecuta cada comando leído, así que una bitácora que el grupo rechaza no se puede leer.
   static desdeJson(json: unknown, desempate: Desempate): Bitacora {
     const campos = objeto(json, "La bitácora");
     const version = numero(campos, "version");
@@ -36,7 +35,6 @@ export class Bitacora {
     this._comandos.push(comando);
   }
 
-  // Al deshacer se reconstruye el grupo desde cero: las referencias a participantes anteriores dejan de valer.
   deshacer(): Comando {
     if (!this.puedeDeshacer()) throw new Error("No hay nada que deshacer");
 

@@ -11,13 +11,13 @@ const grupoConAnaMorosa = () => {
   const ana = grupo.ingresar("ana", dia(1));
   const beto = grupo.ingresar("beto", dia(1));
   grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana queda morosa
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
   return { grupo, ana, beto };
 };
 
 const grupoConAnaFinalizada = () => {
   const { grupo, ana, beto } = grupoConAnaMorosa();
-  grupo.cobrar("ana", 1000, dia(10)); // ana salda la morosidad y queda finalizada
+  grupo.cobrar("ana", 1000, dia(10));
   return { grupo, ana, beto };
 };
 
@@ -29,7 +29,7 @@ const grupoConBetoFinalizadoPorFaltas = () => {
   grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
   grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
   grupo.cobrar("beto", 1000, dia(10));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"] })); // beto queda finalizado por faltas; ana, morosa
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"] })); // ana queda morosa
   return { grupo, ana, beto, carla };
 };
 

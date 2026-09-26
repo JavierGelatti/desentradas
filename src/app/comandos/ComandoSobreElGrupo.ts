@@ -14,7 +14,6 @@ export abstract class ComandoSobreElGrupo implements Comando {
 
   protected abstract ejecutarEn(grupo: Grupo): void;
 
-  // La mayoría no deja nada que retomar: deshacerlos alcanza con reconstruir el grupo.
   alDeshacerse(_aplicacion: Aplicacion): void {}
 
   abstract fecha(): Date;

@@ -10,7 +10,6 @@ const valoresDe = (reglas: Reglas): string[] => [
   reglas.politicaDeInteres().describir(monto),
 ];
 
-// Las reglas vigentes, el formulario para cambiarlas (rigen desde el momento del cambio) y las versiones anteriores.
 export class PantallaReglas {
   private _entorno: Entorno;
   private _errores: HTMLOutputElement;
