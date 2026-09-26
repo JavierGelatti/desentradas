@@ -409,7 +409,7 @@ describe("VistaPrincipal", () => {
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(true);
     });
 
-    it("cancelar el encuentro sin nadie marcado lo descarta sin pedir confirmación", () => {
+    it("descartar el encuentro sin nadie marcado no pide confirmación", () => {
       const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
       hacerClic("Empezar encuentro");
 
@@ -421,7 +421,7 @@ describe("VistaPrincipal", () => {
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(true);
     });
 
-    it("descartar el encuentro con alguien marcado pide confirmación antes de descartar las marcas", () => {
+    it("descartar el encuentro con alguien marcado pide confirmación antes de perder las marcas", () => {
       const { aplicacion } = montar(almacenamientosConGrupo());
       hacerClic("Empezar encuentro");
       casillaDeAsistencia("beto").click();
