@@ -63,7 +63,7 @@ export class Caja {
     return this._repartos;
   }
 
-  // Sólo la plata que pasa de mano: un cobro hecho con un crédito no entra ni sale de la caja.
+  // Un cobro hecho con un crédito no mueve plata: no entra ni sale de la caja.
   movimientos(): readonly Movimiento[] {
     const cobrosEnEfectivo = this._cobros.filter((cobro) => cobro.esEnEfectivo());
     return [...cobrosEnEfectivo, ...this._repartos].toSorted(

@@ -529,6 +529,7 @@ describe("Grupo", () => {
 
       expect(saldos.map((saldo) => [saldo.nombre(), saldo.monto()])).toEqual([["ana", -1020]]);
     });
+
     it("quien tiene créditos pendientes tiene un saldo positivo por ellos, aunque su participación esté finalizada", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
       grupo.ingresar("ana", dia(1));

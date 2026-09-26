@@ -136,8 +136,8 @@ export class Grupo {
   // Nadie debe y tiene créditos pendientes a la vez: los créditos se aplican apenas aparece la deuda.
   saldosAl(fecha: Date): readonly Saldo[] {
     const deudas = this._participantes
-      .filter((participante) => participante.deudaAl(fecha) > 0)
-      .map((participante) => new Saldo(participante.nombre(), -participante.deudaAl(fecha)));
+      .map((participante) => new Saldo(participante.nombre(), -participante.deudaAl(fecha)))
+      .filter((saldo) => saldo.debe());
     const creditos = this._caja
       .nombresConCreditosPendientes()
       .map((nombre) => new Saldo(nombre, this._caja.montoPendienteDe(nombre)));

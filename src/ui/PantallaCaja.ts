@@ -8,15 +8,11 @@ import type { Entorno } from "./Entorno.ts";
 import { desdeEntradaDeFecha, fechaYHora, monto } from "./Formato.ts";
 import { alfabetico } from "./Orden.ts";
 
-const debe = (saldo: Saldo) => saldo.monto() < 0;
-
 const porDeudaYNombre = (uno: Saldo, otro: Saldo): number => {
-  if (debe(uno) !== debe(otro)) return debe(uno) ? -1 : 1;
+  if (uno.debe() !== otro.debe()) return uno.debe() ? -1 : 1;
 
   return alfabetico(uno.nombre(), otro.nombre());
 };
-
-const sumar = (saldos: readonly Saldo[]) => saldos.reduce((total, saldo) => total + Math.abs(saldo.monto()), 0);
 
 // Lo que cada uno debe o tiene por recibir, y la plata que ya entró y salió.
 export class PantallaCaja {
@@ -41,8 +37,8 @@ export class PantallaCaja {
   }
 
   private _totales(saldos: readonly Saldo[]): HTMLParagraphElement {
-    const porCobrar = sumar(saldos.filter(debe));
-    const porRepartir = sumar(saldos.filter((saldo) => !debe(saldo)));
+    const porCobrar = saldos.filter((saldo) => saldo.debe()).reduce((total, saldo) => total - saldo.monto(), 0);
+    const porRepartir = this._entorno.grupo().caja().totalPendiente();
     return crear("p", {}, `Por cobrar ${monto(porCobrar)} · Por repartir ${monto(porRepartir)}`);
   }
 
@@ -59,7 +55,7 @@ export class PantallaCaja {
     return fila(
       nombre,
       monto(saldo.monto()),
-      debe(saldo)
+      saldo.debe()
         ? boton("Cobrar", () => this._abrirCobro(nombre))
         : boton("Repartir", () => this._abrirReparto(nombre)),
     );
