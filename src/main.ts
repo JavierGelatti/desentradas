@@ -1,4 +1,5 @@
 import "./ui/estilos.css";
+import { registerSW } from "virtual:pwa-register";
 import { AlmacenamientoEnStorage } from "./app/AlmacenamientoEnStorage.ts";
 import { Aplicacion } from "./app/Aplicacion.ts";
 import { DesempateAleatorioReproducible } from "./models/Desempate.ts";
@@ -12,3 +13,7 @@ const aplicacion = new Aplicacion(
 );
 const vista = new VistaPrincipal(aplicacion, new AlmacenamientoEnStorage(localStorage, "pantalla"), ahora);
 vista.montarEn(document.querySelector<HTMLElement>("#app")!);
+
+registerSW();
+// Para que el navegador no borre los datos guardados.
+navigator.storage?.persist?.();
