@@ -1,13 +1,16 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+const base = "/desentradas/";
+
 export default defineConfig({
+  base,
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        id: "/",
+        id: base,
         name: "Desentradas",
         short_name: "Desentradas",
         lang: "es",
