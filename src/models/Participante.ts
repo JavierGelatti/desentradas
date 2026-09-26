@@ -31,7 +31,10 @@ export class Participante {
   }
 
   reingresar(fecha: Date): void {
-    this._transicionar("reingresar", fecha, this._estado.reingresar());
+    const participando = this._estado.reingresar();
+    if (fecha < this.fechaDelUltimoCambio()) throw new Error("El reingreso no puede ser anterior a la finalización");
+
+    this._transicionar("reingresar", fecha, participando);
   }
 
   nombre(): string {

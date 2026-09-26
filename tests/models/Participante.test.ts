@@ -482,6 +482,23 @@ describe("Participante", () => {
       expect(ana.motivoDeFinalizacion()).toBeUndefined();
     });
 
+    it("no se puede reingresar en una fecha anterior a la finalización", () => {
+      const ana = finalizado(); // finaliza el día 16
+
+      expect(() => {
+        ana.reingresar(dia(15));
+      }).toThrow("El reingreso no puede ser anterior a la finalización");
+      expect(ana.estado()).toBe("finalizado");
+    });
+
+    it("se puede reingresar el mismo día de la finalización", () => {
+      const ana = finalizado(); // finaliza el día 16
+
+      ana.reingresar(dia(16));
+
+      expect(ana.estado()).toBe("participando");
+    });
+
     it("reingresar después de finalizar por faltas también lo devuelve a participando", () => {
       const ana = finalizadoPorFaltas();
 
