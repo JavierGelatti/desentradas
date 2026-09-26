@@ -2,17 +2,17 @@ import type { Cobro } from "./Cobro.ts";
 
 // Ordena a los asistentes de un cobro: los primeros reciben un peso más del sobrante.
 export interface Desempate {
-  ordenar(nombres: readonly string[], cobro: Cobro): string[];
+  ordenar(nombres: Iterable<string>, cobro: Cobro): string[];
 }
 
 export class DesempateAlfabetico implements Desempate {
-  ordenar(nombres: readonly string[], _cobro: Cobro): string[] {
+  ordenar(nombres: Iterable<string>, _cobro: Cobro): string[] {
     return [...nombres].sort();
   }
 }
 
 export class DesempateAleatorioReproducible implements Desempate {
-  ordenar(nombres: readonly string[], cobro: Cobro): string[] {
+  ordenar(nombres: Iterable<string>, cobro: Cobro): string[] {
     const datos = this._datosDe(cobro);
     const puntajeDe = (nombre: string) => cyrb53(`${datos}|${nombre}`);
     return [...nombres].sort((uno, otro) => puntajeDe(uno) - puntajeDe(otro));

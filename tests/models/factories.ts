@@ -1,4 +1,5 @@
 import { Cobro } from "../../src/models/Cobro.ts";
+import { Credito } from "../../src/models/Credito.ts";
 import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
 import { Evento } from "../../src/models/Evento.ts";
 import { Grupo } from "../../src/models/Grupo.ts";
@@ -36,3 +37,9 @@ export const cobroEnEfectivo = ({
   evento = nuevoEvento({ numero: 2, asistentes }),
 }: { deudor?: string; monto?: number; numero?: number; asistentes?: string[]; evento?: Evento } = {}) =>
   new Cobro(deudor, monto, dia(numero), evento, "efectivo");
+
+export const nuevoCredito = ({
+  acreedor = "beto",
+  monto = 500,
+  cobro = cobroEnEfectivo(),
+}: { acreedor?: string; monto?: number; cobro?: Cobro } = {}) => new Credito(acreedor, monto, cobro);

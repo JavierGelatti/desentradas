@@ -13,7 +13,6 @@ export class Grupo {
   private _historialDeReglas: Reglas[];
   private _eventos: Evento[];
   private _participantes: Participante[];
-  private _participantesFinalizados: Participante[];
   private _caja: Caja;
 
   constructor(nombre: string, reglasIniciales: Reglas, desempate: Desempate) {
@@ -24,7 +23,6 @@ export class Grupo {
     this._historialDeReglas = [reglasIniciales];
     this._eventos = [];
     this._participantes = [];
-    this._participantesFinalizados = [];
     this._caja = new Caja(desempate);
   }
 
@@ -69,13 +67,14 @@ export class Grupo {
     return participante;
   }
 
+  // Quien reingresa pasa al final, así los participantes quedan en orden de ingreso.
   reingresar(nombre: string, fecha: Date): Participante {
     const nombreLimpio = nombre.trim();
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
     const participante = this._participanteFinalizadoLlamado(nombreLimpio);
 
     participante.reingresar(fecha);
-    this._participantesFinalizados.splice(this._participantesFinalizados.indexOf(participante), 1);
+    this._participantes.splice(this._participantes.indexOf(participante), 1);
     this._participantes.push(participante);
     return participante;
   }
@@ -85,7 +84,6 @@ export class Grupo {
     this._asertarQueNoEsAnteriorAlUltimoMovimiento("El cobro", fecha);
 
     this._cobrarYDistribuir(participante, monto, fecha, "efectivo");
-    this._archivarFinalizados();
   }
 
   repartir(nombre: string, fecha: Date): Reparto {
@@ -102,14 +100,13 @@ export class Grupo {
 
     this._participantesDelEvento(evento).forEach((participante) => {
       if (evento.asistio(participante.nombre())) {
-        participante.voy(evento, reglas);
+        participante.voy(evento);
       } else {
         participante.falto(evento, reglas);
         this._aplicarCreditosPendientesDe(participante, evento.fecha());
       }
     });
     this._eventos.push(evento);
-    this._archivarFinalizados();
   }
 
   eventos(): readonly Evento[] {
@@ -121,7 +118,7 @@ export class Grupo {
   }
 
   participantes(): readonly Participante[] {
-    return this._participantes;
+    return this._participantes.filter((participante) => participante.estaActivo());
   }
 
   // Quienes se esperan en el próximo evento: los morosos no pueden asistir ni pagando.
@@ -130,7 +127,7 @@ export class Grupo {
   }
 
   participantesFinalizados(): readonly Participante[] {
-    return this._participantesFinalizados;
+    return this._participantes.filter((participante) => !participante.estaActivo());
   }
 
   // Nadie debe y tiene créditos pendientes a la vez: los créditos se aplican apenas aparece la deuda.
@@ -145,7 +142,7 @@ export class Grupo {
   }
 
   participanteActivo(nombre: string): Participante | undefined {
-    return this._participantes.find((participante) => participante.nombre() === nombre);
+    return this.participantes().find((participante) => participante.nombre() === nombre);
   }
 
   yaParticipo(nombre: string): boolean {
@@ -153,7 +150,7 @@ export class Grupo {
   }
 
   private _participantesDelEvento(evento: Evento): readonly Participante[] {
-    return this._participantes.filter((participante) => !participante.ingresoDespuesDe(evento));
+    return this.participantes().filter((participante) => !participante.ingresoDespuesDe(evento));
   }
 
   private _participanteActivoLlamado(nombre: string): Participante {
@@ -164,7 +161,7 @@ export class Grupo {
   }
 
   private _participanteFinalizado(nombre: string): Participante | undefined {
-    return this._participantesFinalizados.find((participante) => participante.nombre() === nombre);
+    return this.participantesFinalizados().find((participante) => participante.nombre() === nombre);
   }
 
   private _participanteFinalizadoLlamado(nombre: string): Participante {
@@ -201,9 +198,9 @@ export class Grupo {
 
   private _asertarQueNoEsAnteriorAlUltimoMovimiento(movimiento: string, fecha: Date): void {
     if (this._huboEventosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último evento`);
-    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último cobro`);
-    if (this._caja.huboRepartosDespuesDe(fecha)) {
-      throw new Error(`${movimiento} no puede ser anterior al último reparto`);
+    const posterior = this._caja.movimientoPosteriorA(fecha);
+    if (posterior !== undefined) {
+      throw new Error(`${movimiento} no puede ser anterior al último ${posterior.tipo()}`);
     }
   }
 
@@ -214,17 +211,15 @@ export class Grupo {
   }
 
   private _esPosteriorAlUltimoEvento(fecha: Date): boolean {
-    const ultimo = this._eventos.at(-1);
-    return ultimo === undefined || fecha > ultimo.fecha();
+    return this._eventos.every((evento) => evento.fecha() < fecha);
   }
 
   private _huboEventosDespuesDe(fecha: Date): boolean {
-    const ultimo = this._eventos.at(-1);
-    return ultimo !== undefined && ultimo.fecha() > fecha;
+    return this._eventos.some((evento) => evento.fecha() > fecha);
   }
 
   private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
-    const cobro = participante.pago(fecha, monto, this.reglasVigentesAl(fecha), origen);
+    const cobro = participante.pago(fecha, monto, origen);
     this._aplicarCreditosPendientesDeLosAcreedores(this._caja.cobrar(cobro), fecha);
   }
 
@@ -244,11 +239,5 @@ export class Grupo {
       const monto = Math.min(credito.monto(), deuda);
       this._cobrarYDistribuir(participante, monto, fecha, this._caja.aplicar(credito, monto));
     }
-  }
-
-  private _archivarFinalizados(): void {
-    const finalizados = this._participantes.filter((participante) => !participante.estaActivo());
-    this._participantes = this._participantes.filter((participante) => participante.estaActivo());
-    this._participantesFinalizados.push(...finalizados);
   }
 }

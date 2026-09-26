@@ -13,7 +13,7 @@ export class Moroso extends ConDeuda {
     return this;
   }
 
-  protected _estadoAlSaldar(_reglas: Reglas): Estado {
+  protected _estadoAlSaldar(): Estado {
     return new Finalizado("por pago de morosidad");
   }
 }

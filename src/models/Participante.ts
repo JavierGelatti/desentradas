@@ -1,4 +1,4 @@
-import type { Cobro, OrigenDeCobro } from "./Cobro.ts";
+import { Cobro, type OrigenDeCobro } from "./Cobro.ts";
 import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Estado, MotivoDeFinalizacion, NombreDeEstado } from "./estados/Estado.ts";
@@ -16,17 +16,17 @@ export class Participante {
     this._historial = [Transicion.ingreso(fechaDeIngreso, this._estado.nombre())];
   }
 
-  voy(evento: Evento, reglas: Reglas): void {
-    this._transicionar("voy", evento.fecha(), this._estado.voy(evento, reglas));
+  voy(evento: Evento): void {
+    this._transicionar("voy", evento.fecha(), this._estado.voy());
   }
 
   falto(evento: Evento, reglas: Reglas): void {
     this._transicionar("falto", evento.fecha(), this._estado.falto(evento, reglas));
   }
 
-  pago(fecha: Date, monto: number, reglas: Reglas, origen: OrigenDeCobro): Cobro {
-    const cobro = this._estado.cobroA(this._nombre, monto, fecha, origen);
-    this._transicionar("pago", fecha, this._estado.pago(fecha, monto, reglas));
+  pago(fecha: Date, monto: number, origen: OrigenDeCobro): Cobro {
+    const cobro = new Cobro(this._nombre, monto, fecha, this._estado.eventoAdeudado(), origen);
+    this._transicionar("pago", fecha, this._estado.pago(fecha, monto));
     return cobro;
   }
 

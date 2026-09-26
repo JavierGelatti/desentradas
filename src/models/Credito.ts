@@ -8,6 +8,10 @@ export class Credito {
   private _cobro: Cobro;
   private _estado: EstadoDeCredito;
 
+  static montoTotalDe(creditos: readonly Credito[]): number {
+    return creditos.reduce((total, credito) => total + credito.monto(), 0);
+  }
+
   constructor(acreedor: string, monto: number, cobro: Cobro) {
     this._acreedor = acreedor;
     this._monto = monto;

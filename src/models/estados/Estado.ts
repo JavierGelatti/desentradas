@@ -1,4 +1,3 @@
-import type { Cobro, OrigenDeCobro } from "../Cobro.ts";
 import type { Evento } from "../Evento.ts";
 import type { Reglas } from "../Reglas.ts";
 import type { Accion } from "../Transicion.ts";
@@ -21,7 +20,7 @@ export abstract class Estado {
     return this.accionesPosibles().includes(accion);
   }
 
-  voy(_evento: Evento, _reglas: Reglas): Estado {
+  voy(): Estado {
     throw new TransicionInvalida("voy", this.nombre());
   }
 
@@ -29,11 +28,11 @@ export abstract class Estado {
     throw new TransicionInvalida("falto", this.nombre());
   }
 
-  pago(_fecha: Date, _monto: number, _reglas: Reglas): Estado {
+  pago(_fecha: Date, _monto: number): Estado {
     throw new TransicionInvalida("pago", this.nombre());
   }
 
-  cobroA(_deudor: string, _monto: number, _fecha: Date, _origen: OrigenDeCobro): Cobro {
+  eventoAdeudado(): Evento {
     throw new TransicionInvalida("pago", this.nombre());
   }
 

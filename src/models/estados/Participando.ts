@@ -8,7 +8,7 @@ export class Participando extends Estado {
     return "participando";
   }
 
-  override voy(_evento: Evento, _reglas: Reglas): Estado {
+  override voy(): Estado {
     return this;
   }
 

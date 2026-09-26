@@ -37,7 +37,7 @@ export class Cobro implements Movimiento {
   }
 
   persona(): string {
-    return this._deudor;
+    return this.deudor();
   }
 
   fecha(): Date {

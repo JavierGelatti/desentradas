@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Caja } from "../../src/models/Caja.ts";
 import { Cobro } from "../../src/models/Cobro.ts";
-import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
-import { cobroEnEfectivo, dia, nuevoEvento } from "./factories.ts";
+import { cobroEnEfectivo, desempate, dia, nuevoEvento } from "./factories.ts";
 
-const nuevaCaja = () => new Caja(new DesempateAlfabetico());
+const nuevaCaja = () => new Caja(desempate);
 
 describe("Caja", () => {
   describe("distribución de cobros", () => {

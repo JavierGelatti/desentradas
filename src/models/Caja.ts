@@ -47,14 +47,6 @@ export class Caja {
     return this._cobros;
   }
 
-  huboCobrosDespuesDe(fecha: Date): boolean {
-    return this._cobros.some((cobro) => cobro.fecha() > fecha);
-  }
-
-  huboRepartosDespuesDe(fecha: Date): boolean {
-    return this._repartos.some((reparto) => reparto.fecha() > fecha);
-  }
-
   creditos(): readonly Credito[] {
     return this._creditos;
   }
@@ -66,21 +58,23 @@ export class Caja {
   // Un cobro hecho con un crédito no mueve plata: no entra ni sale de la caja.
   movimientos(): readonly Movimiento[] {
     const cobrosEnEfectivo = this._cobros.filter((cobro) => cobro.esEnEfectivo());
-    return [...cobrosEnEfectivo, ...this._repartos].toSorted(
-      (uno, otro) => uno.fecha().getTime() - otro.fecha().getTime(),
-    );
+    return [...cobrosEnEfectivo, ...this._repartos].sort((uno, otro) => uno.fecha().getTime() - otro.fecha().getTime());
+  }
+
+  movimientoPosteriorA(fecha: Date): Movimiento | undefined {
+    return this.movimientos().findLast((movimiento) => movimiento.fecha() > fecha);
   }
 
   creditosPendientesDe(nombre: string): readonly Credito[] {
-    return this._creditosPendientes().filter((credito) => credito.acreedor() === nombre);
+    return this._creditos.filter((credito) => credito.estaPendiente() && credito.acreedor() === nombre);
   }
 
   montoPendienteDe(nombre: string): number {
-    return this._sumar(this.creditosPendientesDe(nombre));
+    return Credito.montoTotalDe(this.creditosPendientesDe(nombre));
   }
 
   totalPendiente(): number {
-    return this._sumar(this._creditosPendientes());
+    return Credito.montoTotalDe(this._creditosPendientes());
   }
 
   nombresConCreditosPendientes(): string[] {
@@ -88,7 +82,7 @@ export class Caja {
   }
 
   private _distribuirEnCreditos(cobro: Cobro): Credito[] {
-    const asistentes = this._desempate.ordenar([...cobro.eventoFaltado().asistentes()], cobro);
+    const asistentes = this._desempate.ordenar(cobro.eventoFaltado().asistentes(), cobro);
     const parte = Math.floor(cobro.monto() / asistentes.length);
     const sobrante = cobro.monto() % asistentes.length;
     return asistentes
@@ -104,9 +98,5 @@ export class Caja {
 
   private _creditosPendientes(): Credito[] {
     return this._creditos.filter((credito) => credito.estaPendiente());
-  }
-
-  private _sumar(creditos: readonly Credito[]): number {
-    return creditos.reduce((total, credito) => total + credito.monto(), 0);
   }
 }

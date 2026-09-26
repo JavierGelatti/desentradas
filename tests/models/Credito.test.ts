@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { Credito } from "../../src/models/Credito.ts";
-import { cobroEnEfectivo } from "./factories.ts";
+import { cobroEnEfectivo, nuevoCredito } from "./factories.ts";
 
 describe("Crédito", () => {
   it("nace pendiente de entrega, a nombre de alguien y por un cobro", () => {
     const cobro = cobroEnEfectivo();
 
-    const credito = new Credito("beto", 500, cobro);
+    const credito = nuevoCredito({ acreedor: "beto", monto: 500, cobro });
 
     expect(credito.acreedor()).toBe("beto");
     expect(credito.monto()).toBe(500);
@@ -16,7 +15,7 @@ describe("Crédito", () => {
   });
 
   it("repartirlo lo deja repartido y ya no está pendiente", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito();
 
     credito.repartir();
 
@@ -25,7 +24,7 @@ describe("Crédito", () => {
   });
 
   it("aplicarlo lo deja aplicado y ya no está pendiente", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito();
 
     credito.aplicar();
 
@@ -34,7 +33,7 @@ describe("Crédito", () => {
   });
 
   it("no se puede aplicar un crédito que no está pendiente", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito();
     credito.repartir();
 
     expect(() => {
@@ -43,7 +42,7 @@ describe("Crédito", () => {
   });
 
   it("no se puede repartir un crédito que no está pendiente", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito();
     credito.aplicar();
 
     expect(() => {
@@ -53,7 +52,7 @@ describe("Crédito", () => {
 
   it("dividirlo produce dos créditos pendientes por el mismo cobro que suman el original", () => {
     const cobro = cobroEnEfectivo();
-    const credito = new Credito("beto", 500, cobro);
+    const credito = nuevoCredito({ acreedor: "beto", monto: 500, cobro });
 
     const [primero, segundo] = credito.dividir(400);
 
@@ -66,7 +65,7 @@ describe("Crédito", () => {
   });
 
   it("sólo se puede dividir por un monto positivo y menor al del crédito", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito({ monto: 500 });
 
     expect(() => {
       credito.dividir(500);
@@ -77,7 +76,7 @@ describe("Crédito", () => {
   });
 
   it("no se puede dividir un crédito que no está pendiente", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const credito = nuevoCredito();
     credito.repartir();
 
     expect(() => {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Cobro } from "../../src/models/Cobro.ts";
-import { Credito } from "../../src/models/Credito.ts";
-import { cobroEnEfectivo, dia, nuevoEvento } from "./factories.ts";
+import { cobroEnEfectivo, dia, nuevoCredito, nuevoEvento } from "./factories.ts";
 
 describe("Cobro", () => {
   it("un cobro en efectivo registra a quién se le cobró, cuánto, cuándo y por qué evento", () => {
@@ -18,19 +17,19 @@ describe("Cobro", () => {
   });
 
   it("un cobro por crédito conserva el crédito aplicado como origen", () => {
-    const credito = new Credito("beto", 500, cobroEnEfectivo());
+    const creditoDeBeto = nuevoCredito({ acreedor: "beto" });
     const eventoQueDebeBeto = nuevoEvento({ numero: 2, asistentes: ["carla"] });
 
-    const cobro = new Cobro("beto", 400, dia(3), eventoQueDebeBeto, credito);
+    const cobro = new Cobro("beto", 400, dia(3), eventoQueDebeBeto, creditoDeBeto);
 
     expect(cobro.deudor()).toBe("beto");
     expect(cobro.monto()).toBe(400);
-    expect(cobro.origen()).toBe(credito);
+    expect(cobro.origen()).toBe(creditoDeBeto);
     expect(cobro.esEnEfectivo()).toBe(false);
   });
 
   it("un crédito sólo se aplica a una deuda de su dueño", () => {
-    const creditoDeBeto = new Credito("beto", 500, cobroEnEfectivo());
+    const creditoDeBeto = nuevoCredito({ acreedor: "beto" });
 
     expect(() => {
       new Cobro("carla", 400, dia(3), nuevoEvento(), creditoDeBeto);

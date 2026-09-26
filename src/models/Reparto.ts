@@ -1,4 +1,4 @@
-import type { Credito } from "./Credito.ts";
+import { Credito } from "./Credito.ts";
 import type { Movimiento, TipoDeMovimiento } from "./Movimiento.ts";
 
 export class Reparto implements Movimiento {
@@ -25,7 +25,7 @@ export class Reparto implements Movimiento {
   }
 
   persona(): string {
-    return this._acreedor;
+    return this.acreedor();
   }
 
   creditos(): readonly Credito[] {
@@ -33,6 +33,6 @@ export class Reparto implements Movimiento {
   }
 
   monto(): number {
-    return this._creditos.reduce((total, credito) => total + credito.monto(), 0);
+    return Credito.montoTotalDe(this._creditos);
   }
 }

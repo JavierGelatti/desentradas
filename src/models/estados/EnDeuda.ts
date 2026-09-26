@@ -19,7 +19,7 @@ export class EnDeuda extends ConDeuda {
     return true;
   }
 
-  protected _estadoAlSaldar(reglas: Reglas): Estado {
-    return LibreDeDeuda.oFinalizadoPorFaltas(this.faltas(), reglas);
+  protected _estadoAlSaldar(): Estado {
+    return new LibreDeDeuda(this.faltas());
   }
 }
