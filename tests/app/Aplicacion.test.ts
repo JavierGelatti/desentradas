@@ -228,7 +228,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(aplicacion.creacionDeshecha()).toBeUndefined();
     });
 
@@ -265,6 +265,15 @@ describe("Aplicacion", () => {
       expect(JSON.parse(almacenamientoDePlanilla.leer()!)).toEqual({ asistentes: [] });
     });
 
+    it("al principio no hay una planilla de asistencia empezada", () => {
+      const aplicacion = aplicacionConGrupo();
+
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
+      expect(() => {
+        aplicacion.planillaDeAsistencia();
+      }).toThrow("No hay una planilla de asistencia empezada");
+    });
+
     it("no se puede empezar una planilla de asistencia ya empezada", () => {
       const aplicacion = aplicacionConGrupo();
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("ana");
@@ -272,7 +281,7 @@ describe("Aplicacion", () => {
       expect(() => {
         aplicacion.empezarPlanillaDeAsistencia();
       }).toThrow("Ya hay una planilla de asistencia empezada");
-      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["ana"]);
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["ana"]);
     });
 
     it("descartar la planilla de asistencia deja a la aplicación sin planilla y borra lo guardado", () => {
@@ -282,7 +291,7 @@ describe("Aplicacion", () => {
 
       aplicacion.descartarPlanillaDeAsistencia();
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(almacenamientoDePlanilla.leer()).toBeUndefined();
     });
 
@@ -295,7 +304,7 @@ describe("Aplicacion", () => {
 
       const aplicacion = nuevaAplicacion(almacenamiento, almacenamientoDePlanilla);
 
-      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["ana"]);
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["ana"]);
     });
 
     it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla", () => {
@@ -330,7 +339,7 @@ describe("Aplicacion", () => {
 
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
     });
 
     it("un cierre que el grupo rechaza deja la planilla como estaba", () => {
@@ -340,7 +349,7 @@ describe("Aplicacion", () => {
       expect(() => {
         aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(2));
       }).toThrow("El evento debe ser posterior al último registrado");
-      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
     it("cobrar en la puerta toda la deuda deja a la persona marcada como presente", () => {
@@ -350,7 +359,7 @@ describe("Aplicacion", () => {
       aplicacion.cobrarEnLaPuerta("ana", 1000, dia(3));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("libre de deuda");
-      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(true);
     });
 
     it("un pago parcial en la puerta no marca a la persona, porque sigue sin poder asistir", () => {
@@ -360,7 +369,7 @@ describe("Aplicacion", () => {
       aplicacion.cobrarEnLaPuerta("ana", 400, dia(3));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(dia(3))).toBe(600);
-      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
     });
 
     it("no se puede cobrar en la puerta a un moroso, porque pagar no lo habilita a asistir", () => {
@@ -387,7 +396,7 @@ describe("Aplicacion", () => {
       aplicacion.ingresarAsistente("carla", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")?.historial().at(0)?.fecha()).toEqual(dia(3));
-      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
     });
 
     it("ingresar como asistente a quien ya participó lo reingresa desde la fecha del ingreso y lo deja marcado como presente", () => {
@@ -399,7 +408,7 @@ describe("Aplicacion", () => {
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
       expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(dia(5));
-      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(true);
     });
 
     it("ingresar como asistente toma el nombre sin espacios al principio ni al final", () => {
@@ -409,7 +418,7 @@ describe("Aplicacion", () => {
       aplicacion.ingresarAsistente(" carla ", dia(3));
 
       expect(aplicacion.grupo().participanteActivo("carla")).toBeDefined();
-      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(true);
+      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(true);
     });
 
     it("quedan ausentes los posibles asistentes sin marcar, incluso quien está en deuda", () => {
@@ -450,7 +459,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
     it("deshacer un cobro en la puerta desmarca a la persona, que vuelve a no poder asistir", () => {
@@ -460,7 +469,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()?.asiste("ana")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
     });
 
     it("deshacer el ingreso de un asistente desmarca a la persona, que ya no es participante", () => {
@@ -470,7 +479,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()?.asiste("carla")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia().asiste("carla")).toBe(false);
     });
 
     it("deshacer un cobro desmarca a quien dejó de estar habilitado por el crédito aplicado", () => {
@@ -483,7 +492,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()?.asiste("beto")).toBe(false);
+      expect(aplicacion.planillaDeAsistencia().asiste("beto")).toBe(false);
     });
 
     it("deshacer no toca las marcas de quienes siguen pudiendo asistir", () => {
@@ -493,7 +502,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
+      expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["beto"]);
     });
 
     it("deshacer la creación del grupo descarta la planilla de asistencia", () => {
@@ -502,7 +511,7 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
     });
 
     it("importar una bitácora descarta la planilla", () => {
@@ -512,7 +521,7 @@ describe("Aplicacion", () => {
 
       aplicacion.importar(exportado);
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
     });
   });
 

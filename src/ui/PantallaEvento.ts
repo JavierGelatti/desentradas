@@ -21,25 +21,24 @@ export class PantallaEvento {
   }
 
   elemento(): HTMLElement {
-    const planilla = this._entorno.aplicacion().planillaDeAsistencia();
     this._seccion.append(
       crear("h2", {}, "Evento"),
-      planilla === undefined
-        ? crear(
+      this._entorno.aplicacion().tienePlanillaDeAsistencia()
+        ? this._formulario()
+        : crear(
             "p",
             {},
             boton("Empezar evento", () => this._empezar()),
-          )
-        : this._formulario(planilla),
+          ),
     );
     return this._seccion;
   }
 
-  private _formulario(planilla: PlanillaDeAsistencia): HTMLFormElement {
+  private _formulario(): HTMLFormElement {
     return crear(
       "form",
       { onsubmit: (evento: Event) => this._pedirConfirmacion(evento) },
-      this._tablaDeAsistencia(planilla) ?? crear("p", {}, "Todavía no hay nadie"),
+      this._tablaDeAsistencia() ?? crear("p", {}, "Todavía no hay nadie"),
       crear(
         "p",
         {},
@@ -49,7 +48,7 @@ export class PantallaEvento {
       crear(
         "p",
         {},
-        boton("Cancelar", () => this._cancelar(planilla)),
+        boton("Cancelar", () => this._cancelar()),
         " ",
         crear("button", { type: "submit" }, "Cerrar evento"),
       ),
@@ -61,8 +60,8 @@ export class PantallaEvento {
     this._entorno.refrescar();
   }
 
-  private _cancelar(planilla: PlanillaDeAsistencia): void {
-    if (planilla.asistentes().length === 0) {
+  private _cancelar(): void {
+    if (this._planillaDeAsistencia().asistentes().length === 0) {
       this._entorno.aplicacion().descartarPlanillaDeAsistencia();
       this._entorno.refrescar();
     } else {
@@ -76,11 +75,11 @@ export class PantallaEvento {
     }
   }
 
-  private _tablaDeAsistencia(planilla: PlanillaDeAsistencia): HTMLTableElement | undefined {
+  private _tablaDeAsistencia(): HTMLTableElement | undefined {
     return tabla(
       "Asistencia",
       ["Asiste", "Nombre", "Estado", ""],
-      this._listados().map((participante) => this._filaDe(planilla, participante)),
+      this._listados().map((participante) => this._filaDe(participante)),
     );
   }
 
@@ -88,37 +87,41 @@ export class PantallaEvento {
     return this._entorno.grupo().posiblesAsistentes().toSorted(porNombre);
   }
 
-  private _filaDe(planilla: PlanillaDeAsistencia, participante: Participante): HTMLTableRowElement {
+  private _filaDe(participante: Participante): HTMLTableRowElement {
     const nombre = participante.nombre();
     const casilla = crear("input", {
       type: "checkbox",
       name: "asistentes",
       value: nombre,
       "aria-label": `Asiste ${nombre}`,
-      checked: planilla.asiste(nombre),
+      checked: this._planillaDeAsistencia().asiste(nombre),
       disabled: !participante.puedeAsistir(),
-      onchange: () => this._marcar(planilla, nombre, casilla.checked),
+      onchange: () => this._marcar(nombre, casilla.checked),
     });
-    return fila(casilla, nombre, participante.estado(), this._accionDe(planilla, participante));
+    return fila(casilla, nombre, participante.estado(), this._accionDe(participante));
   }
 
-  private _accionDe(planilla: PlanillaDeAsistencia, participante: Participante): HTMLElement | false {
+  private _accionDe(participante: Participante): HTMLElement | false {
     const nombre = participante.nombre();
     if (participante.soloLeFaltaPagarParaAsistir()) return boton("Cobrar y habilitar", () => this._abrirCobro(nombre));
 
     const pendiente = this._entorno.grupo().caja().montoPendienteDe(nombre);
-    if (planilla.asiste(nombre) && pendiente > 0) {
+    if (this._planillaDeAsistencia().asiste(nombre) && pendiente > 0) {
       return boton(`Repartir ${monto(pendiente)}`, () => this._repartir(nombre));
     }
 
     return false;
   }
 
-  private _marcar(planilla: PlanillaDeAsistencia, nombre: string, asiste: boolean): void {
+  private _planillaDeAsistencia(): PlanillaDeAsistencia {
+    return this._entorno.aplicacion().planillaDeAsistencia();
+  }
+
+  private _marcar(nombre: string, asiste: boolean): void {
     if (asiste) {
-      planilla.marcarComoPresente(nombre);
+      this._planillaDeAsistencia().marcarComoPresente(nombre);
     } else {
-      planilla.desmarcarComoPresente(nombre);
+      this._planillaDeAsistencia().desmarcarComoPresente(nombre);
     }
     this._entorno.refrescar();
   }

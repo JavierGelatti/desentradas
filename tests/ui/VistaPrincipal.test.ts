@@ -323,7 +323,7 @@ describe("VistaPrincipal", () => {
 
       hacerClic("Empezar evento");
 
-      expect(aplicacion.planillaDeAsistencia()).toBeDefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(true);
       expect(casillaDeAsistencia("beto").checked).toBe(false);
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(false);
     });
@@ -361,7 +361,7 @@ describe("VistaPrincipal", () => {
       hacerClic("Cancelar");
 
       expect(document.querySelector("dialog[open]")).toBeNull();
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(almacenamientos.planilla.leer()).toBeUndefined();
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(true);
     });
@@ -376,7 +376,7 @@ describe("VistaPrincipal", () => {
       expect(textoDe(dialogoAbierto())).toContain("Se van a perder las marcas de asistencia.");
       hacerClic("Descartar", dialogoAbierto());
 
-      expect(aplicacion.planillaDeAsistencia()).toBeUndefined();
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(hayElementoConTexto("button", "Empezar evento")).toBe(true);
     });
 

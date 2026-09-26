@@ -49,7 +49,9 @@ export class Aplicacion {
     return this._planillaDeAsistencia !== undefined;
   }
 
-  planillaDeAsistencia(): PlanillaDeAsistencia | undefined {
+  planillaDeAsistencia(): PlanillaDeAsistencia {
+    if (this._planillaDeAsistencia === undefined) throw new Error("No hay una planilla de asistencia empezada");
+
     return this._planillaDeAsistencia;
   }
 
@@ -87,7 +89,7 @@ export class Aplicacion {
   }
 
   ingresarAsistente(nombre: string, fecha: Date): void {
-    const planilla = this._planillaDeAsistenciaEmpezada();
+    const planilla = this.planillaDeAsistencia();
     const nombreLimpio = nombre.trim();
     if (this.grupo().yaParticipo(nombreLimpio)) {
       this.reingresar(nombreLimpio, fecha);
@@ -99,7 +101,7 @@ export class Aplicacion {
 
   // Nota: el modelo igual registra la falta a todos los participantes activos, morosos incluidos.
   ausentesEnPlanillaDeAsistencia(): string[] {
-    const planilla = this._planillaDeAsistenciaEmpezada();
+    const planilla = this.planillaDeAsistencia();
     return this.grupo()
       .posiblesAsistentes()
       .map((participante) => participante.nombre())
@@ -107,7 +109,7 @@ export class Aplicacion {
   }
 
   cerrarEventoSegunPlanillaDeAsistencia(fecha: Date): void {
-    const planilla = this._planillaDeAsistenciaEmpezada();
+    const planilla = this.planillaDeAsistencia();
     this.cerrarEvento(fecha, planilla.asistentes(), this.ausentesEnPlanillaDeAsistencia());
     this.descartarPlanillaDeAsistencia();
   }
@@ -118,7 +120,7 @@ export class Aplicacion {
 
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
     this._asertarQueSoloLeFaltaPagar(nombre);
-    const planilla = this._planillaDeAsistenciaEmpezada();
+    const planilla = this.planillaDeAsistencia();
 
     this.cobrar(nombre, monto, fecha);
     if (this._puedeAsistir(nombre)) planilla.marcarComoPresente(nombre);
@@ -176,12 +178,6 @@ export class Aplicacion {
   // La planilla no está en la bitácora: al deshacer puede quedar marcado quien ya no puede asistir.
   private _desmarcarAQuienesNoPuedenAsistir(): void {
     this._planillaDeAsistencia?.conservarSoloA((nombre) => this._puedeAsistir(nombre));
-  }
-
-  private _planillaDeAsistenciaEmpezada(): PlanillaDeAsistencia {
-    if (this._planillaDeAsistencia === undefined) throw new Error("No hay una planilla de asistencia empezada");
-
-    return this._planillaDeAsistencia;
   }
 
   private _asertarQueNoHayPlanillaDeAsistencia(): void {
