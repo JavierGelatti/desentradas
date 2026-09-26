@@ -412,7 +412,7 @@ describe("VistaPrincipal", () => {
       const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
       hacerClic("Empezar encuentro");
 
-      hacerClic("Cancelar");
+      hacerClic("Descartar");
 
       expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
@@ -420,12 +420,12 @@ describe("VistaPrincipal", () => {
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(true);
     });
 
-    it("cancelar el encuentro con alguien marcado pide confirmación antes de descartar las marcas", () => {
+    it("descartar el encuentro con alguien marcado pide confirmación antes de descartar las marcas", () => {
       const { aplicacion } = montar(almacenamientosConGrupo());
       hacerClic("Empezar encuentro");
       casillaDeAsistencia("beto").click();
 
-      hacerClic("Cancelar");
+      hacerClic("Descartar");
       expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("Cancelar encuentro");
       expect(textoDe(dialogoAbierto())).toContain("Se van a perder las marcas de asistencia.");
       hacerClic("Descartar", dialogoAbierto());

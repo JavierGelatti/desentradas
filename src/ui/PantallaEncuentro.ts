@@ -8,7 +8,7 @@ import { alerta, boton, botonDeEnvio, crear, fila, formulario, type Hijo, tablaO
 import type { Entorno } from "./Entorno.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
 
-// La pantalla de la noche: se empieza el encuentro, se marca quién vino y se cierra o se cancela.
+// La pantalla de la noche: se empieza el encuentro, se marca quién vino y se registra o se descarta.
 export class PantallaEncuentro {
   private _entorno: Entorno;
   private _errores: HTMLOutputElement;
@@ -41,7 +41,7 @@ export class PantallaEncuentro {
       crear(
         "p",
         {},
-        boton("Cancelar", () => this._cancelar()),
+        boton("Descartar", () => this._descartar()),
         " ",
         botonDeEnvio("Registrar encuentro"),
       ),
@@ -53,7 +53,7 @@ export class PantallaEncuentro {
     this._entorno.refrescar();
   }
 
-  private _cancelar(): void {
+  private _descartar(): void {
     if (this._planillaDeAsistencia().asistentes().length === 0) {
       this._entorno.aplicacion().descartarPlanillaDeAsistencia();
       this._entorno.refrescar();
