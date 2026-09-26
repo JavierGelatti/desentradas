@@ -298,7 +298,7 @@ describe("VistaPrincipal", () => {
       nuevaAplicacion(almacenamientos).cerrarEvento(dia(3), ["beto", "carla", "dani"], ["ana"]); // ana queda morosa
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Caja");
-      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "-$ 1.000", "Cobrar"]);
+      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "moroso", "-$ 1.000", "Cobrar"]);
 
       hacerClic("Cobrar", fila("ana"));
       expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
@@ -307,7 +307,7 @@ describe("VistaPrincipal", () => {
       hacerClic("Cobrar", dialogoAbierto());
 
       expect(aplicacion.grupo().participanteActivo("ana")?.deudaAl(ahora())).toBe(600);
-      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "-$ 600", "Cobrar"]);
+      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "moroso", "-$ 600", "Cobrar"]);
     });
 
     it("los saldos muestran primero a quienes deben y después a quienes tienen por recibir, cada grupo por nombre, incluso si ya no participan", async () => {
@@ -325,11 +325,11 @@ describe("VistaPrincipal", () => {
 
       expect(hayElementoConTexto("p", "Por cobrar $ 2.000 · Por repartir $ 2.000")).toBe(true);
       expect(filasDe(elementoConTexto("caption", "Saldos").parentElement!)).toEqual([
-        ["eva", "-$ 1.000", "Cobrar"],
-        ["fede", "-$ 1.000", "Cobrar"],
-        ["beto", "$ 334", "Repartir"],
-        ["carla", "$ 833", "Repartir"],
-        ["dani", "$ 833", "Repartir"],
+        ["eva", "en deuda", "-$ 1.000", "Cobrar"],
+        ["fede", "en deuda", "-$ 1.000", "Cobrar"],
+        ["beto", "finalizado", "$ 334", "Repartir"],
+        ["carla", "participando", "$ 833", "Repartir"],
+        ["dani", "participando", "$ 833", "Repartir"],
       ]);
     });
 
@@ -347,17 +347,17 @@ describe("VistaPrincipal", () => {
 
       expect(aplicacion.grupo().caja().montoPendienteDe("beto")).toBe(0);
       expect(filasDe(elementoConTexto("summary", "Movimientos").parentElement!)).toEqual([
-        [fechaYHora(ahora()), "reparto", "beto", "$ 501"],
-        [fechaYHora(dia(3)), "cobro", "ana", "$ 1.000"],
+        [fechaYHora(ahora()), "beto", "reparto", "$ 501"],
+        [fechaYHora(dia(3)), "ana", "cobro", "$ 1.000"],
       ]);
     });
 
-    it("sin saldos dice que todavía no hay nada que cobrar ni repartir", async () => {
+    it("sin saldos dice que no hay nada para cobrar ni repartir", async () => {
       montar(almacenamientosConGrupoSinParticipantes());
 
       await navegarA("Caja");
 
-      expect(hayElementoConTexto("p", "Todavía no hay nada que cobrar ni repartir")).toBe(true);
+      expect(hayElementoConTexto("p", "No hay nada para cobrar ni repartir")).toBe(true);
       expect(document.querySelector("table")).toBeNull();
     });
   });

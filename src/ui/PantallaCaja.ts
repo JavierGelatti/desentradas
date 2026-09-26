@@ -2,7 +2,7 @@ import type { Movimiento } from "../models/Movimiento.ts";
 import type { Saldo } from "../models/Saldo.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { boton, crear, desplegable, fila, tabla } from "./dom.ts";
+import { boton, crear, desplegable, fila, type Hijo, tabla, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 import { porNombre } from "./Orden.ts";
@@ -28,7 +28,7 @@ export class PantallaCaja {
       {},
       crear("h2", {}, "Caja"),
       saldos.length > 0 && this._totales(saldos),
-      this._tablaDeSaldos(saldos) ?? crear("p", {}, "Todavía no hay nada que cobrar ni repartir"),
+      ...this._tablaDeSaldos(saldos),
       desplegable("Movimientos", this._tablaDeMovimientos()),
     );
   }
@@ -39,17 +39,19 @@ export class PantallaCaja {
     return crear("p", {}, `Por cobrar ${monto(porCobrar)} · Por repartir ${monto(porRepartir)}`);
   }
 
-  private _tablaDeSaldos(saldos: readonly Saldo[]): HTMLTableElement | undefined {
-    return tabla(
+  private _tablaDeSaldos(saldos: readonly Saldo[]): Hijo[] {
+    return tablaOAviso(
       "Saldos",
-      ["Nombre", "Saldo", ""],
+      ["Nombre", "Estado", "Saldo", ""],
       saldos.map((saldo) => this._filaDeSaldo(saldo)),
+      "No hay nada para cobrar ni repartir",
     );
   }
 
   private _filaDeSaldo(saldo: Saldo): HTMLTableRowElement {
     return fila(
       saldo.nombre(),
+      this._estadoDe(saldo.nombre()),
       monto(saldo.monto()),
       saldo.debe()
         ? boton("Cobrar", () => this._abrirCobro(saldo))
@@ -57,17 +59,24 @@ export class PantallaCaja {
     );
   }
 
-  private _tablaDeMovimientos(): HTMLTableElement | undefined {
+  // Quien tiene por recibir puede haber dejado de participar.
+  private _estadoDe(nombre: string): string {
+    const grupo = this._entorno.grupo();
+    const participantes = [...grupo.participantes(), ...grupo.participantesFinalizados()];
+    return participantes.find((participante) => participante.nombre() === nombre)?.estado() ?? "";
+  }
+
+  private _tablaDeMovimientos(): HTMLElement | undefined {
     const movimientos = this._entorno.grupo().caja().movimientos().toReversed();
     return tabla(
       undefined,
-      ["Fecha", "Tipo", "Nombre", "Monto"],
+      ["Fecha", "Nombre", "Tipo", "Monto"],
       movimientos.map((movimiento) => this._filaDeMovimiento(movimiento)),
     );
   }
 
   private _filaDeMovimiento(movimiento: Movimiento): HTMLTableRowElement {
-    return fila(fechaYHora(movimiento.fecha()), movimiento.tipo(), movimiento.persona(), monto(movimiento.monto()));
+    return fila(fechaYHora(movimiento.fecha()), movimiento.persona(), movimiento.tipo(), monto(movimiento.monto()));
   }
 
   private _abrirCobro(saldo: Saldo): void {

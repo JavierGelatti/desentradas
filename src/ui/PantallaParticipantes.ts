@@ -1,6 +1,6 @@
 import type { Participante } from "../models/Participante.ts";
 import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
-import { alerta, boton, crear, desplegable, fila, tabla } from "./dom.ts";
+import { alerta, boton, crear, desplegable, fila, type Hijo, tabla, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { porNombre } from "./Orden.ts";
 
@@ -33,30 +33,36 @@ export class PantallaParticipantes {
       "section",
       {},
       crear("h2", {}, "Participantes"),
-      this._tablaDeActivos() ?? crear("p", {}, "Todavía no hay nadie"),
-      crear(
-        "p",
-        {},
-        boton("Registrar participante", () => this._abrirIngreso()),
-      ),
+      ...this._tablaDeActivos(),
       desplegable("Participaciones finalizadas", this._tablaDeFinalizados(), this._erroresDeReingreso),
     );
   }
 
-  private _tablaDeActivos(): HTMLTableElement | undefined {
+  private _tablaDeActivos(): Hijo[] {
     const activos = this._entorno.grupo().participantes().toSorted(porAtencionYNombre);
-    return tabla(
+    return tablaOAviso(
       "Participaciones activas",
-      ["Nombre", "Estado", "Faltas"],
+      ["Nombre", "Estado"],
       activos.map((participante) => this._filaDeActivo(participante)),
+      "Todavía no hay nadie",
+      boton("Registrar participante", () => this._abrirIngreso()),
     );
   }
 
   private _filaDeActivo(participante: Participante): HTMLTableRowElement {
-    return fila(participante.nombre(), participante.estado(), String(participante.faltas()));
+    return fila(participante.nombre(), this._estadoConFaltas(participante));
   }
 
-  private _tablaDeFinalizados(): HTMLTableElement | undefined {
+  // Sólo en libre de deuda las faltas cuentan contra la tolerancia.
+  private _estadoConFaltas(participante: Participante): string {
+    const estado = participante.estado();
+    if (estado !== "libre de deuda") return estado;
+
+    const tolerancia = this._entorno.grupo().reglas().toleranciaDeFaltas();
+    return `${estado} (${participante.faltas()}/${tolerancia} faltas)`;
+  }
+
+  private _tablaDeFinalizados(): HTMLElement | undefined {
     const finalizados = this._entorno.grupo().participantesFinalizados().toSorted(porNombre);
     return tabla(
       "Quienes ya no participan",

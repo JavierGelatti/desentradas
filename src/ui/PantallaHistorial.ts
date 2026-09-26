@@ -31,11 +31,7 @@ export class PantallaHistorial {
       "form",
       { onsubmit: (evento: Event) => evento.preventDefault() },
       crear("h3", {}, "Copia de seguridad"),
-      crear(
-        "p",
-        {},
-        boton("Exportar", () => this._exportar()),
-      ),
+      boton("Exportar", () => this._exportar()),
       crear("label", {}, "Importar ", archivo),
     );
   }
@@ -66,7 +62,7 @@ export class PantallaHistorial {
     }).abrir();
   }
 
-  private _tabla(): HTMLTableElement | undefined {
+  private _tabla(): HTMLElement | undefined {
     const comandos = this._entorno.aplicacion().comandos().toReversed();
     return tabla(
       undefined,

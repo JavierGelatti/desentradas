@@ -4,9 +4,7 @@ import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 
-// Desde cuándo rigen, tolerancia, monto por falta e interés, tal como se muestran.
 const valoresDe = (reglas: Reglas): string[] => [
-  fechaYHora(reglas.rigeDesde()),
   String(reglas.toleranciaDeFaltas()),
   monto(reglas.montoPorFalta()),
   reglas.politicaDeInteres().describir(monto),
@@ -28,13 +26,13 @@ export class PantallaReglas {
       {},
       crear("h2", {}, "Reglas"),
       this._reglasVigentes(),
-      this._formularioDeCambio(),
+      desplegable("Cambiar las reglas", this._formularioDeCambio()),
       desplegable("Versiones anteriores", this._tablaDeVersiones()),
     );
   }
 
   private _reglasVigentes(): HTMLElement {
-    const titulos = ["Rigen desde", "Tolerancia de faltas", "Monto por falta", "Interés"];
+    const titulos = ["Tolerancia de faltas", "Monto por falta", "Interés"];
     const valores = valoresDe(this._entorno.grupo().reglas());
     return crear(
       "dl",
@@ -46,7 +44,6 @@ export class PantallaReglas {
   private _formularioDeCambio(): HTMLFormElement {
     return formulario(
       (completado) => this._cambiar(completado),
-      crear("h3", {}, "Cambiar las reglas"),
       ...camposDeReglas(this._entorno.grupo().reglas()),
       this._errores,
       crear("p", {}, botonDeEnvio("Cambiar reglas")),
@@ -59,12 +56,12 @@ export class PantallaReglas {
     }, this._errores);
   }
 
-  private _tablaDeVersiones(): HTMLTableElement | undefined {
+  private _tablaDeVersiones(): HTMLElement | undefined {
     const anteriores = this._entorno.grupo().reglasAnteriores().toReversed();
     return tabla(
       undefined,
       ["Rigieron desde", "Tolerancia", "Monto por falta", "Interés"],
-      anteriores.map((reglas) => fila(...valoresDe(reglas))),
+      anteriores.map((reglas) => fila(fechaYHora(reglas.rigeDesde()), ...valoresDe(reglas))),
     );
   }
 }

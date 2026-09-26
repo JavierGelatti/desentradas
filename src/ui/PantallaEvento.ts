@@ -3,7 +3,7 @@ import type { Participante } from "../models/Participante.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
 import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
-import { alerta, boton, botonDeEnvio, crear, fila, formulario, tabla } from "./dom.ts";
+import { alerta, boton, botonDeEnvio, crear, fila, formulario, type Hijo, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { fechaYHora, monto } from "./Formato.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
@@ -36,12 +36,7 @@ export class PantallaEvento {
   private _formulario(): HTMLFormElement {
     return formulario(
       () => this._pedirConfirmacion(),
-      this._tablaDeAsistencia() ?? crear("p", {}, "Todavía no hay nadie"),
-      crear(
-        "p",
-        {},
-        boton("Vino alguien nuevo", () => this._abrirIngreso()),
-      ),
+      ...this._tablaDeAsistencia(),
       this._errores,
       crear(
         "p",
@@ -73,12 +68,14 @@ export class PantallaEvento {
     }
   }
 
-  private _tablaDeAsistencia(): HTMLTableElement | undefined {
+  private _tablaDeAsistencia(): Hijo[] {
     const posiblesAsistentes = this._entorno.grupo().posiblesAsistentes().toSorted(porNombre);
-    return tabla(
+    return tablaOAviso(
       "Asistencia",
       ["Asiste", "Nombre", "Estado", ""],
       posiblesAsistentes.map((participante) => this._filaDe(participante)),
+      "Todavía no hay nadie",
+      boton("Vino alguien nuevo", () => this._abrirIngreso()),
     );
   }
 

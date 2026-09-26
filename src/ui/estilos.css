@@ -1,5 +1,7 @@
+/* Estilo brutalista, con los colores del sistema (Canvas y CanvasText) para que el modo oscuro salga solo. */
 :root {
   font-family: system-ui, sans-serif;
+  line-height: 1.5;
   color-scheme: light dark;
 }
 
@@ -9,55 +11,200 @@ body {
   padding: 0 1rem 2rem;
 }
 
+h1,
+h2,
+h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+h3 {
+  font-size: 1rem;
+}
+
 nav {
   display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+}
+
+nav a {
+  flex-grow: 1;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  color: inherit;
+  text-decoration: none;
 }
 
 nav a[aria-current="page"] {
-  font-weight: bold;
+  background: CanvasText;
+  color: Canvas;
 }
 
-/* Una tabla más ancha que el teléfono se desplaza sola, sin que la página se mueva ni los botones se rompan. */
-table {
-  display: block;
+@media (min-width: 40rem) {
+  /* El título de la sección sólo hace falta en el teléfono, donde las pestañas se pierden al desplazarse. */
+  header:has(nav) + main > section > h2 {
+    display: none;
+  }
+
+  dl {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: auto auto;
+    text-align: center;
+  }
+}
+
+/* La envoltura hace que una tabla más ancha que el teléfono se desplace sola. */
+div:has(> table) {
   overflow-x: auto;
+  margin: 1rem 0;
+}
+
+table {
+  width: 100%;
   border-collapse: collapse;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+}
+
+caption {
+  font-weight: bold;
+  padding-bottom: 0.5rem;
 }
 
 th,
 td {
-  text-align: left;
-  vertical-align: top;
-  padding: 0.25rem 0.75rem 0.25rem 0;
-  white-space: nowrap;
+  text-align: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid;
+}
+
+th {
+  border-bottom-width: 2px;
+}
+
+th + th,
+td + td {
+  border-left: 1px solid;
+}
+
+button,
+input[type="text"],
+input[type="number"],
+select,
+::file-selector-button {
+  font: inherit;
+  color: inherit;
+  background: Canvas;
+  border: 2px solid;
+  border-radius: 0;
+  padding: 0.4rem 0.75rem;
 }
 
 button {
   white-space: nowrap;
+  cursor: pointer;
 }
 
-caption {
-  text-align: left;
-  font-weight: bold;
-  padding: 0.5rem 0;
+/* En una fila de datos el botón mide lo que una línea de texto, para no agrandar la fila. */
+tbody button {
+  padding-block: 0;
+  line-height: 1.25;
 }
 
+button:hover,
+button[type="submit"] {
+  background: CanvasText;
+  color: Canvas;
+}
+
+button[type="submit"]:hover {
+  background: Canvas;
+  color: CanvasText;
+}
+
+input[type="file"] {
+  font: inherit;
+}
+
+::file-selector-button {
+  margin-right: 0.5rem;
+}
+
+input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: CanvasText;
+}
+
+/* Texto arriba, control abajo. */
 form > label,
 dialog label {
-  display: block;
-  margin: 0.5rem 0;
+  display: grid;
+  gap: 0.25rem;
+  max-width: 20rem;
+  margin: 1rem 0;
+}
+
+/* Los párrafos de las pantallas son totales, avisos o filas de botones. */
+main p {
+  text-align: center;
 }
 
 output[role="alert"]:not(:empty),
 p[role="alert"] {
   display: block;
-  margin: 0.5rem 0;
+  margin: 1rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid;
   font-weight: bold;
 }
 
+details {
+  border: 2px solid;
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+}
+
+summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin: 0 0 0.5rem;
+}
+
 dialog {
+  border: 2px solid;
+  padding: 1rem;
   max-width: calc(100vw - 2rem);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+dialog h3 {
+  margin-top: 0;
+}
+
+:focus-visible {
+  outline: 3px solid;
+  outline-offset: 2px;
 }

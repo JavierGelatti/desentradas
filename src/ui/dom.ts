@@ -48,21 +48,39 @@ export const formulario = (alEnviar: (formulario: HTMLFormElement) => void, ...h
   return elemento;
 };
 
-// Una tabla sin filas no se muestra.
+// Una tabla sin filas no se muestra. Va envuelta para que, si es más ancha que la pantalla, se desplace sola.
 export const tabla = (
   titulo: string | undefined,
   encabezados: readonly string[],
   filas: HTMLTableRowElement[],
-): HTMLTableElement | undefined =>
+  pie?: HTMLElement,
+): HTMLElement | undefined =>
   filas.length === 0
     ? undefined
     : crear(
-        "table",
+        "div",
         {},
-        titulo !== undefined && crear("caption", {}, titulo),
-        crear("thead", {}, crear("tr", {}, ...encabezados.map((texto) => crear("th", {}, texto)))),
-        crear("tbody", {}, ...filas),
+        crear(
+          "table",
+          {},
+          titulo !== undefined && crear("caption", {}, titulo),
+          crear("thead", {}, crear("tr", {}, ...encabezados.map((texto) => crear("th", {}, texto)))),
+          crear("tbody", {}, ...filas),
+          pie !== undefined && crear("tfoot", {}, crear("tr", {}, crear("td", { colspan: encabezados.length }, pie))),
+        ),
       );
+
+// Sin filas, en lugar de la tabla va el aviso, con el pie suelto debajo.
+export const tablaOAviso = (
+  titulo: string | undefined,
+  encabezados: readonly string[],
+  filas: HTMLTableRowElement[],
+  aviso: string,
+  pie?: HTMLElement,
+): Hijo[] => {
+  const elemento = tabla(titulo, encabezados, filas, pie);
+  return elemento !== undefined ? [elemento] : [crear("p", {}, aviso), pie !== undefined && crear("p", {}, pie)];
+};
 
 // Un desplegable sin contenido no se muestra. La alerta acompaña al contenido, pero no decide si se muestra.
 export const desplegable = (
