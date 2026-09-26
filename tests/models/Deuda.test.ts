@@ -34,6 +34,15 @@ describe("Deuda", () => {
     expect(deuda.montoAl(dia(11))).toBe(montoPorFalta + 3 * interesDiario);
   });
 
+  it("en mora, antes de la fecha en que entró en mora vale el monto original", () => {
+    const deuda = nuevaDeuda();
+    deuda.entrarEnMora(dia(8));
+
+    const monto = deuda.montoAl(dia(5));
+
+    expect(monto).toBe(montoPorFalta);
+  });
+
   it("no puede entrar en mora dos veces", () => {
     const deuda = nuevaDeuda();
     deuda.entrarEnMora(dia(8));

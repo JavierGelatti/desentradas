@@ -39,7 +39,7 @@ export class Deuda {
   }
 
   montoAl(fecha: Date): number {
-    if (this.estaSaldada() || this._enMoraDesde === undefined) return this._monto;
+    if (this.estaSaldada() || this._enMoraDesde === undefined || fecha < this._enMoraDesde) return this._monto;
 
     return this._politicaDeInteres.montoConInteres(this._monto, this._enMoraDesde, fecha);
   }
