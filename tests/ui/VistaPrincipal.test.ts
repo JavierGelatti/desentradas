@@ -36,9 +36,9 @@ const almacenamientosConGrupo = () => {
 
 const montar = (almacenamientos = nuevosAlmacenamientos()) => {
   const aplicacion = nuevaAplicacion(almacenamientos);
-  const vista = new VistaPrincipal(aplicacion, almacenamientos.pantalla, ahora);
-  vista.montarEn(document.body);
-  return { aplicacion, almacenamientos };
+  const raiz = document.body.appendChild(document.createElement("div"));
+  new VistaPrincipal(aplicacion, almacenamientos.pantalla, ahora).montarEn(raiz);
+  return { aplicacion, almacenamientos, raiz };
 };
 
 const textoDe = (elemento: Element) => elemento.textContent?.replace(/\s+/g, " ").trim() ?? "";
@@ -165,6 +165,16 @@ describe("VistaPrincipal", () => {
     expect(fila("ana")).toBeDefined();
     await navegarA("Caja");
     expect(hayDesplegable("Movimientos")).toBe(true);
+  });
+
+  it("una vista que ya no está en el documento deja de seguir la navegación", async () => {
+    const { raiz } = montar(almacenamientosConGrupo());
+    document.body.replaceChildren();
+
+    location.hash = "#caja";
+    await new Promise((resolver) => setTimeout(resolver, 0));
+
+    expect(textoDe(raiz.querySelector("main h2")!)).toBe("Evento");
   });
 
   describe("formulario inicial", () => {

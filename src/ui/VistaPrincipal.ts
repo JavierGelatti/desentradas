@@ -90,7 +90,10 @@ export class VistaPrincipal implements Entorno {
     return esNombreDePantalla(ultima) ? ultima : "evento";
   }
 
+  // Una vista cuya raíz salió del documento ya no es la que se ve; si siguiera, pisaría la pantalla guardada y el hash.
   private _irSegunElHash(): void {
+    if (!this._raiz?.isConnected) return;
+
     const pantalla = location.hash.slice(1);
     if (esNombreDePantalla(pantalla) && pantalla !== this._pantallaActual) this._irA(pantalla);
   }
