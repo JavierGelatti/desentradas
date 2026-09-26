@@ -70,6 +70,16 @@ header:has(nav) + main > section > h2 {
   display: none;
 }
 
+/* Sin pestañas, la pantalla es sólo el formulario de creación: va centrado, con las etiquetas sobre sus campos. */
+header:not(:has(nav)) + main > section {
+  text-align: center;
+
+  form > label {
+    margin-inline: auto;
+    text-align: left;
+  }
+}
+
 @media (min-width: 40rem) {
   dl {
     display: grid;
