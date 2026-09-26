@@ -151,7 +151,10 @@ export class PantallaEncuentro {
         crear("p", {}, aviso),
       ],
       "Confirmar",
-      () => this._entorno.aplicacion().registrarEncuentroSegunPlanillaDeAsistencia(this._entorno.ahora()),
+      () => {
+        this._entorno.aplicacion().registrarEncuentroSegunPlanillaDeAsistencia(this._entorno.ahora());
+        this._entorno.irAlHistorial();
+      },
     ).abrir();
   }
 }

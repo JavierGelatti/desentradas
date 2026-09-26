@@ -86,6 +86,10 @@ export class VistaPrincipal implements Entorno {
     }
   }
 
+  irAlHistorial(): void {
+    this._irA("historial");
+  }
+
   mostrarDialogo(...contenido: Hijo[]): HTMLDialogElement {
     return mostrarDialogo(this._raizMontada(), ...contenido);
   }

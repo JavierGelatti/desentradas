@@ -384,7 +384,7 @@ describe("VistaPrincipal", () => {
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(false);
     });
 
-    it("registrar el encuentro toma como presentes a los marcados, incluso a quien pagó en la puerta, y descarta la planilla de asistencia", () => {
+    it("registrar el encuentro toma como presentes a los marcados, incluso a quien pagó en la puerta, descarta la planilla de asistencia y pasa al historial", () => {
       const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
       expect(pantallaActual()).toBe("Encuentro");
 
@@ -406,7 +406,12 @@ describe("VistaPrincipal", () => {
       expect(encuentro.asistentes()).toEqual(new Set(["beto", "carla", "ana"]));
       expect(aplicacion.grupo().participanteActivo("dani")?.estado()).toBe("en deuda");
       expect(almacenamientos.planilla.leer()).toBeUndefined();
-      expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(true);
+      expect(pantallaActual()).toBe("Historial");
+      expect(filasDe(document.querySelector("main")!)[0]).toEqual([
+        fechaYHora(ahora()),
+        "Encuentro con 3/4 presentes",
+        "Ver Deshacer",
+      ]);
     });
 
     it("descartar el encuentro sin nadie marcado no pide confirmación", () => {

@@ -10,5 +10,6 @@ export interface Entorno {
   refrescar(): void;
   intentarYRefrescar(accion: () => void, errores: HTMLOutputElement): void;
   deshacer(): void;
+  irAlHistorial(): void;
   mostrarDialogo(...contenido: Hijo[]): HTMLDialogElement;
 }
