@@ -15,5 +15,4 @@ const vista = new VistaPrincipal(aplicacion, new AlmacenamientoEnStorage(localSt
 vista.montarEn(document.querySelector<HTMLElement>("#app")!);
 
 registerSW();
-// Para que el navegador no borre los datos guardados.
 navigator.storage?.persist?.();
