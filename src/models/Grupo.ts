@@ -80,18 +80,21 @@ export class Grupo {
 
   cobrar(nombre: string, monto: number, fecha: Date): void {
     const participante = this._participanteActivoLlamado(nombre);
-    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error("El cobro no puede ser anterior al último cobro");
+    this._asertarQueNoEsAnteriorAlUltimoMovimiento("El cobro", fecha);
 
     this._cobrarYDistribuir(participante, monto, fecha, "efectivo");
     this._archivarFinalizados();
   }
 
   repartir(nombre: string, fecha: Date): Reparto {
+    this._asertarQueNoEsAnteriorAlUltimoMovimiento("El reparto", fecha);
+
     return this._caja.repartir(nombre, fecha);
   }
 
   cerrarEvento(evento: Evento): void {
     this._asertarQueEsPosteriorAlUltimoEvento(evento);
+    this._asertarQueNoEsAnteriorAlUltimoMovimiento("El evento", evento.fecha());
     this._asertarQuePuedenAsistir(evento);
     const reglas = this.reglasVigentesAl(evento.fecha());
 
@@ -183,6 +186,14 @@ export class Grupo {
     }
   }
 
+  // Eventos, cobros y repartos forman una única cronología.
+  private _asertarQueNoEsAnteriorAlUltimoMovimiento(movimiento: string, fecha: Date): void {
+    if (this._huboEventosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último evento`);
+    if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último cobro`);
+    if (this._caja.huboRepartosDespuesDe(fecha))
+      throw new Error(`${movimiento} no puede ser anterior al último reparto`);
+  }
+
   private _asertarQueRigenDespuesDelUltimoEvento(reglas: Reglas): void {
     if (!this._esPosteriorAlUltimoEvento(reglas.rigeDesde())) {
       throw new Error("Las nuevas reglas deben regir desde después del último evento registrado");
@@ -192,6 +203,10 @@ export class Grupo {
   private _esPosteriorAlUltimoEvento(fecha: Date): boolean {
     const ultimo = this._eventos.at(-1);
     return ultimo === undefined || fecha > ultimo.fecha();
+  }
+
+  private _huboEventosDespuesDe(fecha: Date): boolean {
+    return this._eventos.some((evento) => evento.fecha() > fecha);
   }
 
   private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {

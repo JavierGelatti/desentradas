@@ -50,6 +50,10 @@ export class Caja {
     return this._cobros.some((cobro) => cobro.fecha() > fecha);
   }
 
+  huboRepartosDespuesDe(fecha: Date): boolean {
+    return this._repartos.some((reparto) => reparto.fecha() > fecha);
+  }
+
   creditos(): readonly Credito[] {
     return this._creditos;
   }

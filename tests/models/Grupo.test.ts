@@ -403,6 +403,49 @@ describe("Grupo", () => {
       }).toThrow("El evento debe ser posterior al último registrado");
     });
 
+    it("no se puede cerrar un evento anterior al último cobro", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(5));
+
+      expect(() => {
+        grupo.cerrarEvento(nuevoEvento({ numero: 4, asistentes: ["ana", "beto"] }));
+      }).toThrow("El evento no puede ser anterior al último cobro");
+      expect(ana.estado()).toBe("libre de deuda");
+      expect(grupo.eventos()).toHaveLength(1);
+    });
+
+    it("no se puede cerrar un evento anterior al último reparto", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(3));
+      grupo.repartir("beto", dia(5));
+
+      expect(() => {
+        grupo.cerrarEvento(nuevoEvento({ numero: 4, asistentes: ["ana", "beto"] }));
+      }).toThrow("El evento no puede ser anterior al último reparto");
+      expect(grupo.eventos()).toHaveLength(1);
+    });
+
+    it("se puede cerrar un evento en la misma fecha que el último cobro y el último reparto", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(9));
+      grupo.repartir("beto", dia(9));
+      const evento = nuevoEvento({ numero: 9, asistentes: ["ana", "beto"] });
+
+      grupo.cerrarEvento(evento);
+
+      expect(ana.estado()).toBe("participando");
+      expect(grupo.eventos().at(-1)).toBe(evento);
+    });
+
     it("los asistentes a un evento deben ser participantes activos del grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
@@ -542,15 +585,19 @@ describe("Grupo", () => {
       expect(cobro.esEnEfectivo()).toBe(true);
     });
 
-    it("no se puede cobrar en una fecha anterior al evento faltado", () => {
+    it("no se puede cobrar en una fecha anterior al último evento", () => {
       const grupo = nuevoGrupo();
-      grupo.ingresar("ana", dia(1));
+      const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] })); // ana queda morosa y beto en deuda
 
       expect(() => {
-        grupo.cobrar("ana", 1000, dia(8));
-      }).toThrow("El cobro no puede ser anterior al evento faltado");
+        grupo.cobrar("ana", 1000, dia(5));
+      }).toThrow("El cobro no puede ser anterior al último evento");
+      expect(ana.deudaAl(dia(9))).toBe(1000);
+      expect(grupo.caja().cobros()).toEqual([]);
     });
   });
 
@@ -757,6 +804,22 @@ describe("Grupo", () => {
       expect(grupo.caja().cobros()).toHaveLength(1);
     });
 
+    it("no se puede cobrar en una fecha anterior al último reparto", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      const carla = grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(3));
+      grupo.repartir("beto", dia(5));
+
+      expect(() => {
+        grupo.cobrar("carla", 1000, dia(4));
+      }).toThrow("El cobro no puede ser anterior al último reparto");
+      expect(carla.deudaAl(dia(5))).toBe(1000);
+      expect(grupo.caja().cobros()).toHaveLength(1);
+    });
+
     it("repartir entrega los créditos pendientes de una persona y queda registrado en la caja", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
@@ -769,6 +832,53 @@ describe("Grupo", () => {
       expect(reparto.monto()).toBe(1000);
       expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
       expect(grupo.caja().repartos()).toEqual([reparto]);
+    });
+
+    it("no se puede repartir en una fecha anterior al último cobro", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(3));
+      grupo.cobrar("carla", 1000, dia(5));
+
+      expect(() => {
+        grupo.repartir("beto", dia(4));
+      }).toThrow("El reparto no puede ser anterior al último cobro");
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(2000);
+      expect(grupo.caja().repartos()).toEqual([]);
+    });
+
+    it("no se puede repartir en una fecha anterior al último reparto", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.cobrar("ana", 1000, dia(3));
+      const repartoABeto = grupo.repartir("beto", dia(5));
+
+      expect(() => {
+        grupo.repartir("carla", dia(4));
+      }).toThrow("El reparto no puede ser anterior al último reparto");
+      expect(grupo.caja().montoPendienteDe("carla")).toBe(500);
+      expect(grupo.caja().repartos()).toEqual([repartoABeto]);
+    });
+
+    it("no se puede repartir en una fecha anterior al último evento", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 1000, dia(3));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["ana", "beto"] }));
+
+      expect(() => {
+        grupo.repartir("beto", dia(5));
+      }).toThrow("El reparto no puede ser anterior al último evento");
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(1000);
+      expect(grupo.caja().repartos()).toEqual([]);
     });
   });
 });
