@@ -54,7 +54,7 @@ nav a[aria-current="page"] {
 /* En el teléfono las pestañas son más altas, para tocarlas con el dedo. */
 @media (width < 40rem) {
   nav a {
-    padding-block: 0.625rem;
+    padding-block: 0.875rem;
   }
 }
 
@@ -149,6 +149,11 @@ td > span:has(> button + button) {
   th,
   td {
     padding-inline: 0.25rem;
+  }
+
+  th + th,
+  td + td {
+    border-left: 0;
   }
 
   tbody button {
@@ -311,6 +316,13 @@ dialog {
   border: 2px solid;
   padding: 1rem;
   max-width: calc(100vw - 2rem);
+}
+
+/* En el teléfono el diálogo va arriba, para que el teclado no tape los botones. */
+@media (width < 40rem) {
+  dialog {
+    margin-top: 5rem;
+  }
 }
 
 dialog::backdrop {
