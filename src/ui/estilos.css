@@ -58,10 +58,16 @@ nav a[aria-current="page"] {
   color: var(--sobre-acento);
 }
 
-/* En el teléfono las pestañas son más altas, para tocarlas con el dedo. */
+/* En el teléfono las pestañas van en una sola fila de borde a borde, y son más altas para tocarlas con el dedo. */
 @media (width < 40rem) {
+  nav {
+    flex-wrap: nowrap;
+    margin-inline: -1rem;
+  }
+
   nav a {
-    padding-block: 0.875rem;
+    padding: 1.125rem 0.25rem;
+    font-size: clamp(0.8125rem, 4.6vw, 1rem);
   }
 }
 
