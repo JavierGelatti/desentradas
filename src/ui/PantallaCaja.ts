@@ -60,7 +60,7 @@ export class PantallaCaja {
       crear("span", { class: saldo.debe() ? "debe" : "a-favor" }, monto(saldo.monto())),
       saldo.debe()
         ? boton("Cobrar", () => this._abrirCobro(saldo))
-        : boton("Repartir", () => this._abrirReparto(saldo)),
+        : boton("Registrar reparto", () => this._abrirReparto(saldo)),
     );
   }
 
@@ -95,9 +95,9 @@ export class PantallaCaja {
     const nombre = saldo.nombre();
     new Dialogo(
       this._entorno,
-      `Repartir a ${nombre}`,
+      `Reparto a ${nombre}`,
       [crear("p", {}, `Se le van a entregar ${monto(saldo.monto())}.`)],
-      "Repartir",
+      "Registrar reparto",
       () => this._entorno.aplicacion().repartir(nombre, this._entorno.ahora()),
     ).abrir();
   }

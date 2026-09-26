@@ -328,9 +328,9 @@ describe("VistaPrincipal", () => {
       expect(filasDe(elementoConTexto("caption", "Saldos").parentElement!)).toEqual([
         ["eva", "en deuda", "-$ 1.000", "Cobrar"],
         ["fede", "en deuda", "-$ 1.000", "Cobrar"],
-        ["beto", "finalizado", "$ 334", "Repartir"],
-        ["carla", "participando", "$ 833", "Repartir"],
-        ["dani", "participando", "$ 833", "Repartir"],
+        ["beto", "finalizado", "$ 334", "Registrar reparto"],
+        ["carla", "participando", "$ 833", "Registrar reparto"],
+        ["dani", "participando", "$ 833", "Registrar reparto"],
       ]);
     });
 
@@ -342,9 +342,10 @@ describe("VistaPrincipal", () => {
       const { aplicacion } = montar(almacenamientos);
       await navegarA("Caja");
 
-      hacerClic("Repartir", fila("beto"));
+      hacerClic("Registrar reparto", fila("beto"));
+      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("Reparto a beto");
       expect(textoDe(dialogoAbierto())).toContain("Se le van a entregar $ 501.");
-      hacerClic("Repartir", dialogoAbierto());
+      hacerClic("Registrar reparto", dialogoAbierto());
 
       expect(aplicacion.grupo().caja().montoPendienteDe("beto")).toBe(0);
       expect(filasDe(elementoConTexto("summary", "Movimientos").parentElement!)).toEqual([
