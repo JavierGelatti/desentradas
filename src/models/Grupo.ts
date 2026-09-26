@@ -1,6 +1,5 @@
 import { Caja } from "./Caja.ts";
 import type { OrigenDeCobro } from "./Cobro.ts";
-import type { Credito } from "./Credito.ts";
 import type { Desempate } from "./Desempate.ts";
 import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
@@ -101,6 +100,7 @@ export class Grupo {
         participante.voy(evento, reglas);
       } else {
         participante.falto(evento, reglas);
+        this._aplicarCreditosPendientesDe(participante, evento.fecha());
       }
     });
     this._eventos.push(evento);
@@ -196,17 +196,21 @@ export class Grupo {
 
   private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
     const cobro = participante.pago(fecha, monto, this.reglasVigentesAl(fecha), origen);
-    this._caja.cobrar(cobro).forEach((credito) => this._aplicarSiElTitularDebe(credito, fecha));
+    const acreedores = new Set(this._caja.cobrar(cobro).map((credito) => credito.acreedor()));
+    acreedores.forEach((nombre) => {
+      const acreedor = this.participanteActivo(nombre);
+      if (acreedor !== undefined) this._aplicarCreditosPendientesDe(acreedor, fecha);
+    });
   }
 
-  private _aplicarSiElTitularDebe(credito: Credito, fecha: Date): void {
-    const deudor = this.participanteActivo(credito.acreedor());
-    if (deudor === undefined) return;
-    const deuda = deudor.deudaAl(fecha);
-    if (deuda === 0) return;
+  private _aplicarCreditosPendientesDe(participante: Participante, fecha: Date): void {
+    for (const credito of this._caja.creditosPendientesDe(participante.nombre())) {
+      const deuda = participante.deudaAl(fecha);
+      if (deuda === 0) return;
 
-    const monto = Math.min(credito.monto(), deuda);
-    this._cobrarYDistribuir(deudor, monto, fecha, this._caja.aplicar(credito, monto));
+      const monto = Math.min(credito.monto(), deuda);
+      this._cobrarYDistribuir(participante, monto, fecha, this._caja.aplicar(credito, monto));
+    }
   }
 
   private _archivarFinalizados(): void {

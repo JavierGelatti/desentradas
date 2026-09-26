@@ -664,6 +664,51 @@ describe("Grupo", () => {
       expect(grupo.caja().totalPendiente()).toBe(300);
     });
 
+    it("al quedar en deuda por faltar, los créditos pendientes se aplican a la deuda como un nuevo cobro en la fecha del evento", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.cobrar("ana", 1000, dia(3)); // beto queda con 500 pendientes
+      const eventoQueFaltaBeto = nuevoEvento({ numero: 9, asistentes: ["carla"] });
+
+      grupo.cerrarEvento(eventoQueFaltaBeto);
+
+      expect(beto.estado()).toBe("en deuda");
+      expect(beto.deudaAl(dia(9))).toBe(500);
+      const caja = grupo.caja();
+      expect(caja.montoPendienteDe("beto")).toBe(0);
+      expect(caja.montoPendienteDe("carla")).toBe(1000);
+      expect(caja.cobros()).toHaveLength(2);
+      const [cobroAAna, cobroABeto] = caja.cobros();
+      expect(cobroABeto.deudor()).toBe("beto");
+      expect(cobroABeto.monto()).toBe(500);
+      expect(cobroABeto.fecha()).toEqual(dia(9));
+      expect(cobroABeto.eventoFaltado()).toBe(eventoQueFaltaBeto);
+      const creditoAplicado = cobroABeto.origen() as Credito;
+      expect(creditoAplicado.acreedor()).toBe("beto");
+      expect(creditoAplicado.estado()).toBe("aplicado");
+      expect(creditoAplicado.cobro()).toBe(cobroAAna);
+    });
+
+    it("si los créditos pendientes superan la deuda por faltar, se aplican sólo hasta saldarla y el excedente queda pendiente", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cobrar("ana", 400, dia(3));
+      grupo.cobrar("carla", 1000, dia(3)); // beto queda con 400 + 1000 pendientes
+
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+
+      expect(beto.estado()).toBe("libre de deuda");
+      expect(beto.deudaAl(dia(9))).toBe(0);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(400);
+      expect(grupo.caja().montoPendienteDe("carla")).toBe(1000);
+    });
+
     it("los créditos de quien está finalizado quedan pendientes a su nombre", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
       grupo.ingresar("ana", dia(1));
@@ -678,6 +723,24 @@ describe("Grupo", () => {
       grupo.cobrar("ana", 1000, dia(17));
 
       expect(grupo.caja().montoPendienteDe("beto")).toBe(500);
+    });
+
+    it("quien reingresa con créditos pendientes los aplica a la deuda cuando vuelve a faltar", () => {
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.cobrar("beto", 1000, dia(10));
+      grupo.cerrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] })); // beto queda finalizado por faltas
+      grupo.cobrar("ana", 1000, dia(17)); // beto queda con 500 pendientes
+      grupo.reingresar("beto", dia(18));
+
+      grupo.cerrarEvento(nuevoEvento({ numero: 23, asistentes: ["carla"] }));
+
+      expect(beto.deudaAl(dia(23))).toBe(500);
+      expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
     });
 
     it("no se puede cobrar en una fecha anterior al último cobro", () => {
