@@ -162,7 +162,6 @@ export class Aplicacion {
   }
 
   // Se lee y ejecuta completa antes de reemplazar la bitácora actual: si falla, no cambia nada.
-  // La planilla de asistencia era de otro grupo, así que se descarta.
   importar(texto: string): void {
     this._bitacora = this._bitacoraDesde(texto);
     this._guardar();

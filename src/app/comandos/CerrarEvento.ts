@@ -30,10 +30,6 @@ export class CerrarEvento extends ComandoSobreElGrupo {
     return this._fecha;
   }
 
-  ausentes(): readonly string[] {
-    return this._ausentes;
-  }
-
   alDeshacerse(aplicacion: Aplicacion): void {
     aplicacion.restaurarPlanillaDeAsistencia(this._asistentes);
   }

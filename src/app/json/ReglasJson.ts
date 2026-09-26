@@ -5,7 +5,7 @@ import {
   SinInteres,
 } from "../../models/PoliticaDeInteres.ts";
 import { Reglas } from "../../models/Reglas.ts";
-import { fecha, formatoInvalido, numero, objeto, texto } from "./Campos.ts";
+import { fecha, numero, type Objeto, objeto, segunTipo } from "./Campos.ts";
 
 export type PoliticaDeInteresJson =
   { tipo: "sin interés" } | { tipo: "fijo por día"; montoPorDia: number } | { tipo: "mensual"; porcentaje: number };
@@ -42,17 +42,11 @@ export const politicaDeInteresAJson = (politica: PoliticaDeInteres): PoliticaDeI
   throw new Error("Política de interés desconocida");
 };
 
-export const politicaDeInteresDesdeJson = (json: unknown): PoliticaDeInteres => {
-  const campos = objeto(json, "La política de interés");
-  const tipo = texto(campos, "tipo");
-  switch (tipo) {
-    case "sin interés":
-      return new SinInteres();
-    case "fijo por día":
-      return new InteresFijoPorDia(numero(campos, "montoPorDia"));
-    case "mensual":
-      return new InteresMensual(numero(campos, "porcentaje"));
-    default:
-      throw formatoInvalido(`política de interés desconocida "${tipo}"`);
-  }
+const lectoresDePoliticas: Record<PoliticaDeInteresJson["tipo"], (campos: Objeto) => PoliticaDeInteres> = {
+  "sin interés": () => new SinInteres(),
+  "fijo por día": (campos) => new InteresFijoPorDia(numero(campos, "montoPorDia")),
+  mensual: (campos) => new InteresMensual(numero(campos, "porcentaje")),
 };
+
+export const politicaDeInteresDesdeJson = (json: unknown): PoliticaDeInteres =>
+  segunTipo(objeto(json, "La política de interés"), lectoresDePoliticas, "política de interés desconocida");

@@ -36,21 +36,13 @@ describe("Bitacora", () => {
   });
 
   describe("comandos", () => {
-    it("ejecutar un comando lo agrega a la bitácora", () => {
+    it("ejecutar un comando lo agrega a la bitácora y modifica el grupo", () => {
       const bitacora = bitacoraConGrupo();
       const ingresar = new Ingresar("ana", dia(1));
 
       bitacora.ejecutar(ingresar);
 
       expect(bitacora.comandos().at(-1)).toBe(ingresar);
-    });
-
-    it("ejecutar un comando modifica el grupo", () => {
-      const bitacora = bitacoraConGrupo();
-      const ingresar = new Ingresar("ana", dia(1));
-
-      bitacora.ejecutar(ingresar);
-
       expect(bitacora.grupo().participanteActivo("ana")).toBeDefined();
     });
 

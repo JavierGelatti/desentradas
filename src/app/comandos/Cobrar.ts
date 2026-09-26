@@ -1,30 +1,22 @@
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import type { Grupo } from "../../models/Grupo.ts";
 import { fecha, numero, type Objeto, texto } from "../json/Campos.ts";
-import { ComandoSobreElGrupo } from "./ComandoSobreElGrupo.ts";
+import { ComandoSobreUnaPersona } from "./ComandoSobreUnaPersona.ts";
 
-export class Cobrar extends ComandoSobreElGrupo {
-  private _nombre: string;
+export class Cobrar extends ComandoSobreUnaPersona {
   private _monto: number;
-  private _fecha: Date;
 
   static desdeJson(campos: Objeto): Cobrar {
     return new Cobrar(texto(campos, "nombre"), numero(campos, "monto"), fecha(campos, "fecha"));
   }
 
   constructor(nombre: string, monto: number, fecha: Date) {
-    super();
-    this._nombre = nombre;
+    super(nombre, fecha);
     this._monto = monto;
-    this._fecha = fecha;
   }
 
   protected ejecutarEn(grupo: Grupo): void {
     grupo.cobrar(this._nombre, this._monto, this._fecha);
-  }
-
-  fecha(): Date {
-    return this._fecha;
   }
 
   describir(): string {

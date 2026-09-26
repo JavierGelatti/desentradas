@@ -10,6 +10,14 @@ import { comandoDesdeJson } from "../../src/app/json/ComandoJson.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { desempate, dia, nuevoEvento, nuevoGrupo, reglas } from "../models/factories.ts";
 
+const grupoConDeudaDeAna = () => {
+  const grupo = nuevoGrupo();
+  grupo.ingresar("ana", dia(1));
+  grupo.ingresar("beto", dia(1));
+  grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+  return grupo;
+};
+
 describe("CrearGrupo", () => {
   it("crea el grupo con su nombre y sus reglas iniciales", () => {
     const reglasIniciales = reglas();
@@ -43,6 +51,14 @@ describe("CrearGrupo", () => {
     expect(comando.reglas()).toBe(reglasIniciales);
   });
 
+  it("no tiene asistencia, porque no es el cierre de un evento", () => {
+    const comando = new CrearGrupo("Fútbol de los jueves", reglas());
+
+    const asistencia = comando.asistencia();
+
+    expect(asistencia).toBeUndefined();
+  });
+
   it("no se puede crear un grupo con el nombre vacío", () => {
     const comando = new CrearGrupo("   ", reglas());
 
@@ -70,6 +86,14 @@ describe("ComandoSobreElGrupo", () => {
 
     expect(resultado).toBe(grupo);
     expect(grupo.participanteActivo("ana")).toBeDefined();
+  });
+
+  it("no tiene asistencia salvo que sea el cierre de un evento", () => {
+    const comando = new Ingresar("ana", dia(1));
+
+    const asistencia = comando.asistencia();
+
+    expect(asistencia).toBeUndefined();
   });
 
   it("no se puede ejecutar antes de crear el grupo", () => {
@@ -104,13 +128,10 @@ describe("Ingresar", () => {
 
 describe("Reingresar", () => {
   it("vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
-    const grupo = nuevoGrupo();
-    const ana = grupo.ingresar("ana", dia(1));
-    grupo.ingresar("beto", dia(1));
-    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
-    grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] }));
-    grupo.cobrar("ana", 1000, dia(10));
-    expect(ana.estaActivo()).toBe(false);
+    const grupo = grupoConDeudaDeAna();
+    grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] })); // ana queda morosa
+    grupo.cobrar("ana", 1000, dia(10)); // y finalizada por pagar la morosidad
+    const [ana] = grupo.participantesFinalizados();
     const comando = new Reingresar("ana", dia(11));
 
     comando.ejecutar(grupo, desempate);
@@ -144,12 +165,12 @@ describe("CerrarEvento", () => {
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 
-  it("recuerda a los posibles asistentes que no vinieron", () => {
+  it("recuerda la asistencia: quiénes vinieron y qué posibles asistentes no", () => {
     const comando = new CerrarEvento(dia(2), ["beto"], ["ana", "carla"]);
 
-    const ausentes = comando.ausentes();
+    const asistencia = comando.asistencia();
 
-    expect(ausentes).toEqual(["ana", "carla"]);
+    expect(asistencia).toEqual({ presentes: ["beto"], ausentes: ["ana", "carla"] });
   });
 
   it("se convierte a JSON con la fecha en formato ISO, los asistentes y los ausentes, y vuelve igual", () => {
@@ -169,15 +190,12 @@ describe("CerrarEvento", () => {
 
 describe("Cobrar", () => {
   it("registra el cobro a la persona por el monto y en la fecha indicados", () => {
-    const grupo = nuevoGrupo();
-    const ana = grupo.ingresar("ana", dia(1));
-    grupo.ingresar("beto", dia(1));
-    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    const grupo = grupoConDeudaDeAna();
     const comando = new Cobrar("ana", 400, dia(3));
 
     comando.ejecutar(grupo, desempate);
 
-    expect(ana.deudaAl(dia(3))).toBe(600);
+    expect(grupo.participanteActivo("ana")?.deudaAl(dia(3))).toBe(600);
     const [cobro] = grupo.caja().cobros();
     expect(cobro.fecha()).toEqual(dia(3));
   });
@@ -194,10 +212,7 @@ describe("Cobrar", () => {
 
 describe("Repartir", () => {
   it("entrega los créditos pendientes de la persona en la fecha indicada", () => {
-    const grupo = nuevoGrupo();
-    grupo.ingresar("ana", dia(1));
-    grupo.ingresar("beto", dia(1));
-    grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+    const grupo = grupoConDeudaDeAna();
     grupo.cobrar("ana", 1000, dia(3));
     const comando = new Repartir("beto", dia(4));
 
@@ -245,6 +260,12 @@ describe("Comandos en JSON", () => {
     expect(() => {
       comandoDesdeJson({ tipo: "expulsar", nombre: "ana" });
     }).toThrow('Formato inválido: comando desconocido "expulsar"');
+  });
+
+  it("no se puede leer un comando cuyo tipo es el nombre de algo que todo objeto hereda", () => {
+    expect(() => {
+      comandoDesdeJson({ tipo: "constructor" });
+    }).toThrow('Formato inválido: comando desconocido "constructor"');
   });
 });
 

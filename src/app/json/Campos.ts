@@ -47,3 +47,16 @@ export const textos = (objeto: Objeto, campo: string): string[] => {
 
   return valor;
 };
+
+// Elige el lector según el "tipo" del objeto; `desconocido` es el mensaje para un tipo sin lector.
+export const segunTipo = <T>(
+  objeto: Objeto,
+  lectores: Record<string, (campos: Objeto) => T>,
+  desconocido: string,
+): T => {
+  const tipo = texto(objeto, "tipo");
+  const lector = Object.hasOwn(lectores, tipo) ? lectores[tipo] : undefined;
+  if (lector === undefined) throw formatoInvalido(`${desconocido} "${tipo}"`);
+
+  return lector(objeto);
+};

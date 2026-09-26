@@ -1,36 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
-import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
 import { CerrarEvento } from "../../src/app/comandos/CerrarEvento.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
-import { desempate, dia, reglas } from "../models/factories.ts";
+import { dia, reglas } from "../models/factories.ts";
+import { type Almacenamientos, aplicacionConGrupo, nuevaAplicacion } from "./factories.ts";
 
-const nuevaAplicacion = (
-  almacenamiento = new AlmacenamientoEnMemoria(),
-  almacenamientoDePlanilla = new AlmacenamientoEnMemoria(),
-) => new Aplicacion(almacenamiento, desempate, almacenamientoDePlanilla);
-
-const aplicacionConGrupo = (
-  almacenamiento = new AlmacenamientoEnMemoria(),
-  almacenamientoDePlanilla = new AlmacenamientoEnMemoria(),
-) => {
-  const aplicacion = nuevaAplicacion(almacenamiento, almacenamientoDePlanilla);
-  aplicacion.crearGrupo("Fútbol de los jueves", reglas());
+const aplicacionConAnaYBeto = (almacenamientos: Almacenamientos = {}) => {
+  const aplicacion = aplicacionConGrupo(almacenamientos);
+  aplicacion.ingresar("ana", dia(1));
+  aplicacion.ingresar("beto", dia(1));
   return aplicacion;
 };
 
-const aplicacionConDeudaDeAna = (almacenamiento = new AlmacenamientoEnMemoria()) => {
-  const aplicacion = aplicacionConGrupo(almacenamiento);
-  aplicacion.ingresar("ana", dia(1));
-  aplicacion.ingresar("beto", dia(1));
+const aplicacionConDeudaDeAna = (almacenamientos: Almacenamientos = {}) => {
+  const aplicacion = aplicacionConAnaYBeto(almacenamientos);
   aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
   return aplicacion;
 };
 
-const aplicacionConAnaMorosa = (almacenamiento = new AlmacenamientoEnMemoria()) => {
-  const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
+const aplicacionConAnaMorosa = () => {
+  const aplicacion = aplicacionConDeudaDeAna();
   aplicacion.cerrarEvento(dia(3), ["beto"], ["ana"]);
   return aplicacion;
 };
@@ -58,7 +49,7 @@ describe("Aplicacion", () => {
   describe("persistencia", () => {
     it("cada comando ejecutado deja guardada la bitácora", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = nuevaAplicacion(almacenamiento);
+      const aplicacion = nuevaAplicacion({ bitacora: almacenamiento });
 
       aplicacion.crearGrupo("Fútbol de los jueves", reglas());
 
@@ -67,9 +58,9 @@ describe("Aplicacion", () => {
 
     it("al iniciar se carga la bitácora guardada", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      nuevaAplicacion(almacenamiento).crearGrupo("Fútbol de los jueves", reglas());
+      nuevaAplicacion({ bitacora: almacenamiento }).crearGrupo("Fútbol de los jueves", reglas());
 
-      const aplicacion = nuevaAplicacion(almacenamiento);
+      const aplicacion = nuevaAplicacion({ bitacora: almacenamiento });
 
       expect(aplicacion.tieneGrupo()).toBe(true);
       expect(aplicacion.grupo().nombre()).toBe("Fútbol de los jueves");
@@ -80,7 +71,7 @@ describe("Aplicacion", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
       almacenamiento.guardar("esto no es JSON");
 
-      const aplicacion = nuevaAplicacion(almacenamiento);
+      const aplicacion = nuevaAplicacion({ bitacora: almacenamiento });
 
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(aplicacion.avisoDeInicio()).toBe("Los datos guardados no se pudieron leer y se ignoraron");
@@ -95,7 +86,7 @@ describe("Aplicacion", () => {
         }),
       );
 
-      const aplicacion = nuevaAplicacion(almacenamiento);
+      const aplicacion = nuevaAplicacion({ bitacora: almacenamiento });
 
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(aplicacion.avisoDeInicio()).toBe("Los datos guardados no se pudieron leer y se ignoraron");
@@ -103,7 +94,7 @@ describe("Aplicacion", () => {
 
     it("un comando que el grupo rechaza no modifica lo guardado", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(almacenamiento);
+      const aplicacion = aplicacionConGrupo({ bitacora: almacenamiento });
       aplicacion.ingresar("ana", dia(1));
       const guardadoAntes = almacenamiento.leer();
 
@@ -124,9 +115,7 @@ describe("Aplicacion", () => {
     });
 
     it("cerrar evento registra el evento con sus asistentes en el grupo", () => {
-      const aplicacion = aplicacionConGrupo();
-      aplicacion.ingresar("ana", dia(1));
-      aplicacion.ingresar("beto", dia(1));
+      const aplicacion = aplicacionConAnaYBeto();
 
       aplicacion.cerrarEvento(dia(2), ["beto"], ["ana"]);
 
@@ -153,10 +142,8 @@ describe("Aplicacion", () => {
     });
 
     it("reingresar vuelve a dejar como participante activo a quien ya participó", () => {
-      const aplicacion = aplicacionConDeudaDeAna();
-      aplicacion.cerrarEvento(dia(9), ["beto"], ["ana"]);
-      aplicacion.cobrar("ana", 1000, dia(10));
-      expect(aplicacion.grupo().participanteActivo("ana")).toBeUndefined();
+      const aplicacion = aplicacionConAnaMorosa();
+      aplicacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pagar la morosidad
 
       aplicacion.reingresar("ana", dia(11));
 
@@ -234,7 +221,7 @@ describe("Aplicacion", () => {
 
     it("deshacer deja guardada la bitácora", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConDeudaDeAna(almacenamiento);
+      const aplicacion = aplicacionConDeudaDeAna({ bitacora: almacenamiento });
 
       aplicacion.deshacer();
 
@@ -256,7 +243,7 @@ describe("Aplicacion", () => {
   describe("planilla de asistencia", () => {
     it("empezar la planilla de asistencia la deja sin asistentes y guardada", () => {
       const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(new AlmacenamientoEnMemoria(), almacenamientoDePlanilla);
+      const aplicacion = aplicacionConGrupo({ planilla: almacenamientoDePlanilla });
 
       const planilla = aplicacion.empezarPlanillaDeAsistencia();
 
@@ -286,7 +273,7 @@ describe("Aplicacion", () => {
 
     it("descartar la planilla de asistencia deja a la aplicación sin planilla y borra lo guardado", () => {
       const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(new AlmacenamientoEnMemoria(), almacenamientoDePlanilla);
+      const aplicacion = aplicacionConGrupo({ planilla: almacenamientoDePlanilla });
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("ana");
 
       aplicacion.descartarPlanillaDeAsistencia();
@@ -296,21 +283,16 @@ describe("Aplicacion", () => {
     });
 
     it("una aplicación nueva sobre el mismo almacenamiento recupera la planilla de asistencia empezada", () => {
-      const almacenamiento = new AlmacenamientoEnMemoria();
-      const almacenamientoDePlanilla = new AlmacenamientoEnMemoria();
-      aplicacionConGrupo(almacenamiento, almacenamientoDePlanilla)
-        .empezarPlanillaDeAsistencia()
-        .marcarComoPresente("ana");
+      const almacenamientos = { bitacora: new AlmacenamientoEnMemoria(), planilla: new AlmacenamientoEnMemoria() };
+      aplicacionConGrupo(almacenamientos).empezarPlanillaDeAsistencia().marcarComoPresente("ana");
 
-      const aplicacion = nuevaAplicacion(almacenamiento, almacenamientoDePlanilla);
+      const aplicacion = nuevaAplicacion(almacenamientos);
 
       expect(aplicacion.planillaDeAsistencia().asistentes()).toEqual(["ana"]);
     });
 
-    it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla", () => {
-      const aplicacion = aplicacionConGrupo();
-      aplicacion.ingresar("ana", dia(1));
-      aplicacion.ingresar("beto", dia(1));
+    it("cerrar el evento según la planilla lo registra en la fecha del cierre con los asistentes de la planilla, y la descarta", () => {
+      const aplicacion = aplicacionConAnaYBeto();
       aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
 
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
@@ -318,6 +300,7 @@ describe("Aplicacion", () => {
       const [evento] = aplicacion.grupo().eventos();
       expect(evento.fecha()).toEqual(dia(3));
       expect(evento.asistentes()).toEqual(new Set(["beto"]));
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
     });
 
     it("cerrar el evento según la planilla recuerda a los posibles asistentes sin marcar como ausentes", () => {
@@ -328,18 +311,7 @@ describe("Aplicacion", () => {
       aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
 
       const cierre = aplicacion.comandos().at(-1) as CerrarEvento;
-      expect(cierre.ausentes()).toEqual(["ana", "carla"]);
-    });
-
-    it("cerrar el evento según la planilla la descarta", () => {
-      const aplicacion = aplicacionConGrupo();
-      aplicacion.ingresar("ana", dia(1));
-      aplicacion.ingresar("beto", dia(1));
-      aplicacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
-
-      aplicacion.cerrarEventoSegunPlanillaDeAsistencia(dia(3));
-
-      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
+      expect(cierre.asistencia().ausentes).toEqual(["ana", "carla"]);
     });
 
     it("un cierre que el grupo rechaza deja la planilla como estaba", () => {
@@ -556,7 +528,7 @@ describe("Aplicacion", () => {
     it("importar deja guardada la bitácora importada", () => {
       const exportado = aplicacionConDeudaDeAna().exportar();
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(almacenamiento);
+      const aplicacion = aplicacionConGrupo({ bitacora: almacenamiento });
       aplicacion.ingresar("carla", dia(1));
 
       aplicacion.importar(exportado);
@@ -566,7 +538,7 @@ describe("Aplicacion", () => {
 
     it("no se puede importar un texto que no es una bitácora", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(almacenamiento);
+      const aplicacion = aplicacionConGrupo({ bitacora: almacenamiento });
       const exportadoAntes = aplicacion.exportar();
 
       expect(() => {
@@ -578,7 +550,7 @@ describe("Aplicacion", () => {
 
     it("no se puede importar una bitácora con un comando que el grupo rechaza", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
-      const aplicacion = aplicacionConGrupo(almacenamiento);
+      const aplicacion = aplicacionConGrupo({ bitacora: almacenamiento });
       const exportadoAntes = aplicacion.exportar();
       const invalida = JSON.parse(exportadoAntes);
       invalida.comandos.push({ tipo: "cobrar", nombre: "ana", monto: 1000, fecha: dia(3).toISOString() });

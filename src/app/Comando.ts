@@ -5,9 +5,7 @@ import type { ComandoJson } from "./json/ComandoJson.ts";
 
 export type Asistencia = { presentes: readonly string[]; ausentes: readonly string[] };
 
-// Un registro de la bitácora: sabe ejecutarse sobre el grupo actual (que no existe hasta crearlo),
-// convertirse a JSON para volver a ejecutarse más adelante, describirse para el historial
-// y devolverle a la aplicación lo que haga falta para retomarlo cuando se deshace.
+// Un registro de la bitácora. El grupo no existe hasta que el primero lo crea.
 export interface Comando {
   ejecutar(grupo: Grupo | undefined, desempate: Desempate): Grupo;
   alDeshacerse(aplicacion: Aplicacion): void;

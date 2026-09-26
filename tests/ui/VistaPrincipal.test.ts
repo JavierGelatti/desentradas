@@ -1,23 +1,18 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
-import { Aplicacion } from "../../src/app/Aplicacion.ts";
+import type { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { fechaYHora } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
-import { ahora } from "../app/factories.ts";
-import { desempate, dia, reglas } from "../models/factories.ts";
+import { ahora, nuevaAplicacion } from "../app/factories.ts";
+import { dia, reglas } from "../models/factories.ts";
 
 const nuevosAlmacenamientos = () => ({
   bitacora: new AlmacenamientoEnMemoria(),
   planilla: new AlmacenamientoEnMemoria(),
   pantalla: new AlmacenamientoEnMemoria(),
 });
-
-type Almacenamientos = ReturnType<typeof nuevosAlmacenamientos>;
-
-const nuevaAplicacion = (almacenamientos: Almacenamientos) =>
-  new Aplicacion(almacenamientos.bitacora, desempate, almacenamientos.planilla);
 
 const almacenamientosConGrupoSinParticipantes = () => {
   const almacenamientos = nuevosAlmacenamientos();

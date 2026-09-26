@@ -6,7 +6,7 @@ import { CerrarEvento } from "../comandos/CerrarEvento.ts";
 import { Cobrar } from "../comandos/Cobrar.ts";
 import { Repartir } from "../comandos/Repartir.ts";
 import { CambiarReglas } from "../comandos/CambiarReglas.ts";
-import { formatoInvalido, objeto, texto } from "./Campos.ts";
+import { type Objeto, objeto, segunTipo } from "./Campos.ts";
 import type { ReglasJson } from "./ReglasJson.ts";
 
 export type ComandoJson =
@@ -18,25 +18,15 @@ export type ComandoJson =
   | { tipo: "repartir"; nombre: string; fecha: string }
   | { tipo: "cambiar reglas"; reglas: ReglasJson };
 
-export const comandoDesdeJson = (json: unknown): Comando => {
-  const campos = objeto(json, "El comando");
-  const tipo = texto(campos, "tipo");
-  switch (tipo) {
-    case "crear grupo":
-      return CrearGrupo.desdeJson(campos);
-    case "ingresar":
-      return Ingresar.desdeJson(campos);
-    case "reingresar":
-      return Reingresar.desdeJson(campos);
-    case "cerrar evento":
-      return CerrarEvento.desdeJson(campos);
-    case "cobrar":
-      return Cobrar.desdeJson(campos);
-    case "repartir":
-      return Repartir.desdeJson(campos);
-    case "cambiar reglas":
-      return CambiarReglas.desdeJson(campos);
-    default:
-      throw formatoInvalido(`comando desconocido "${tipo}"`);
-  }
+const lectores: Record<ComandoJson["tipo"], (campos: Objeto) => Comando> = {
+  "crear grupo": CrearGrupo.desdeJson,
+  ingresar: Ingresar.desdeJson,
+  reingresar: Reingresar.desdeJson,
+  "cerrar evento": CerrarEvento.desdeJson,
+  cobrar: Cobrar.desdeJson,
+  repartir: Repartir.desdeJson,
+  "cambiar reglas": CambiarReglas.desdeJson,
 };
+
+export const comandoDesdeJson = (json: unknown): Comando =>
+  segunTipo(objeto(json, "El comando"), lectores, "comando desconocido");
