@@ -517,6 +517,38 @@ describe("Grupo", () => {
     });
   });
 
+  describe("saldos", () => {
+    it("quien debe tiene un saldo negativo por su deuda a la fecha, y quien no debe ni tiene créditos no tiene saldo", () => {
+      const grupo = nuevoGrupo(reglas({ politicaDeInteres: new InteresFijoPorDia(10) }));
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto"] }));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["beto"] })); // ana queda morosa y empieza a sumar interés
+
+      const saldos = grupo.saldosAl(dia(11));
+
+      expect(saldos.map((saldo) => [saldo.nombre(), saldo.monto()])).toEqual([["ana", -1020]]);
+    });
+    it("quien tiene créditos pendientes tiene un saldo positivo por ellos, aunque su participación esté finalizada", () => {
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 1 }));
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("carla", dia(1));
+      grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
+      grupo.cobrar("beto", 1000, dia(10));
+      grupo.cerrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] }));
+      grupo.cobrar("ana", 1000, dia(17)); // ana y beto quedan finalizados; beto con 500 pendientes y carla con 1500
+
+      const saldos = grupo.saldosAl(dia(17));
+
+      expect(saldos.map((saldo) => [saldo.nombre(), saldo.monto()])).toEqual([
+        ["carla", 1500],
+        ["beto", 500],
+      ]);
+    });
+  });
+
   describe("posibles asistentes", () => {
     it("quien está en deuda es un posible asistente, y un moroso no", () => {
       const grupo = nuevoGrupo();

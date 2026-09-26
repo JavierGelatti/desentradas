@@ -1,6 +1,7 @@
 import type { Credito } from "./Credito.ts";
+import type { Movimiento, TipoDeMovimiento } from "./Movimiento.ts";
 
-export class Reparto {
+export class Reparto implements Movimiento {
   private _fecha: Date;
   private _acreedor: string;
   private _creditos: readonly Credito[];
@@ -16,6 +17,14 @@ export class Reparto {
   }
 
   acreedor(): string {
+    return this._acreedor;
+  }
+
+  tipo(): TipoDeMovimiento {
+    return "reparto";
+  }
+
+  persona(): string {
     return this._acreedor;
   }
 

@@ -1,6 +1,7 @@
 import type { Cobro } from "./Cobro.ts";
 import { Credito } from "./Credito.ts";
 import type { Desempate } from "./Desempate.ts";
+import type { Movimiento } from "./Movimiento.ts";
 import { Reparto } from "./Reparto.ts";
 
 export class Caja {
@@ -60,6 +61,14 @@ export class Caja {
 
   repartos(): readonly Reparto[] {
     return this._repartos;
+  }
+
+  // Sólo la plata que pasa de mano: un cobro hecho con un crédito no entra ni sale de la caja.
+  movimientos(): readonly Movimiento[] {
+    const cobrosEnEfectivo = this._cobros.filter((cobro) => cobro.esEnEfectivo());
+    return [...cobrosEnEfectivo, ...this._repartos].toSorted(
+      (uno, otro) => uno.fecha().getTime() - otro.fecha().getTime(),
+    );
   }
 
   creditosPendientesDe(nombre: string): readonly Credito[] {

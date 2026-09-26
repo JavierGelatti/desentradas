@@ -6,6 +6,7 @@ import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
 import type { Reparto } from "./Reparto.ts";
 import { Participante } from "./Participante.ts";
+import { Saldo } from "./Saldo.ts";
 
 export class Grupo {
   private _nombre: string;
@@ -130,6 +131,17 @@ export class Grupo {
 
   participantesFinalizados(): readonly Participante[] {
     return this._participantesFinalizados;
+  }
+
+  // Nadie debe y tiene créditos pendientes a la vez: los créditos se aplican apenas aparece la deuda.
+  saldosAl(fecha: Date): readonly Saldo[] {
+    const deudas = this._participantes
+      .filter((participante) => participante.deudaAl(fecha) > 0)
+      .map((participante) => new Saldo(participante.nombre(), -participante.deudaAl(fecha)));
+    const creditos = this._caja
+      .nombresConCreditosPendientes()
+      .map((nombre) => new Saldo(nombre, this._caja.montoPendienteDe(nombre)));
+    return [...deudas, ...creditos];
   }
 
   participanteActivo(nombre: string): Participante | undefined {

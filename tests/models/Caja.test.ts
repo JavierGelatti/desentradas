@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Caja } from "../../src/models/Caja.ts";
+import { Cobro } from "../../src/models/Cobro.ts";
 import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
-import { cobroEnEfectivo, dia } from "./factories.ts";
+import { cobroEnEfectivo, dia, nuevoEvento } from "./factories.ts";
 
 const nuevaCaja = () => new Caja(new DesempateAlfabetico());
 
@@ -159,6 +160,41 @@ describe("Caja", () => {
         caja.repartir("beto", dia(5));
       }).toThrow("beto no tiene créditos pendientes");
       expect(caja.repartos()).toEqual([]);
+    });
+  });
+
+  describe("movimientos", () => {
+    it("los movimientos son los cobros y los repartos, en orden cronológico", () => {
+      const caja = nuevaCaja();
+      caja.cobrar(cobroEnEfectivo({ deudor: "ana", monto: 1000, numero: 3 }));
+      caja.repartir("beto", dia(5));
+      caja.cobrar(cobroEnEfectivo({ deudor: "dario", monto: 300, numero: 6 }));
+
+      const movimientos = caja.movimientos();
+
+      expect(
+        movimientos.map((movimiento) => [
+          movimiento.fecha(),
+          movimiento.tipo(),
+          movimiento.persona(),
+          movimiento.monto(),
+        ]),
+      ).toEqual([
+        [dia(3), "cobro", "ana", 1000],
+        [dia(5), "reparto", "beto", 500],
+        [dia(6), "cobro", "dario", 300],
+      ]);
+    });
+
+    it("los cobros hechos con créditos no son movimientos", () => {
+      const caja = nuevaCaja();
+      const [credito] = caja.cobrar(cobroEnEfectivo({ deudor: "ana", monto: 1000, numero: 3, asistentes: ["beto"] }));
+      const aplicado = caja.aplicar(credito, 400);
+      caja.cobrar(new Cobro("beto", 400, dia(4), nuevoEvento({ numero: 4, asistentes: ["carla"] }), aplicado));
+
+      const movimientos = caja.movimientos();
+
+      expect(movimientos.map((movimiento) => [movimiento.tipo(), movimiento.persona()])).toEqual([["cobro", "ana"]]);
     });
   });
 });

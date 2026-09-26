@@ -1,9 +1,10 @@
 import type { Credito } from "./Credito.ts";
 import type { Evento } from "./Evento.ts";
+import type { Movimiento, TipoDeMovimiento } from "./Movimiento.ts";
 
 export type OrigenDeCobro = "efectivo" | Credito;
 
-export class Cobro {
+export class Cobro implements Movimiento {
   private _deudor: string;
   private _monto: number;
   private _fecha: Date;
@@ -29,6 +30,14 @@ export class Cobro {
 
   monto(): number {
     return this._monto;
+  }
+
+  tipo(): TipoDeMovimiento {
+    return "cobro";
+  }
+
+  persona(): string {
+    return this._deudor;
   }
 
   fecha(): Date {
