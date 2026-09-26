@@ -51,12 +51,19 @@ nav a[aria-current="page"] {
   color: Canvas;
 }
 
-@media (min-width: 40rem) {
-  /* El título de la sección sólo hace falta en el teléfono, donde las pestañas se pierden al desplazarse. */
-  header:has(nav) + main > section > h2 {
-    display: none;
+/* En el teléfono las pestañas son más altas, para tocarlas con el dedo. */
+@media (width < 40rem) {
+  nav a {
+    padding-block: 0.625rem;
   }
+}
 
+/* Las pestañas ya nombran la sección. */
+header:has(nav) + main > section > h2 {
+  display: none;
+}
+
+@media (min-width: 40rem) {
   dl {
     display: grid;
     grid-auto-flow: column;
@@ -117,10 +124,113 @@ button {
   cursor: pointer;
 }
 
-/* En una fila de datos el botón mide lo que una línea de texto, para no agrandar la fila. */
-tbody button {
-  padding-block: 0;
-  line-height: 1.25;
+/* En el escritorio, en una fila de datos el botón mide lo que una línea de texto, para no agrandar la fila. */
+@media (min-width: 40rem) {
+  tbody button {
+    padding-block: 0;
+    line-height: 1.25;
+  }
+}
+
+/* Dos botones en una celda se separan también cuando el ancho los apila. */
+td > span:has(> button + button) {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+/* En el teléfono las tablas se aprietan para que entren. */
+@media (width < 40rem) {
+  table {
+    font-size: 0.9rem;
+  }
+
+  th,
+  td {
+    padding-inline: 0.25rem;
+  }
+
+  tbody button {
+    white-space: normal;
+  }
+
+  /* Las tablas con título son listas de personas: cada fila se ve como una ficha, con la casilla a la izquierda, la
+     acción a la derecha y el nombre sobre el detalle en el medio, sin encabezados porque los valores se explican solos. */
+  table:has(caption) {
+    display: block;
+    border-top: 0;
+
+    /* Las fichas entran sin achicar la letra, salvo en los teléfonos más angostos. */
+    @media (width > 350px) {
+      font-size: inherit;
+    }
+
+    :is(caption, tbody, tfoot, tfoot tr, tfoot td) {
+      display: block;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      /* Lleva el borde de arriba para que el título quede por encima, como en la tabla. */
+      border-top: 2px solid;
+
+      tr {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        column-gap: 0.75rem;
+        align-items: center;
+        padding-block: 0.5rem;
+        border-bottom: 1px solid;
+      }
+
+      td {
+        padding: 0;
+        border: 0;
+        text-align: left;
+      }
+
+      td:empty {
+        display: none;
+      }
+
+      td:has(input) {
+        grid-column: 1;
+        grid-row: 1 / 3;
+      }
+
+      input {
+        margin: 0;
+      }
+
+      /* El nombre es la primera celda, o la que sigue a la casilla. */
+      td:first-child:not(:has(input)) {
+        grid-column: 1 / -2;
+      }
+
+      td:has(input) + td {
+        grid-column: 2 / -2;
+      }
+
+      td:has(button) {
+        grid-column: -2;
+        grid-row: 1 / 3;
+      }
+
+      td:nth-child(n + 2 of :not(:has(input, button))) {
+        grid-row: 2;
+        font-size: 0.85em;
+
+        & + td:not(:has(button))::before {
+          content: "·";
+          margin-right: 0.75rem;
+        }
+      }
+    }
+  }
 }
 
 button:hover,
@@ -158,8 +268,15 @@ dialog label {
 }
 
 /* Los párrafos de las pantallas son totales, avisos o filas de botones. */
-main p {
+main p,
+dialog p:has(button) {
   text-align: center;
+}
+
+/* Los totales van separados por un punto medio, como el detalle de las fichas. */
+main p > span + span::before {
+  content: "·";
+  margin-inline: 0.75rem;
 }
 
 output[role="alert"]:not(:empty),

@@ -36,7 +36,12 @@ export class PantallaCaja {
   private _totales(saldos: readonly Saldo[]): HTMLParagraphElement {
     const porCobrar = saldos.filter((saldo) => saldo.debe()).reduce((total, saldo) => total - saldo.monto(), 0);
     const porRepartir = this._entorno.grupo().caja().totalPendiente();
-    return crear("p", {}, `Por cobrar ${monto(porCobrar)} · Por repartir ${monto(porRepartir)}`);
+    return crear(
+      "p",
+      {},
+      crear("span", {}, `Por cobrar ${monto(porCobrar)}`),
+      crear("span", {}, `Por repartir ${monto(porRepartir)}`),
+    );
   }
 
   private _tablaDeSaldos(saldos: readonly Saldo[]): Hijo[] {

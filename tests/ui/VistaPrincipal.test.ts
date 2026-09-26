@@ -323,7 +323,8 @@ describe("VistaPrincipal", () => {
 
       await navegarA("Caja");
 
-      expect(hayElementoConTexto("p", "Por cobrar $ 2.000 · Por repartir $ 2.000")).toBe(true);
+      expect(hayElementoConTexto("p > span", "Por cobrar $ 2.000")).toBe(true);
+      expect(hayElementoConTexto("p > span", "Por repartir $ 2.000")).toBe(true);
       expect(filasDe(elementoConTexto("caption", "Saldos").parentElement!)).toEqual([
         ["eva", "en deuda", "-$ 1.000", "Cobrar"],
         ["fede", "en deuda", "-$ 1.000", "Cobrar"],
