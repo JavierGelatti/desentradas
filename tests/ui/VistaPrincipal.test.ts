@@ -384,7 +384,7 @@ describe("VistaPrincipal", () => {
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(false);
     });
 
-    it("registrar el encuentro toma como presentes a los marcados, incluso a quien pagó en la puerta, descarta la planilla de asistencia y pasa al historial", () => {
+    it("registrar el encuentro toma como presentes a los marcados, incluso a quien pagó en la puerta, descarta la planilla y pasa al historial", () => {
       const { aplicacion, almacenamientos } = montar(almacenamientosConGrupo());
       expect(pantallaActual()).toBe("Encuentro");
 
