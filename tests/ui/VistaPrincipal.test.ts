@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
-import { aEntradaDeFecha, fechaYHora } from "../../src/ui/Formato.ts";
+import { fechaYHora } from "../../src/ui/Formato.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
 import { ahora } from "../app/factories.ts";
 import { desempate, dia, reglas } from "../models/factories.ts";
@@ -301,6 +301,7 @@ describe("VistaPrincipal", () => {
 
       hacerClic("Cobrar", fila("ana"));
       expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      expect(hayEtiqueta("Fecha", dialogoAbierto())).toBe(false);
       completar("Monto", "400", dialogoAbierto());
       hacerClic("Cobrar", dialogoAbierto());
 
@@ -340,6 +341,7 @@ describe("VistaPrincipal", () => {
       await navegarA("Caja");
 
       hacerClic("Repartir", fila("beto"));
+      expect(textoDe(dialogoAbierto())).toContain("Se le van a entregar $ 501.");
       hacerClic("Repartir", dialogoAbierto());
 
       expect(aplicacion.grupo().caja().montoPendienteDe("beto")).toBe(0);
@@ -389,7 +391,6 @@ describe("VistaPrincipal", () => {
       expect(casillaDeAsistencia("ana").disabled).toBe(true);
       hacerClic("Cobrar y habilitar", fila("ana"));
       expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
-      expect(campo("Fecha", dialogoAbierto()).value).toBe(aEntradaDeFecha(ahora()));
       hacerClic("Cobrar", dialogoAbierto());
       expect(casillaDeAsistencia("ana").disabled).toBe(false);
       expect(casillaDeAsistencia("ana").checked).toBe(true);

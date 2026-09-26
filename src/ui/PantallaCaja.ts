@@ -1,11 +1,10 @@
 import type { Movimiento } from "../models/Movimiento.ts";
 import type { Saldo } from "../models/Saldo.ts";
-import { campoDeFecha } from "./Campos.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
-import { anexar, boton, crear, desplegable, fila, tabla, valorDe } from "./dom.ts";
+import { anexar, boton, crear, desplegable, fila, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { desdeEntradaDeFecha, fechaYHora, monto } from "./Formato.ts";
+import { fechaYHora, monto } from "./Formato.ts";
 import { alfabetico } from "./Orden.ts";
 
 const porDeudaYNombre = (uno: Saldo, otro: Saldo): number => {
@@ -56,8 +55,8 @@ export class PantallaCaja {
       nombre,
       monto(saldo.monto()),
       saldo.debe()
-        ? boton("Cobrar", () => this._abrirCobro(nombre))
-        : boton("Repartir", () => this._abrirReparto(nombre)),
+        ? boton("Cobrar", () => this._abrirCobro(saldo))
+        : boton("Repartir", () => this._abrirReparto(saldo)),
     );
   }
 
@@ -74,16 +73,21 @@ export class PantallaCaja {
     return fila(fechaYHora(movimiento.fecha()), movimiento.tipo(), movimiento.persona(), monto(movimiento.monto()));
   }
 
-  private _abrirCobro(nombre: string): void {
-    new DialogoDeCobro(this._entorno, nombre, this._entorno.ahora(), (monto, fecha) =>
-      this._entorno.aplicacion().cobrar(nombre, monto, fecha),
+  private _abrirCobro(saldo: Saldo): void {
+    const nombre = saldo.nombre();
+    new DialogoDeCobro(this._entorno, nombre, -saldo.monto(), (monto) =>
+      this._entorno.aplicacion().cobrar(nombre, monto, this._entorno.ahora()),
     ).abrirEn(this._seccion);
   }
 
-  private _abrirReparto(nombre: string): void {
-    const campos = [campoDeFecha("Fecha", "fecha", this._entorno.ahora())];
-    new Dialogo(this._entorno, `Repartir a ${nombre}`, campos, "Repartir", (formulario) => {
-      this._entorno.aplicacion().repartir(nombre, desdeEntradaDeFecha(valorDe(formulario, "fecha")));
-    }).abrirEn(this._seccion);
+  private _abrirReparto(saldo: Saldo): void {
+    const nombre = saldo.nombre();
+    new Dialogo(
+      this._entorno,
+      `Repartir a ${nombre}`,
+      [crear("p", {}, `Se le van a entregar ${monto(saldo.monto())}.`)],
+      "Repartir",
+      () => this._entorno.aplicacion().repartir(nombre, this._entorno.ahora()),
+    ).abrirEn(this._seccion);
   }
 }

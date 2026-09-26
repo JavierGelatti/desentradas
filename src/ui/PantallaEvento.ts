@@ -103,7 +103,9 @@ export class PantallaEvento {
 
   private _accionDe(participante: Participante): HTMLElement | false {
     const nombre = participante.nombre();
-    if (participante.soloLeFaltaPagarParaAsistir()) return boton("Cobrar y habilitar", () => this._abrirCobro(nombre));
+    if (participante.soloLeFaltaPagarParaAsistir()) {
+      return boton("Cobrar y habilitar", () => this._abrirCobro(participante));
+    }
 
     const pendiente = this._entorno.grupo().caja().montoPendienteDe(nombre);
     if (this._planillaDeAsistencia().asiste(nombre) && pendiente > 0) {
@@ -126,9 +128,11 @@ export class PantallaEvento {
     this._entorno.refrescar();
   }
 
-  private _abrirCobro(nombre: string): void {
-    new DialogoDeCobro(this._entorno, nombre, this._entorno.ahora(), (monto, fecha) =>
-      this._entorno.aplicacion().cobrarEnLaPuerta(nombre, monto, fecha),
+  private _abrirCobro(participante: Participante): void {
+    const nombre = participante.nombre();
+    const deuda = participante.deudaAl(this._entorno.ahora());
+    new DialogoDeCobro(this._entorno, nombre, deuda, (monto) =>
+      this._entorno.aplicacion().cobrarEnLaPuerta(nombre, monto, this._entorno.ahora()),
     ).abrirEn(this._seccion);
   }
 
