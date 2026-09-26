@@ -426,12 +426,25 @@ describe("VistaPrincipal", () => {
       casillaDeAsistencia("beto").click();
 
       hacerClic("Descartar");
-      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("Cancelar encuentro");
+      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("¿Descartar registro del encuentro?");
       expect(textoDe(dialogoAbierto())).toContain("Se van a perder las marcas de asistencia.");
-      hacerClic("Descartar", dialogoAbierto());
+      hacerClic("Sí, descartar", dialogoAbierto());
 
       expect(aplicacion.tienePlanillaDeAsistencia()).toBe(false);
       expect(hayElementoConTexto("button", "Empezar encuentro")).toBe(true);
+    });
+
+    it("volver de la confirmación de descarte conserva la planilla de asistencia con sus marcas", () => {
+      const { aplicacion } = montar(almacenamientosConGrupo());
+      hacerClic("Empezar encuentro");
+      casillaDeAsistencia("beto").click();
+      hacerClic("Descartar");
+
+      hacerClic("No, volver", dialogoAbierto());
+
+      expect(hayDialogoAbierto()).toBe(false);
+      expect(aplicacion.tienePlanillaDeAsistencia()).toBe(true);
+      expect(casillaDeAsistencia("beto").checked).toBe(true);
     });
 
     it("la confirmación del registro dice que el encuentro lleva la fecha del momento de registrarlo", () => {

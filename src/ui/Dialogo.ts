@@ -9,6 +9,7 @@ export class Dialogo {
   private _titulo: string;
   private _campos: HTMLElement[];
   private _textoDeConfirmacion: string;
+  private _textoDeCancelacion: string;
   private _alConfirmar: (formulario: HTMLFormElement) => void;
   private _errores: HTMLOutputElement;
   private _elemento: HTMLDialogElement | undefined;
@@ -24,9 +25,15 @@ export class Dialogo {
     this._titulo = titulo;
     this._campos = campos;
     this._textoDeConfirmacion = textoDeConfirmacion;
+    this._textoDeCancelacion = "Cancelar";
     this._alConfirmar = alConfirmar;
     this._errores = alerta();
     this._elemento = undefined;
+  }
+
+  conTextoDeCancelacion(texto: string): this {
+    this._textoDeCancelacion = texto;
+    return this;
   }
 
   abrir(): void {
@@ -39,7 +46,7 @@ export class Dialogo {
         crear(
           "p",
           {},
-          boton("Cancelar", () => this._cerrar()),
+          boton(this._textoDeCancelacion, () => this._cerrar()),
           " ",
           botonDeEnvio(this._textoDeConfirmacion),
         ),

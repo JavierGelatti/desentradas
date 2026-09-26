@@ -60,11 +60,13 @@ export class PantallaEncuentro {
     } else {
       new Dialogo(
         this._entorno,
-        "Cancelar encuentro",
+        "¿Descartar registro del encuentro?",
         [crear("p", {}, "Se van a perder las marcas de asistencia.")],
-        "Descartar",
+        "Sí, descartar",
         () => this._entorno.aplicacion().descartarPlanillaDeAsistencia(),
-      ).abrir();
+      )
+        .conTextoDeCancelacion("No, volver")
+        .abrir();
     }
   }
 
