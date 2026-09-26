@@ -1,8 +1,15 @@
-/* Estilo brutalista, con los colores del sistema (Canvas y CanvasText) para que el modo oscuro salga solo. */
 :root {
   font-family: system-ui, sans-serif;
   line-height: 1.5;
   color-scheme: light dark;
+  --fondo: light-dark(#fff, #151515);
+  --tinta: light-dark(#141414, #fff);
+  --acento: light-dark(#ffd400, #f5c800);
+  --sobre-acento: #141414;
+  --positivo: light-dark(#1a7a3c, #5fd38a);
+  --negativo: light-dark(#c42a12, #ff7b64);
+  background: var(--fondo);
+  color: var(--tinta);
 }
 
 body {
@@ -47,8 +54,8 @@ nav a {
 }
 
 nav a[aria-current="page"] {
-  background: CanvasText;
-  color: Canvas;
+  background: var(--acento);
+  color: var(--sobre-acento);
 }
 
 /* En el teléfono las pestañas son más altas, para tocarlas con el dedo. */
@@ -113,7 +120,7 @@ select,
 ::file-selector-button {
   font: inherit;
   color: inherit;
-  background: Canvas;
+  background: var(--fondo);
   border: 2px solid;
   border-radius: 0;
   padding: 0.4rem 0.75rem;
@@ -240,13 +247,13 @@ td > span:has(> button + button) {
 
 button:hover,
 button[type="submit"] {
-  background: CanvasText;
-  color: Canvas;
+  background: var(--tinta);
+  color: var(--fondo);
 }
 
 button[type="submit"]:hover {
-  background: Canvas;
-  color: CanvasText;
+  background: var(--fondo);
+  color: var(--tinta);
 }
 
 input[type="file"] {
@@ -260,7 +267,7 @@ input[type="file"] {
 input[type="checkbox"] {
   width: 1.25rem;
   height: 1.25rem;
-  accent-color: CanvasText;
+  accent-color: var(--tinta);
 }
 
 /* Texto arriba, control abajo. */
@@ -282,6 +289,16 @@ dialog p:has(button) {
 main p > span + span::before {
   content: "·";
   margin-inline: 0.75rem;
+  color: var(--tinta);
+}
+
+/* La plata que falta cobrar va en rojo y la que hay para repartir en verde, para encontrarlas sin leer. */
+.debe {
+  color: var(--negativo);
+}
+
+.a-favor {
+  color: var(--positivo);
 }
 
 output[role="alert"]:not(:empty),
@@ -291,6 +308,7 @@ p[role="alert"] {
   padding: 0.5rem 0.75rem;
   border: 2px solid;
   font-weight: bold;
+  color: var(--negativo);
 }
 
 details {

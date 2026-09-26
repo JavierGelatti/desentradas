@@ -39,8 +39,8 @@ export class PantallaCaja {
     return crear(
       "p",
       {},
-      crear("span", {}, `Por cobrar ${monto(porCobrar)}`),
-      crear("span", {}, `Por repartir ${monto(porRepartir)}`),
+      crear("span", { class: "debe" }, `Por cobrar ${monto(porCobrar)}`),
+      crear("span", { class: "a-favor" }, `Por repartir ${monto(porRepartir)}`),
     );
   }
 
@@ -57,7 +57,7 @@ export class PantallaCaja {
     return fila(
       saldo.nombre(),
       this._estadoDe(saldo.nombre()),
-      monto(saldo.monto()),
+      crear("span", { class: saldo.debe() ? "debe" : "a-favor" }, monto(saldo.monto())),
       saldo.debe()
         ? boton("Cobrar", () => this._abrirCobro(saldo))
         : boton("Repartir", () => this._abrirReparto(saldo)),
