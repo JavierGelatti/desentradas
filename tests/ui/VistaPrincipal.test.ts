@@ -568,7 +568,7 @@ describe("VistaPrincipal", () => {
       montar(almacenamientosConGrupo());
       await navegarA("Historial");
 
-      hacerClic("Ver", fila("3/4 presentes"));
+      hacerClic("Ver", fila("Encuentro con 3/4 presentes"));
       expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe(`Encuentro del ${fechaYHora(dia(2))}`);
       expect([...dialogoAbierto().querySelectorAll("th")].map(textoDe)).toEqual(["Nombre", "Asistencia"]);
       expect(filasDe(dialogoAbierto())).toEqual([

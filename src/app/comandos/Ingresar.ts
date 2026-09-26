@@ -13,7 +13,7 @@ export class Ingresar extends ComandoSobreUnaPersona {
   }
 
   describir(): string {
-    return `Registro de ${this._nombre}`;
+    return `Ingresó ${this._nombre}`;
   }
 
   aJson(): ComandoJson {

@@ -36,7 +36,7 @@ export class RegistrarEncuentro extends ComandoSobreElGrupo {
 
   describir(): string {
     const presentes = this._asistentes.length;
-    return `${presentes}/${presentes + this._ausentes.length} presentes`;
+    return `Encuentro con ${presentes}/${presentes + this._ausentes.length} presentes`;
   }
 
   asistencia(): Asistencia {

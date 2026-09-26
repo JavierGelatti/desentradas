@@ -1,6 +1,7 @@
 import type { ComandoJson } from "../json/ComandoJson.ts";
 import type { Grupo } from "../../models/Grupo.ts";
 import { fecha, numero, type Objeto, texto } from "../json/Campos.ts";
+import { monto } from "../Formato.ts";
 import { ComandoSobreUnaPersona } from "./ComandoSobreUnaPersona.ts";
 
 export class Cobrar extends ComandoSobreUnaPersona {
@@ -20,7 +21,7 @@ export class Cobrar extends ComandoSobreUnaPersona {
   }
 
   describir(): string {
-    return `Cobro de $${this._monto} a ${this._nombre}`;
+    return `Se cobró ${monto(this._monto)} a ${this._nombre}`;
   }
 
   aJson(): ComandoJson {

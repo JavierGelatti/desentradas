@@ -26,7 +26,7 @@ export class CambiarReglas extends ComandoSobreElGrupo {
   }
 
   describir(): string {
-    return "Cambio de reglas";
+    return "Se cambiaron las reglas";
   }
 
   aJson(): ComandoJson {

@@ -8,6 +8,7 @@ import { Repartir } from "../../src/app/comandos/Repartir.ts";
 import { CambiarReglas } from "../../src/app/comandos/CambiarReglas.ts";
 import { comandoDesdeJson } from "../../src/app/json/ComandoJson.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
+import { monto } from "../../src/app/Formato.ts";
 import { desempate, dia, nuevoEncuentro, nuevoGrupo, reglas } from "../models/factories.ts";
 
 const grupoConDeudaDeAna = () => {
@@ -270,52 +271,52 @@ describe("Comandos en JSON", () => {
 });
 
 describe("Descripción de los comandos", () => {
-  it("crear grupo lleva la fecha desde la que rigen las reglas y se describe con el nombre del grupo", () => {
+  it("crear grupo lleva la fecha desde la que rigen las reglas y se describe como que se creó el grupo con su nombre", () => {
     const comando = new CrearGrupo("Fútbol de los jueves", reglas({ rigeDesde: dia(1) }));
 
     expect(comando.fecha()).toEqual(dia(1));
-    expect(comando.describir()).toBe('Creación del grupo "Fútbol de los jueves"');
+    expect(comando.describir()).toBe('Se creó el grupo "Fútbol de los jueves"');
   });
 
-  it("ingresar lleva la fecha de ingreso y se describe como un registro con el nombre", () => {
+  it("ingresar lleva la fecha de ingreso y se describe como que ingresó la persona", () => {
     const comando = new Ingresar("ana", dia(1));
 
     expect(comando.fecha()).toEqual(dia(1));
-    expect(comando.describir()).toBe("Registro de ana");
+    expect(comando.describir()).toBe("Ingresó ana");
   });
 
-  it("reingresar lleva la fecha de reingreso y se describe con el nombre", () => {
+  it("reingresar lleva la fecha de reingreso y se describe como que reingresó la persona", () => {
     const comando = new Reingresar("ana", dia(11));
 
     expect(comando.fecha()).toEqual(dia(11));
-    expect(comando.describir()).toBe("Reingreso de ana");
+    expect(comando.describir()).toBe("Reingresó ana");
   });
 
-  it("registrar encuentro lleva la fecha del encuentro y se describe con cuántos vinieron de los posibles asistentes", () => {
+  it("registrar encuentro lleva la fecha del encuentro y se describe como un encuentro con cuántos vinieron de los posibles asistentes", () => {
     const comando = new RegistrarEncuentro(dia(2), ["beto", "carla", "dani"], ["ana"]);
 
     expect(comando.fecha()).toEqual(dia(2));
-    expect(comando.describir()).toBe("3/4 presentes");
+    expect(comando.describir()).toBe("Encuentro con 3/4 presentes");
   });
 
-  it("cobrar lleva la fecha del cobro y se describe con el monto y el nombre", () => {
+  it("cobrar lleva la fecha del cobro y se describe como que se le cobró el monto a la persona", () => {
     const comando = new Cobrar("ana", 1000, dia(3));
 
     expect(comando.fecha()).toEqual(dia(3));
-    expect(comando.describir()).toBe("Cobro de $1000 a ana");
+    expect(comando.describir()).toBe(`Se cobró ${monto(1000)} a ana`);
   });
 
-  it("repartir lleva la fecha del reparto y se describe con el nombre", () => {
+  it("repartir lleva la fecha del reparto y se describe como que se le repartió a la persona", () => {
     const comando = new Repartir("beto", dia(4));
 
     expect(comando.fecha()).toEqual(dia(4));
-    expect(comando.describir()).toBe("Reparto a beto");
+    expect(comando.describir()).toBe("Se repartió a beto");
   });
 
-  it("cambiar reglas lleva la fecha desde la que rigen las nuevas reglas y se describe sin más datos", () => {
+  it("cambiar reglas lleva la fecha desde la que rigen las nuevas reglas y se describe como que se cambiaron las reglas, sin más datos", () => {
     const comando = new CambiarReglas(reglas({ rigeDesde: dia(4) }));
 
     expect(comando.fecha()).toEqual(dia(4));
-    expect(comando.describir()).toBe("Cambio de reglas");
+    expect(comando.describir()).toBe("Se cambiaron las reglas");
   });
 });

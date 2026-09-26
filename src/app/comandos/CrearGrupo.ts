@@ -44,7 +44,7 @@ export class CrearGrupo implements Comando {
   }
 
   describir(): string {
-    return `Creación del grupo "${this._nombreDelGrupo}"`;
+    return `Se creó el grupo "${this._nombreDelGrupo}"`;
   }
 
   asistencia(): Asistencia | undefined {
