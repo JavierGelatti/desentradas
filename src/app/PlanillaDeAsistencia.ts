@@ -1,7 +1,7 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
 import { objeto, textos } from "./json/Campos.ts";
 
-// La planilla de una noche: quién vino. Existe sólo mientras hay un evento en curso.
+// Existe sólo mientras hay un evento en curso.
 export class PlanillaDeAsistencia {
   private _almacenamiento: Almacenamiento;
   private _asistentes: Set<string>;
@@ -19,10 +19,15 @@ export class PlanillaDeAsistencia {
     }
   }
 
-  constructor(almacenamiento: Almacenamiento, asistentes: Iterable<string>) {
+  static nueva(almacenamiento: Almacenamiento, asistentes: Iterable<string>): PlanillaDeAsistencia {
+    const planilla = new PlanillaDeAsistencia(almacenamiento, asistentes);
+    planilla._guardar();
+    return planilla;
+  }
+
+  private constructor(almacenamiento: Almacenamiento, asistentes: Iterable<string>) {
     this._almacenamiento = almacenamiento;
     this._asistentes = new Set(asistentes);
-    this._guardar();
   }
 
   asistentes(): readonly string[] {

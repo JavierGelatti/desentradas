@@ -450,7 +450,6 @@ describe("Aplicacion", () => {
 
       aplicacion.deshacer();
 
-      expect(aplicacion.planillaDeAsistencia()).toBeDefined();
       expect(aplicacion.planillaDeAsistencia()?.asistentes()).toEqual(["beto"]);
     });
 
@@ -478,9 +477,9 @@ describe("Aplicacion", () => {
       const aplicacion = aplicacionConDeudaDeAna();
       aplicacion.ingresar("carla", dia(2));
       aplicacion.cerrarEvento(dia(3), ["carla"], ["ana", "beto"]);
-      aplicacion.empezarPlanillaDeAsistencia();
+      const planilla = aplicacion.empezarPlanillaDeAsistencia();
       aplicacion.cobrar("ana", 1000, dia(4)); // el crédito de beto por la falta de ana salda su deuda
-      aplicacion.planillaDeAsistencia()?.marcarComoPresente("beto");
+      planilla.marcarComoPresente("beto");
 
       aplicacion.deshacer();
 

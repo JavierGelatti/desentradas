@@ -60,7 +60,7 @@ export class Aplicacion {
   }
 
   restaurarPlanillaDeAsistencia(asistentes: Iterable<string>): PlanillaDeAsistencia {
-    const planilla = new PlanillaDeAsistencia(this._almacenamientoDePlanilla, asistentes);
+    const planilla = PlanillaDeAsistencia.nueva(this._almacenamientoDePlanilla, asistentes);
     this._planillaDeAsistencia = planilla;
     return planilla;
   }
@@ -99,10 +99,11 @@ export class Aplicacion {
 
   // Nota: el modelo igual registra la falta a todos los participantes activos, morosos incluidos.
   ausentesEnPlanillaDeAsistencia(): string[] {
+    const planilla = this._planillaDeAsistenciaEmpezada();
     return this.grupo()
       .posiblesAsistentes()
       .map((participante) => participante.nombre())
-      .filter((nombre) => !this._planillaDeAsistenciaEmpezada().asiste(nombre));
+      .filter((nombre) => !planilla.asiste(nombre));
   }
 
   cerrarEventoSegunPlanillaDeAsistencia(fecha: Date): void {

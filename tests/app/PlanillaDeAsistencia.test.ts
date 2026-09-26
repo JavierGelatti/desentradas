@@ -6,14 +6,14 @@ describe("PlanillaDeAsistencia", () => {
   it("una planilla nueva queda guardada con sus asistentes", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
 
-    const planilla = new PlanillaDeAsistencia(almacenamiento, ["ana"]);
+    const planilla = PlanillaDeAsistencia.nueva(almacenamiento, ["ana"]);
 
     expect(planilla.asistentes()).toEqual(["ana"]);
     expect(JSON.parse(almacenamiento.leer()!)).toEqual({ asistentes: ["ana"] });
   });
 
   it("marcar a alguien como presente lo deja entre los asistentes", () => {
-    const planilla = new PlanillaDeAsistencia(new AlmacenamientoEnMemoria(), []);
+    const planilla = PlanillaDeAsistencia.nueva(new AlmacenamientoEnMemoria(), []);
 
     planilla.marcarComoPresente("ana");
 
@@ -22,7 +22,7 @@ describe("PlanillaDeAsistencia", () => {
   });
 
   it("desmarcar a alguien como presente lo saca de los asistentes", () => {
-    const planilla = new PlanillaDeAsistencia(new AlmacenamientoEnMemoria(), ["ana", "beto"]);
+    const planilla = PlanillaDeAsistencia.nueva(new AlmacenamientoEnMemoria(), ["ana", "beto"]);
 
     planilla.desmarcarComoPresente("ana");
 
@@ -32,7 +32,7 @@ describe("PlanillaDeAsistencia", () => {
 
   it("conservar solo a quienes cumplen un criterio desmarca al resto y deja guardada la planilla", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
-    const planilla = new PlanillaDeAsistencia(almacenamiento, ["ana", "beto", "carla"]);
+    const planilla = PlanillaDeAsistencia.nueva(almacenamiento, ["ana", "beto", "carla"]);
 
     planilla.conservarSoloA((nombre) => nombre !== "beto");
 
@@ -50,7 +50,7 @@ describe("PlanillaDeAsistencia", () => {
 
   it("la planilla guardada se recupera con sus asistentes", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
-    new PlanillaDeAsistencia(almacenamiento, []).marcarComoPresente("ana");
+    PlanillaDeAsistencia.nueva(almacenamiento, ["ana"]);
 
     const planilla = PlanillaDeAsistencia.guardadaEn(almacenamiento);
 
@@ -69,7 +69,7 @@ describe("PlanillaDeAsistencia", () => {
 
   it("descartar la planilla borra lo guardado", () => {
     const almacenamiento = new AlmacenamientoEnMemoria();
-    const planilla = new PlanillaDeAsistencia(almacenamiento, ["ana"]);
+    const planilla = PlanillaDeAsistencia.nueva(almacenamiento, ["ana"]);
 
     planilla.descartar();
 
