@@ -1,5 +1,6 @@
 import { Caja } from "./Caja.ts";
 import type { OrigenDeCobro } from "./Cobro.ts";
+import type { Credito } from "./Credito.ts";
 import type { Desempate } from "./Desempate.ts";
 import type { Evento } from "./Evento.ts";
 import type { Reglas } from "./Reglas.ts";
@@ -186,12 +187,12 @@ export class Grupo {
     }
   }
 
-  // Eventos, cobros y repartos forman una única cronología.
   private _asertarQueNoEsAnteriorAlUltimoMovimiento(movimiento: string, fecha: Date): void {
     if (this._huboEventosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último evento`);
     if (this._caja.huboCobrosDespuesDe(fecha)) throw new Error(`${movimiento} no puede ser anterior al último cobro`);
-    if (this._caja.huboRepartosDespuesDe(fecha))
+    if (this._caja.huboRepartosDespuesDe(fecha)) {
       throw new Error(`${movimiento} no puede ser anterior al último reparto`);
+    }
   }
 
   private _asertarQueRigenDespuesDelUltimoEvento(reglas: Reglas): void {
@@ -206,12 +207,17 @@ export class Grupo {
   }
 
   private _huboEventosDespuesDe(fecha: Date): boolean {
-    return this._eventos.some((evento) => evento.fecha() > fecha);
+    const ultimo = this._eventos.at(-1);
+    return ultimo !== undefined && ultimo.fecha() > fecha;
   }
 
   private _cobrarYDistribuir(participante: Participante, monto: number, fecha: Date, origen: OrigenDeCobro): void {
     const cobro = participante.pago(fecha, monto, this.reglasVigentesAl(fecha), origen);
-    const acreedores = new Set(this._caja.cobrar(cobro).map((credito) => credito.acreedor()));
+    this._aplicarCreditosPendientesDeLosAcreedores(this._caja.cobrar(cobro), fecha);
+  }
+
+  private _aplicarCreditosPendientesDeLosAcreedores(creditos: readonly Credito[], fecha: Date): void {
+    const acreedores = new Set(creditos.map((credito) => credito.acreedor()));
     acreedores.forEach((nombre) => {
       const acreedor = this.participanteActivo(nombre);
       if (acreedor !== undefined) this._aplicarCreditosPendientesDe(acreedor, fecha);

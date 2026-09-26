@@ -591,7 +591,7 @@ describe("Grupo", () => {
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
       grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
-      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] })); // ana queda morosa y beto en deuda
+      grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
 
       expect(() => {
         grupo.cobrar("ana", 1000, dia(5));
@@ -780,7 +780,7 @@ describe("Grupo", () => {
       grupo.cerrarEvento(nuevoEvento({ numero: 2, asistentes: ["beto", "carla"] }));
       grupo.cerrarEvento(nuevoEvento({ numero: 9, asistentes: ["carla"] }));
       grupo.cobrar("beto", 1000, dia(10));
-      grupo.cerrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] })); // beto queda finalizado por faltas
+      grupo.cerrarEvento(nuevoEvento({ numero: 16, asistentes: ["carla"] }));
       grupo.cobrar("ana", 1000, dia(17)); // beto queda con 500 pendientes
       grupo.reingresar("beto", dia(18));
 

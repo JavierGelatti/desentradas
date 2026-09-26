@@ -34,9 +34,9 @@ const moroso = () => {
   return ana;
 };
 
-const finalizado = () => {
+const finalizado = (fecha = dia(16)) => {
   const ana = moroso();
-  ana.pago(dia(16), ana.deudaAl(dia(16)), lasReglas, "efectivo");
+  ana.pago(fecha, ana.deudaAl(fecha), lasReglas, "efectivo");
   return ana;
 };
 
@@ -483,7 +483,7 @@ describe("Participante", () => {
     });
 
     it("no se puede reingresar en una fecha anterior a la finalización", () => {
-      const ana = finalizado(); // finaliza el día 16
+      const ana = finalizado(dia(16));
 
       expect(() => {
         ana.reingresar(dia(15));
@@ -492,7 +492,7 @@ describe("Participante", () => {
     });
 
     it("se puede reingresar el mismo día de la finalización", () => {
-      const ana = finalizado(); // finaliza el día 16
+      const ana = finalizado(dia(16));
 
       ana.reingresar(dia(16));
 

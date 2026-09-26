@@ -32,7 +32,7 @@ export class Participante {
 
   reingresar(fecha: Date): void {
     const participando = this._estado.reingresar();
-    if (fecha < this.fechaDelUltimoCambio()) throw new Error("El reingreso no puede ser anterior a la finalización");
+    this._asertarQueNoEsAnteriorALaFinalizacion(fecha);
 
     this._transicionar("reingresar", fecha, participando);
   }
@@ -99,6 +99,10 @@ export class Participante {
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
     return this._estado.motivoDeFinalizacion();
+  }
+
+  private _asertarQueNoEsAnteriorALaFinalizacion(fecha: Date): void {
+    if (fecha < this.fechaDelUltimoCambio()) throw new Error("El reingreso no puede ser anterior a la finalización");
   }
 
   private _transicionar(disparador: Disparador, fecha: Date, nuevoEstado: Estado): void {
