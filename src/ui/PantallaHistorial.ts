@@ -1,8 +1,8 @@
 import type { Asistencia, Comando } from "../app/Comando.ts";
+import { fechaYHora } from "../app/Formato.ts";
 import { Dialogo, mostrarEnDialogo } from "./Dialogo.ts";
 import { alerta, boton, crear, descargar, fila, intentar, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { fechaYHora } from "../app/Formato.ts";
 import { alfabetico } from "./Orden.ts";
 
 // La bitácora, del último comando al primero. Sólo el último se puede deshacer.

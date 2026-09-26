@@ -1,10 +1,10 @@
+import { fechaYHora, monto } from "../app/Formato.ts";
 import type { Movimiento } from "../models/Movimiento.ts";
 import type { Saldo } from "../models/Saldo.ts";
 import { Dialogo } from "./Dialogo.ts";
 import { DialogoDeCobro } from "./DialogoDeCobro.ts";
 import { boton, crear, desplegable, fila, type Hijo, tabla, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { fechaYHora, monto } from "../app/Formato.ts";
 import { porNombre } from "./Orden.ts";
 
 const porDeudaYNombre = (uno: Saldo, otro: Saldo): number => {

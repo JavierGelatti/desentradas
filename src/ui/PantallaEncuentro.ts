@@ -1,3 +1,4 @@
+import { fechaYHora, monto } from "../app/Formato.ts";
 import type { PlanillaDeAsistencia } from "../app/PlanillaDeAsistencia.ts";
 import type { Participante } from "../models/Participante.ts";
 import { Dialogo } from "./Dialogo.ts";
@@ -5,7 +6,6 @@ import { DialogoDeCobro } from "./DialogoDeCobro.ts";
 import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
 import { alerta, boton, botonDeEnvio, crear, fila, formulario, type Hijo, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
-import { fechaYHora, monto } from "../app/Formato.ts";
 import { alfabetico, porNombre } from "./Orden.ts";
 
 // La pantalla de la noche: se empieza el encuentro, se marca quién vino y se cierra o se cancela.

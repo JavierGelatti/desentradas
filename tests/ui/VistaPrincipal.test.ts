@@ -2,8 +2,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import type { Aplicacion } from "../../src/app/Aplicacion.ts";
-import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { fechaYHora } from "../../src/app/Formato.ts";
+import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
 import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
 import { ahora, aplicacionConGrupo, nuevaAplicacion } from "../app/factories.ts";
 import { dia, reglas } from "../models/factories.ts";

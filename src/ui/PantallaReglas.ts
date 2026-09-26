@@ -1,8 +1,8 @@
+import { fechaYHora, monto } from "../app/Formato.ts";
 import type { Reglas } from "../models/Reglas.ts";
 import { alerta, botonDeEnvio, crear, desplegable, fila, formulario, tabla } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
 import { camposDeReglas, reglasDesde } from "./FormularioDeReglas.ts";
-import { fechaYHora, monto } from "../app/Formato.ts";
 
 const valoresDe = (reglas: Reglas): string[] => [
   String(reglas.toleranciaDeFaltas()),
