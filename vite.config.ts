@@ -7,9 +7,12 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Eventos recurrentes",
-        short_name: "Eventos",
+        id: "/",
+        name: "Desentradas",
+        short_name: "Desentradas",
         lang: "es",
+        description:
+          "Entradas que solo pagás si faltás a un evento, para fomentar los espacios de encuentro libres y gratuitos.",
         background_color: "#ffffff",
         theme_color: "#ffffff",
         icons: [

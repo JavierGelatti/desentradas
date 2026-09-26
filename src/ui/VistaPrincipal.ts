@@ -132,7 +132,7 @@ export class VistaPrincipal implements Entorno {
     return crear(
       "header",
       {},
-      crear("h1", {}, tieneGrupo ? this.grupo().nombre() : "Eventos recurrentes"),
+      crear("h1", {}, tieneGrupo ? this.grupo().nombre() : "Desentradas"),
       tieneGrupo &&
         crear(
           "nav",
