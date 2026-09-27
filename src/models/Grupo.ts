@@ -33,7 +33,7 @@ export class Grupo {
   cambiarReglas(reglas: Reglas): void {
     this._asertarQueRigenDespuesDelUltimoEncuentro(reglas);
 
-    if (this._esPosteriorAlUltimoEncuentro(this.reglas().rigeDesde())) this._historialDeReglas.pop();
+    if (!this._seUsaronLasReglasActuales()) this._historialDeReglas.pop();
     this._historialDeReglas.push(reglas);
   }
 
@@ -223,6 +223,14 @@ export class Grupo {
     if (!this._esPosteriorAlUltimoEncuentro(reglas.rigeDesde())) {
       throw new Error("Las nuevas reglas deben regir desde después del último encuentro registrado");
     }
+  }
+
+  private _seUsaronLasReglasActuales(): boolean {
+    const actuales = this.reglas();
+    return (
+      !this._esPosteriorAlUltimoEncuentro(actuales.rigeDesde()) ||
+      this.participantes().some((participante) => participante.reglas() === actuales)
+    );
   }
 
   private _esPosteriorAlUltimoEncuentro(fecha: Date): boolean {

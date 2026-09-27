@@ -131,7 +131,7 @@ describe("Grupo", () => {
       expect(grupo.reglas()).toBe(nuevasReglas);
     });
 
-    it("si no hubo encuentros desde que rige la versión actual, las nuevas reglas la reemplazan", () => {
+    it("si no hubo encuentros ni nadie se rige por la versión actual, las nuevas reglas la reemplazan", () => {
       const reglasIniciales = reglas();
       const grupo = nuevoGrupo(reglasIniciales);
       grupo.ingresar("beto", dia(1));
@@ -144,13 +144,24 @@ describe("Grupo", () => {
       expect(grupo.historialDeReglas()).toEqual([reglasIniciales, reglasDefinitivas]);
     });
 
-    it("las reglas iniciales también se reemplazan si todavía no hubo encuentros", () => {
+    it("las reglas iniciales también se reemplazan si todavía no hubo encuentros ni ingresos", () => {
       const grupo = nuevoGrupo();
       const reglasDefinitivas = reglas({ rigeDesde: dia(4) });
 
       grupo.cambiarReglas(reglasDefinitivas);
 
       expect(grupo.historialDeReglas()).toEqual([reglasDefinitivas]);
+    });
+
+    it("si alguien se rige por la versión actual, las nuevas reglas no la reemplazan aunque no haya habido encuentros", () => {
+      const reglasIniciales = reglas();
+      const grupo = nuevoGrupo(reglasIniciales);
+      grupo.ingresar("ana", dia(1));
+      const nuevasReglas = reglas({ rigeDesde: dia(4) });
+
+      grupo.cambiarReglas(nuevasReglas);
+
+      expect(grupo.reglasAnteriores()).toEqual([reglasIniciales]);
     });
 
     it("el monto por falta es el de las reglas vigentes la última vez que fue", () => {
