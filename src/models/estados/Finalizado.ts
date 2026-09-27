@@ -1,14 +1,7 @@
-import { Estado, type MotivoDeFinalizacion, type NombreDeEstado } from "./Estado.ts";
+import { Estado, type NombreDeEstado } from "./Estado.ts";
 import { Participando } from "./Participando.ts";
 
 export class Finalizado extends Estado {
-  private _motivo: MotivoDeFinalizacion;
-
-  constructor(motivo: MotivoDeFinalizacion) {
-    super();
-    this._motivo = motivo;
-  }
-
   nombre(): NombreDeEstado {
     return "finalizado";
   }
@@ -19,9 +12,5 @@ export class Finalizado extends Estado {
 
   override estaActivo(): boolean {
     return false;
-  }
-
-  override motivoDeFinalizacion(): MotivoDeFinalizacion {
-    return this._motivo;
   }
 }

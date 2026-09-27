@@ -96,7 +96,9 @@ export class Participante {
   }
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
-    return this._estado().motivoDeFinalizacion();
+    if (this.estaActivo()) return undefined;
+
+    return this._ultimaTransicion().disparador() === "falto" ? "por faltas" : "por pago de morosidad";
   }
 
   private _asertarQueNoEsAnteriorALaFinalizacion(fecha: Date): void {

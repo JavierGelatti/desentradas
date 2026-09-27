@@ -22,7 +22,7 @@ export class LibreDeDeuda extends Estado {
 
   override falto(_encuentro: Encuentro, reglas: Reglas): Estado {
     const faltas = this._faltas + 1;
-    if (reglas.superaLaTolerancia(faltas)) return new Finalizado("por faltas");
+    if (reglas.superaLaTolerancia(faltas)) return new Finalizado();
 
     return new LibreDeDeuda(faltas);
   }

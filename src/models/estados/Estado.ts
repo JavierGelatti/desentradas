@@ -68,10 +68,6 @@ export abstract class Estado {
     return 0;
   }
 
-  motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
-    return undefined;
-  }
-
   private _redefine(accion: Accion): boolean {
     return this[accion] !== Estado.prototype[accion];
   }

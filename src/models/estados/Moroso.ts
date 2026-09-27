@@ -31,6 +31,6 @@ export class Moroso extends ConDeuda {
   }
 
   protected _estadoAlSaldar(): Estado {
-    return new Finalizado("por pago de morosidad");
+    return new Finalizado();
   }
 }
