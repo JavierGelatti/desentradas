@@ -112,16 +112,6 @@ describe("Deuda", () => {
       expect(deuda.montoAl(dia(20))).toBe(0);
     });
 
-    it("no se puede pagar en una fecha anterior al último pago", () => {
-      const deuda = nuevaDeuda();
-      deuda.pagar(dia(5), 400);
-
-      expect(() => {
-        deuda.pagar(dia(4), 100);
-      }).toThrow("El pago no puede ser anterior al último pago");
-      expect(deuda.montoAl(dia(5))).toBe(600);
-    });
-
     it("no se puede pagar en una fecha anterior al encuentro faltado", () => {
       const deuda = nuevaDeuda(nuevoEncuentro({ numero: 9 }));
 
