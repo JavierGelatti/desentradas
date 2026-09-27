@@ -4,7 +4,7 @@ import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.t
 import type { Aplicacion } from "../../src/app/Aplicacion.ts";
 import { fechaYHora } from "../../src/app/Formato.ts";
 import { VistaPrincipal } from "../../src/ui/VistaPrincipal.ts";
-import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
+import { InteresFijoPorDia, InteresMensual, type PoliticaDeInteres } from "../../src/models/PoliticaDeInteres.ts";
 import { ahora, aplicacionConGrupo, nuevaAplicacion } from "../app/factories.ts";
 import { dia, reglas } from "../models/factories.ts";
 
@@ -37,6 +37,12 @@ const almacenamientosConAnaMorosa = () => {
 const almacenamientosConAnaFinalizada = () => {
   const almacenamientos = almacenamientosConAnaMorosa();
   nuevaAplicacion(almacenamientos).cobrar("ana", 1000, dia(4));
+  return almacenamientos;
+};
+
+const almacenamientosConInteres = (politicaDeInteres: PoliticaDeInteres) => {
+  const almacenamientos = nuevosAlmacenamientos();
+  nuevaAplicacion(almacenamientos).crearGrupo("Fútbol de los jueves", reglas({ politicaDeInteres }));
   return almacenamientos;
 };
 
@@ -527,12 +533,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("el interés fijo por día se muestra como un monto en pesos", async () => {
-      const almacenamientos = nuevosAlmacenamientos();
-      nuevaAplicacion(almacenamientos).crearGrupo(
-        "Fútbol de los jueves",
-        reglas({ politicaDeInteres: new InteresFijoPorDia(1000) }),
-      );
-      montar(almacenamientos);
+      montar(almacenamientosConInteres(new InteresFijoPorDia(1000)));
 
       await navegarA("Reglas");
 
@@ -553,12 +554,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("al pasar a interés mensual, el porcentaje se puede cargar con decimales", async () => {
-      const almacenamientos = nuevosAlmacenamientos();
-      nuevaAplicacion(almacenamientos).crearGrupo(
-        "Fútbol de los jueves",
-        reglas({ politicaDeInteres: new InteresFijoPorDia(1000) }),
-      );
-      montar(almacenamientos);
+      montar(almacenamientosConInteres(new InteresFijoPorDia(1000)));
       await navegarA("Reglas");
 
       completar("¿Cómo se calcula el interés", "mensual");
@@ -569,12 +565,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("al pasar a interés fijo por día, el monto se carga en pesos enteros", async () => {
-      const almacenamientos = nuevosAlmacenamientos();
-      nuevaAplicacion(almacenamientos).crearGrupo(
-        "Fútbol de los jueves",
-        reglas({ politicaDeInteres: new InteresMensual(0.5) }),
-      );
-      montar(almacenamientos);
+      montar(almacenamientosConInteres(new InteresMensual(0.5)));
       await navegarA("Reglas");
 
       completar("¿Cómo se calcula el interés", "fijo por día");
