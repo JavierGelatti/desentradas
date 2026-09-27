@@ -2,6 +2,14 @@ export type Objeto = Record<string, unknown>;
 
 export const formatoInvalido = (detalle: string): Error => new Error(`Formato inválido: ${detalle}`);
 
+export const json = (texto: string): unknown => {
+  try {
+    return JSON.parse(texto);
+  } catch {
+    throw formatoInvalido("el texto no es JSON");
+  }
+};
+
 export const objeto = (json: unknown, descripcion: string): Objeto => {
   if (typeof json !== "object" || json === null || Array.isArray(json)) {
     throw formatoInvalido(`${descripcion} debe ser un objeto`);

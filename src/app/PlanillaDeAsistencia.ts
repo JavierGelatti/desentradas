@@ -1,5 +1,5 @@
 import type { Almacenamiento } from "./Almacenamiento.ts";
-import { objeto, textos } from "./json/Campos.ts";
+import { json, objeto, textos } from "./json/Campos.ts";
 
 export class PlanillaDeAsistencia {
   private _almacenamiento: Almacenamiento;
@@ -10,7 +10,7 @@ export class PlanillaDeAsistencia {
     if (texto === undefined) return undefined;
 
     try {
-      const campos = objeto(JSON.parse(texto), "La planilla de asistencia");
+      const campos = objeto(json(texto), "La planilla de asistencia");
       return new PlanillaDeAsistencia(almacenamiento, textos(campos, "asistentes"));
     } catch {
       almacenamiento.borrar();
