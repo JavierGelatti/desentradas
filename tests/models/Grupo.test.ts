@@ -29,7 +29,7 @@ const grupoConBetoFinalizadoPorFaltas = () => {
   grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
   grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
   grupo.cobrar("beto", 1000, dia(10));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"], ausentes: ["beto"] })); // ana queda morosa
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"], ausentes: ["beto"] }));
   return { grupo, ana, beto, carla };
 };
 
