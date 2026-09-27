@@ -73,7 +73,6 @@ export class Grupo {
     const participante = this._participanteFinalizadoLlamado(nombreLimpio);
 
     participante.reingresar(fecha);
-    this._moverAlFinal(participante);
     return participante;
   }
 
@@ -146,12 +145,6 @@ export class Grupo {
 
   yaParticipo(nombre: string): boolean {
     return this._participanteFinalizado(nombre.trim()) !== undefined;
-  }
-
-  // Para que los participantes queden en orden de ingreso.
-  private _moverAlFinal(participante: Participante): void {
-    this._participantes.splice(this._participantes.indexOf(participante), 1);
-    this._participantes.push(participante);
   }
 
   private _participantesLlamados(nombres: Iterable<string>): readonly Participante[] {

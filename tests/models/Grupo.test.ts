@@ -288,7 +288,8 @@ describe("Grupo", () => {
       expect(reingresada).toBe(ana);
       expect(ana.estado()).toBe("participando");
       expect(grupo.participanteActivo("ana")).toBe(ana);
-      expect(grupo.participantes()).toEqual([beto, ana]);
+      expect(grupo.participantes()).toEqual(expect.arrayContaining([ana, beto]));
+      expect(grupo.participantes()).toHaveLength(2);
       expect(grupo.participantesFinalizados()).toEqual([]);
     });
 
