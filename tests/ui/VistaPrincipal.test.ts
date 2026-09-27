@@ -28,6 +28,13 @@ const almacenamientosConDeudaDeAna = () => {
   return almacenamientos;
 };
 
+const almacenamientosConDeudaDeAnaYUnaPlanillaCon = (presentes: string[]) => {
+  const almacenamientos = almacenamientosConDeudaDeAna();
+  const planilla = nuevaAplicacion(almacenamientos).empezarPlanillaDeAsistencia();
+  presentes.forEach((nombre) => planilla.marcarComoPresente(nombre));
+  return almacenamientos;
+};
+
 const almacenamientosConAnaMorosa = () => {
   const almacenamientos = almacenamientosConDeudaDeAna();
   nuevaAplicacion(almacenamientos).registrarEncuentro(dia(3), ["beto", "carla", "dani"], ["ana"]);
@@ -143,6 +150,8 @@ const fila = (nombre: string) => {
 };
 
 const casillaDeAsistencia = (nombre: string) => fila(nombre).querySelector<HTMLInputElement>("input[type=checkbox]")!;
+
+const marcadosComoPresentes = (nombres: string[]) => nombres.filter((nombre) => casillaDeAsistencia(nombre).checked);
 
 const hayDialogoAbierto = () => document.querySelector("dialog[open]") !== null;
 
@@ -586,18 +595,11 @@ describe("VistaPrincipal", () => {
 
       expect(aplicacion.grupo().encuentros()).toEqual([]);
       expect(pantallaActual()).toBe("Encuentro");
-      expect(["ana", "beto", "carla", "dani"].map((nombre) => casillaDeAsistencia(nombre).checked)).toEqual([
-        false,
-        true,
-        true,
-        true,
-      ]);
+      expect(marcadosComoPresentes(["ana", "beto", "carla", "dani"])).toEqual(["beto", "carla", "dani"]);
     });
 
     it("deshacer el registro de un encuentro con una planilla empezada que tiene marcas pide confirmación", async () => {
-      const almacenamientos = almacenamientosConDeudaDeAna();
-      nuevaAplicacion(almacenamientos).empezarPlanillaDeAsistencia().marcarComoPresente("beto");
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConDeudaDeAnaYUnaPlanillaCon(["beto"]));
       await navegarA("Historial");
 
       hacerClic("Deshacer");
@@ -611,9 +613,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("confirmar que se deshace el encuentro reemplaza la planilla empezada por la del encuentro deshecho", async () => {
-      const almacenamientos = almacenamientosConDeudaDeAna();
-      nuevaAplicacion(almacenamientos).empezarPlanillaDeAsistencia().marcarComoPresente("beto");
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConDeudaDeAnaYUnaPlanillaCon(["beto"]));
       await navegarA("Historial");
       hacerClic("Deshacer");
 
@@ -622,18 +622,11 @@ describe("VistaPrincipal", () => {
       expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.grupo().encuentros()).toEqual([]);
       expect(pantallaActual()).toBe("Encuentro");
-      expect(["ana", "beto", "carla", "dani"].map((nombre) => casillaDeAsistencia(nombre).checked)).toEqual([
-        false,
-        true,
-        true,
-        true,
-      ]);
+      expect(marcadosComoPresentes(["ana", "beto", "carla", "dani"])).toEqual(["beto", "carla", "dani"]);
     });
 
     it("volver de la confirmación de deshacer el encuentro conserva la planilla empezada", async () => {
-      const almacenamientos = almacenamientosConDeudaDeAna();
-      nuevaAplicacion(almacenamientos).empezarPlanillaDeAsistencia().marcarComoPresente("beto");
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConDeudaDeAnaYUnaPlanillaCon(["beto"]));
       await navegarA("Historial");
       hacerClic("Deshacer");
 
@@ -646,9 +639,7 @@ describe("VistaPrincipal", () => {
     });
 
     it("deshacer el registro de un encuentro con una planilla empezada sin marcas no pide confirmación", async () => {
-      const almacenamientos = almacenamientosConDeudaDeAna();
-      nuevaAplicacion(almacenamientos).empezarPlanillaDeAsistencia();
-      const { aplicacion } = montar(almacenamientos);
+      const { aplicacion } = montar(almacenamientosConDeudaDeAnaYUnaPlanillaCon([]));
       await navegarA("Historial");
 
       hacerClic("Deshacer");
@@ -656,26 +647,19 @@ describe("VistaPrincipal", () => {
       expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.grupo().encuentros()).toEqual([]);
       expect(pantallaActual()).toBe("Encuentro");
-      expect(["ana", "beto", "carla", "dani"].map((nombre) => casillaDeAsistencia(nombre).checked)).toEqual([
-        false,
-        true,
-        true,
-        true,
-      ]);
+      expect(marcadosComoPresentes(["ana", "beto", "carla", "dani"])).toEqual(["beto", "carla", "dani"]);
     });
 
     it("deshacer un comando que no es un registro de encuentro, con una planilla empezada, deja la pantalla del historial", async () => {
-      const almacenamientos = almacenamientosConDeudaDeAna();
-      const preparacion = nuevaAplicacion(almacenamientos);
-      preparacion.empezarPlanillaDeAsistencia().marcarComoPresente("beto");
-      preparacion.cobrar("ana", 500, dia(3));
-      const { aplicacion } = montar(almacenamientos);
+      const almacenamientos = almacenamientosConDeudaDeAnaYUnaPlanillaCon(["beto"]);
+      nuevaAplicacion(almacenamientos).cobrar("ana", 500, dia(3));
+      montar(almacenamientos);
       await navegarA("Historial");
 
       hacerClic("Deshacer");
 
       expect(hayDialogoAbierto()).toBe(false);
-      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("en deuda");
+      expect(textoDe(document.querySelector("main")!)).not.toContain("Se cobró");
       expect(pantallaActual()).toBe("Historial");
     });
 
