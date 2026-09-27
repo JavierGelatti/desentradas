@@ -11,7 +11,7 @@ export abstract class ConDeuda extends Estado {
   }
 
   override pago(fecha: Date, monto: number): Estado {
-    this._deuda.pagar(fecha, monto);
+    this._pagar(fecha, monto);
     if (!this._deuda.estaSaldada()) return this;
 
     return this._estadoAlSaldar();
@@ -25,9 +25,7 @@ export abstract class ConDeuda extends Estado {
     return 1;
   }
 
-  override deudaAl(fecha: Date): number {
-    return this._deuda.montoAl(fecha);
-  }
+  protected abstract _pagar(fecha: Date, monto: number): void;
 
   protected abstract _estadoAlSaldar(): Estado;
 }

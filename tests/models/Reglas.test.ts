@@ -41,15 +41,14 @@ describe("Reglas", () => {
 
     expect(deuda.monto()).toBe(1000);
     expect(deuda.encuentroFaltado()).toBe(encuentro);
-    expect(deuda.estaEnMora()).toBe(false);
   });
 
-  it("la deuda por faltar a un encuentro acumula interés en mora según la política de interés", () => {
+  it("la deuda por faltar a un encuentro acumula interés según la política de interés", () => {
     const lasReglas = reglas({ politicaDeInteres: new InteresFijoPorDia(10) });
     const deuda = lasReglas.deudaPorFaltarA(nuevoEncuentro());
 
-    deuda.entrarEnMora(dia(8));
+    const monto = deuda.montoConInteres(dia(8), dia(11));
 
-    expect(deuda.montoAl(dia(11))).toBe(1030);
+    expect(monto).toBe(1030);
   });
 });

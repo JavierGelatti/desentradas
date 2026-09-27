@@ -434,6 +434,15 @@ describe("Participante", () => {
       expect(ana.deudaAl(dia(17))).toBe(600);
     });
 
+    it("un pago parcial capitaliza el interés devengado, que vuelve a correr desde el pago", () => {
+      const ana = moroso(nuevoEncuentro({ numero: 2 }), reglasConInteresDiario);
+
+      ana.pago(dia(12), 530, "efectivo");
+
+      expect(ana.deudaAl(dia(12))).toBe(500);
+      expect(ana.deudaAl(dia(15))).toBe(530);
+    });
+
     it("saldar la deuda finaliza la participación por pago de morosidad", () => {
       const ana = moroso();
 

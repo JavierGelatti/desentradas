@@ -5,13 +5,11 @@ export class Deuda {
   private _monto: number;
   private _encuentroFaltado: Encuentro;
   private _politicaDeInteres: PoliticaDeInteres;
-  private _enMoraDesde: Date | undefined;
 
   constructor(monto: number, encuentroFaltado: Encuentro, politicaDeInteres: PoliticaDeInteres) {
     this._monto = monto;
     this._encuentroFaltado = encuentroFaltado;
     this._politicaDeInteres = politicaDeInteres;
-    this._enMoraDesde = undefined;
   }
 
   monto(): number {
@@ -22,35 +20,30 @@ export class Deuda {
     return this._encuentroFaltado;
   }
 
-  estaEnMora(): boolean {
-    return this._enMoraDesde !== undefined;
-  }
-
   estaSaldada(): boolean {
     return this._monto === 0;
   }
 
-  entrarEnMora(fecha: Date): void {
-    if (this.estaEnMora()) throw new Error("La deuda ya está en mora");
+  montoConInteres(desde: Date, hasta: Date): number {
+    if (hasta < desde) return this._monto;
 
-    this._enMoraDesde = fecha;
+    return this._politicaDeInteres.montoConInteres(this._monto, desde, hasta);
   }
 
-  montoAl(fecha: Date): number {
-    if (this.estaSaldada() || this._enMoraDesde === undefined || fecha < this._enMoraDesde) return this._monto;
-
-    return this._politicaDeInteres.montoConInteres(this._monto, this._enMoraDesde, fecha);
-  }
-
-  // El interés devengado se capitaliza y, en mora, vuelve a correr desde el pago.
   pagar(fecha: Date, monto: number): void {
+    this._pagarSobre(this._monto, fecha, monto);
+  }
+
+  pagarConInteres(desde: Date, fecha: Date, monto: number): void {
+    this._pagarSobre(this.montoConInteres(desde, fecha), fecha, monto);
+  }
+
+  private _pagarSobre(montoALaFecha: number, fecha: Date, monto: number): void {
     if (monto <= 0) throw new Error("El monto del pago debe ser positivo");
     this._asertarQueNoEsAnteriorAlEncuentroFaltado(fecha);
-    const montoALaFecha = this.montoAl(fecha);
     if (monto > montoALaFecha) throw new Error("El pago no puede superar la deuda");
 
     this._monto = montoALaFecha - monto;
-    if (this.estaEnMora()) this._enMoraDesde = fecha;
   }
 
   private _asertarQueNoEsAnteriorAlEncuentroFaltado(fecha: Date): void {
