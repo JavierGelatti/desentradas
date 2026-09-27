@@ -1,16 +1,15 @@
 import type { Reglas } from "../Reglas.ts";
-import { Estado, type NombreDeEstado } from "./Estado.ts";
+import { ConReglas } from "./ConReglas.ts";
+import type { Estado, NombreDeEstado } from "./Estado.ts";
 import { Finalizado } from "./Finalizado.ts";
 import { Participando } from "./Participando.ts";
 
-export class LibreDeDeuda extends Estado {
+export class LibreDeDeuda extends ConReglas {
   private _faltas: number;
-  private _reglas: Reglas;
 
   constructor(faltas: number, reglas: Reglas) {
-    super();
+    super(reglas);
     this._faltas = faltas;
-    this._reglas = reglas;
   }
 
   nombre(): NombreDeEstado {
@@ -23,13 +22,9 @@ export class LibreDeDeuda extends Estado {
 
   override falto(): Estado {
     const faltas = this._faltas + 1;
-    if (this._reglas.superaLaTolerancia(faltas)) return new Finalizado();
+    if (this.reglas().superaLaTolerancia(faltas)) return new Finalizado();
 
-    return new LibreDeDeuda(faltas, this._reglas);
-  }
-
-  override reglas(): Reglas {
-    return this._reglas;
+    return new LibreDeDeuda(faltas, this.reglas());
   }
 
   override puedeAsistir(): boolean {

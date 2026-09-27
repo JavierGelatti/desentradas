@@ -10,7 +10,7 @@ export class EnDeuda extends ConDeuda {
   }
 
   override falto(encuentro: Encuentro): Estado {
-    return new Moroso(this._deuda, encuentro.fecha(), this._reglas);
+    return new Moroso(this._deuda, encuentro.fecha(), this.reglas());
   }
 
   override soloLeFaltaPagarParaAsistir(): boolean {
@@ -26,6 +26,6 @@ export class EnDeuda extends ConDeuda {
   }
 
   protected _estadoAlSaldar(): Estado {
-    return new LibreDeDeuda(this.faltas(), this._reglas);
+    return new LibreDeDeuda(this.faltas(), this.reglas());
   }
 }

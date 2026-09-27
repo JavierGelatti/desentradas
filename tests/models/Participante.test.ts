@@ -7,7 +7,7 @@ const lasReglas = reglas({ toleranciaDeFaltas: 2 });
 const reglasConInteresDiario = reglas({ politicaDeInteres: new InteresFijoPorDia(10) });
 
 const enDeuda = (encuentro = nuevoEncuentro(), reglasDeIngreso = lasReglas) => {
-  const ana = nuevoParticipante({ reglasDeIngreso });
+  const ana = nuevoParticipante(reglasDeIngreso);
   ana.falto(encuentro);
   return ana;
 };
@@ -52,7 +52,7 @@ describe("Participante", () => {
     it("se rige por las reglas con que ingresó", () => {
       const reglasDeIngreso = reglas();
 
-      const ana = nuevoParticipante({ reglasDeIngreso });
+      const ana = nuevoParticipante(reglasDeIngreso);
 
       expect(ana.reglas()).toBe(reglasDeIngreso);
     });
@@ -99,7 +99,7 @@ describe("Participante", () => {
     });
 
     it("faltar lo deja en deuda por el monto por falta de sus reglas", () => {
-      const ana = nuevoParticipante({ reglasDeIngreso: reglas({ montoPorFalta: 1500 }) });
+      const ana = nuevoParticipante(reglas({ montoPorFalta: 1500 }));
 
       ana.falto(nuevoEncuentro());
 
@@ -186,6 +186,15 @@ describe("Participante", () => {
 
       expect(ana.estado()).toBe("libre de deuda");
       expect(ana.deudaAl(dia(4))).toBe(0);
+    });
+
+    it("pagar no cambia las reglas por las que se rige", () => {
+      const reglasDeIngreso = reglas();
+      const ana = enDeuda(nuevoEncuentro(), reglasDeIngreso);
+
+      ana.pago(dia(3), 1000, "efectivo");
+
+      expect(ana.reglas()).toBe(reglasDeIngreso);
     });
 
     it("pagar produce un cobro a su nombre por el encuentro adeudado", () => {
@@ -365,23 +374,15 @@ describe("Participante", () => {
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
       expect(ana.deudaAl(dia(17))).toBe(0);
     });
+
     it("la tolerancia de faltas es la de sus reglas", () => {
-      const ana = nuevoParticipante({ reglasDeIngreso: reglas({ toleranciaDeFaltas: 1 }) });
+      const ana = nuevoParticipante(reglas({ toleranciaDeFaltas: 1 }));
       ana.falto(nuevoEncuentro({ numero: 2 }));
       ana.pago(dia(3), 1000, "efectivo");
 
       ana.falto(nuevoEncuentro({ numero: 9 }));
 
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
-    });
-
-    it("pagar no cambia las reglas por las que se rige", () => {
-      const reglasDeIngreso = reglas();
-      const ana = enDeuda(nuevoEncuentro(), reglasDeIngreso);
-
-      ana.pago(dia(3), 1000, "efectivo");
-
-      expect(ana.reglas()).toBe(reglasDeIngreso);
     });
   });
 

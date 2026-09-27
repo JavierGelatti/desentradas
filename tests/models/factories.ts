@@ -28,12 +28,7 @@ export const reglas = ({
   politicaDeInteres?: PoliticaDeInteres;
 } = {}) => new Reglas(rigeDesde, toleranciaDeFaltas, montoPorFalta, politicaDeInteres);
 
-export const nuevoParticipante = ({
-  nombre = "ana",
-  fechaDeIngreso = dia(1),
-  reglasDeIngreso = reglas(),
-}: { nombre?: string; fechaDeIngreso?: Date; reglasDeIngreso?: Reglas } = {}) =>
-  new Participante(nombre, fechaDeIngreso, reglasDeIngreso);
+export const nuevoParticipante = (reglasDeIngreso = reglas()) => new Participante("ana", dia(1), reglasDeIngreso);
 
 export const desempate = new DesempateAlfabetico();
 

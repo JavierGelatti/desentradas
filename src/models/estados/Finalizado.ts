@@ -11,6 +11,10 @@ export class Finalizado extends Estado {
     return new Participando(reglas);
   }
 
+  reglas(): Reglas {
+    throw new Error("Un participante finalizado no se rige por ninguna regla");
+  }
+
   override estaActivo(): boolean {
     return false;
   }

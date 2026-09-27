@@ -1,16 +1,10 @@
 import type { Encuentro } from "../Encuentro.ts";
 import type { Reglas } from "../Reglas.ts";
-import { Estado, type NombreDeEstado } from "./Estado.ts";
+import { ConReglas } from "./ConReglas.ts";
+import type { Estado, NombreDeEstado } from "./Estado.ts";
 import { EnDeuda } from "./EnDeuda.ts";
 
-export class Participando extends Estado {
-  private _reglas: Reglas;
-
-  constructor(reglas: Reglas) {
-    super();
-    this._reglas = reglas;
-  }
-
+export class Participando extends ConReglas {
   nombre(): NombreDeEstado {
     return "participando";
   }
@@ -20,11 +14,7 @@ export class Participando extends Estado {
   }
 
   override falto(encuentro: Encuentro): Estado {
-    return new EnDeuda(this._reglas.deudaPorFaltarA(encuentro), this._reglas);
-  }
-
-  override reglas(): Reglas {
-    return this._reglas;
+    return new EnDeuda(this.reglas().deudaPorFaltarA(encuentro), this.reglas());
   }
 
   override puedeAsistir(): boolean {

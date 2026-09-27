@@ -38,9 +38,7 @@ export abstract class Estado {
     throw new TransicionInvalida("reingresar", this.nombre());
   }
 
-  reglas(): Reglas {
-    throw new Error("Un participante finalizado no se rige por ninguna regla");
-  }
+  abstract reglas(): Reglas;
 
   puedeAsistir(): boolean {
     return false;
