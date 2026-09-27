@@ -134,11 +134,12 @@ export class Aplicacion {
     this._ejecutar(new CambiarReglas(reglas));
   }
 
-  deshacer(): void {
+  deshacer(): Comando {
     const deshecho = this._bitacora.deshacer();
     this._guardar();
     deshecho.alDeshacerse(this);
     this._desmarcarAQuienesNoPuedenAsistir();
+    return deshecho;
   }
 
   recordarCreacionDeshecha(creacion: CrearGrupo): void {

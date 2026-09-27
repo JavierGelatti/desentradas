@@ -80,7 +80,7 @@ export class PantallaHistorial {
       {},
       asistencia !== undefined && boton("Ver", () => this._verAsistencia(comando.fecha(), asistencia)),
       " ",
-      esElUltimo && boton("Deshacer", () => this._deshacer()),
+      esElUltimo && boton("Deshacer", () => this._deshacer(comando)),
     );
   }
 
@@ -96,7 +96,24 @@ export class PantallaHistorial {
     );
   }
 
-  private _deshacer(): void {
-    intentar(() => this._entorno.deshacer(), this._errores);
+  private _deshacer(comando: Comando): void {
+    if (comando.asistencia() !== undefined && this._hayMarcasDeAsistencia()) {
+      new Dialogo(
+        this._entorno,
+        "¿Deshacer el encuentro?",
+        [crear("p", {}, "Hay una planilla de asistencia empezada. Se va a reemplazar por la del encuentro deshecho.")],
+        "Sí, deshacer",
+        () => this._entorno.deshacer(),
+      )
+        .conTextoDeCancelacion("No, volver")
+        .abrir();
+    } else {
+      intentar(() => this._entorno.deshacer(), this._errores);
+    }
+  }
+
+  private _hayMarcasDeAsistencia(): boolean {
+    const aplicacion = this._entorno.aplicacion();
+    return aplicacion.tienePlanillaDeAsistencia() && aplicacion.planillaDeAsistencia().asistentes().length > 0;
   }
 }

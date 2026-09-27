@@ -74,10 +74,8 @@ export class VistaPrincipal implements Entorno {
   }
 
   deshacer(): void {
-    const habiaPlanillaDeAsistencia = this._aplicacion.tienePlanillaDeAsistencia();
-    this._aplicacion.deshacer();
-    const seRestauroUnaPlanilla = !habiaPlanillaDeAsistencia && this._aplicacion.tienePlanillaDeAsistencia();
-    if (seRestauroUnaPlanilla) {
+    const deshecho = this._aplicacion.deshacer();
+    if (deshecho.asistencia() !== undefined) {
       this._irA("encuentro");
     } else {
       this.refrescar();

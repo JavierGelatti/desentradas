@@ -188,6 +188,15 @@ describe("Aplicacion", () => {
       expect(aplicacion.comandos().at(-1)).toBeInstanceOf(Ingresar);
     });
 
+    it("deshacer devuelve el comando deshecho", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+      const ultimo = aplicacion.comandos().at(-1);
+
+      const deshecho = aplicacion.deshacer();
+
+      expect(deshecho).toBe(ultimo);
+    });
+
     it("deshacer la creación del grupo la deja disponible para volver a cargarla", () => {
       const aplicacion = nuevaAplicacion();
       const reglasIniciales = reglas();
