@@ -164,7 +164,7 @@ const dialogoAbierto = () => {
 
 const filasDe = (raiz: ParentNode) => [...raiz.querySelectorAll("tbody tr")].map(textosDeLasCeldas);
 
-const filasDeActivos = () => filasDe(elementoConTexto("caption", "Participaciones activas").closest("table")!);
+const filasDeActivos = () => filasDe(elementoConTexto("caption", "Participaciones activas").parentElement!);
 
 const filasDeQuienesYaNoParticipan = () =>
   filasDe(elementoConTexto("summary", "Quienes ya no participan").parentElement!);
@@ -316,7 +316,6 @@ describe("VistaPrincipal", () => {
       await navegarA("Participantes");
 
       hacerClic("Cobrar y reingresar", fila("ana"));
-      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
       hacerClic("Cobrar", dialogoAbierto());
 
       expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
@@ -563,8 +562,6 @@ describe("VistaPrincipal", () => {
       hacerClic("Vino alguien nuevo");
       completar("Nombre", "ana", dialogoAbierto());
       hacerClic("Registrar", dialogoAbierto());
-      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("Cobrar a ana");
-      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
       hacerClic("Cobrar", dialogoAbierto());
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");

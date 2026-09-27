@@ -64,7 +64,7 @@ export class VistaPrincipal implements Entorno {
     return this._ahora();
   }
 
-  // Deja los diálogos abiertos, que pueden haberse abierto durante la acción que refresca.
+  // Un diálogo puede haberse abierto durante la acción que refresca.
   refrescar(): void {
     const raiz = this._raizMontada();
     raiz.querySelectorAll(":scope > :not(dialog)").forEach((elemento) => elemento.remove());

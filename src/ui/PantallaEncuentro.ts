@@ -137,11 +137,10 @@ export class PantallaEncuentro {
     new DialogoDeRegistro(this._entorno, "Vino alguien nuevo", (nombre) => this._ingresar(nombre.trim())).abrir();
   }
 
-  // Un moroso no puede ingresar como alguien nuevo: primero tiene que pagar.
   private _ingresar(nombre: string): void {
-    const moroso = this._entorno.grupo().participanteActivo(nombre);
-    if (moroso?.soloLeFaltaPagarParaReingresar()) {
-      this._abrirCobro(moroso);
+    const participante = this._entorno.grupo().participanteActivo(nombre);
+    if (participante?.soloLeFaltaPagarParaReingresar()) {
+      this._abrirCobro(participante);
     } else {
       this._entorno.aplicacion().ingresarAsistente(nombre, this._entorno.ahora());
     }

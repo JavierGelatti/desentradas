@@ -40,11 +40,7 @@ export class PantallaParticipantes {
   }
 
   private _tablaDeActivos(): Hijo[] {
-    const activos = this._entorno
-      .grupo()
-      .participantes()
-      .filter((participante) => !participante.soloLeFaltaPagarParaReingresar())
-      .toSorted(porAtencionYNombre);
+    const activos = this._entorno.grupo().posiblesAsistentes().toSorted(porAtencionYNombre);
     return tablaOAviso(
       "Participaciones activas",
       ["Nombre", "Estado"],
@@ -67,7 +63,7 @@ export class PantallaParticipantes {
     return `${estado} (${participante.faltas()}/${tolerancia} faltas)`;
   }
 
-  // Un moroso sigue activo en el grupo, pero para volver a participar tiene que pagar y reingresar.
+  // Un moroso sigue activo en el grupo, pero no participa hasta pagar y reingresar.
   private _tablaDeQuienesYaNoParticipan(): HTMLElement | undefined {
     const grupo = this._entorno.grupo();
     const morosos = grupo.participantes().filter((participante) => participante.soloLeFaltaPagarParaReingresar());
@@ -85,11 +81,10 @@ export class PantallaParticipantes {
   }
 
   private _filaDeMoroso(participante: Participante): HTMLTableRowElement {
-    const deuda = participante.deudaAl(this._entorno.ahora());
     return fila(
       participante.nombre(),
-      `moroso, debe ${monto(deuda)}`,
-      boton("Cobrar y reingresar", () => this._abrirCobro(participante.nombre(), deuda)),
+      `moroso, debe ${monto(participante.deudaAl(this._entorno.ahora()))}`,
+      boton("Cobrar y reingresar", () => this._abrirCobro(participante)),
     );
   }
 
@@ -108,7 +103,9 @@ export class PantallaParticipantes {
     ).abrir();
   }
 
-  private _abrirCobro(nombre: string, deuda: number): void {
+  private _abrirCobro(participante: Participante): void {
+    const nombre = participante.nombre();
+    const deuda = participante.deudaAl(this._entorno.ahora());
     new DialogoDeCobro(this._entorno, nombre, deuda, (monto) =>
       this._entorno.aplicacion().cobrarYReingresar(nombre, monto, this._entorno.ahora()),
     ).abrir();

@@ -163,12 +163,8 @@ describe("Aplicacion", () => {
       aplicacion.cobrarYReingresar("ana", 1000, dia(4));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
-      expect(
-        aplicacion
-          .comandos()
-          .slice(-2)
-          .map((comando) => comando.constructor),
-      ).toEqual([Cobrar, Reingresar]);
+      expect(aplicacion.comandos().at(-2)).toBeInstanceOf(Cobrar);
+      expect(aplicacion.comandos().at(-1)).toBeInstanceOf(Reingresar);
     });
 
     it("cobrar y reingresar a un moroso que paga parte de su deuda lo deja moroso por el resto, con sólo el cobro en el historial", () => {
@@ -179,12 +175,8 @@ describe("Aplicacion", () => {
       const ana = aplicacion.grupo().participanteActivo("ana");
       expect(ana?.estado()).toBe("moroso");
       expect(ana?.deudaAl(dia(4))).toBe(600);
-      expect(
-        aplicacion
-          .comandos()
-          .slice(-2)
-          .map((comando) => comando.constructor),
-      ).toEqual([RegistrarEncuentro, Cobrar]);
+      expect(aplicacion.comandos().at(-2)).toBeInstanceOf(RegistrarEncuentro);
+      expect(aplicacion.comandos().at(-1)).toBeInstanceOf(Cobrar);
     });
 
     it("no se puede cobrar y reingresar a quien no es moroso", () => {
