@@ -3,12 +3,12 @@ import type { Movimiento, TipoDeMovimiento } from "./Movimiento.ts";
 
 export class Reparto implements Movimiento {
   private _fecha: Date;
-  private _acreedor: string;
   private _creditos: readonly Credito[];
 
-  constructor(fecha: Date, acreedor: string, creditos: readonly Credito[]) {
+  constructor(fecha: Date, creditos: readonly Credito[]) {
+    if (creditos.length === 0) throw new Error("Un reparto necesita al menos un crédito");
+
     this._fecha = fecha;
-    this._acreedor = acreedor;
     this._creditos = creditos;
   }
 
@@ -17,7 +17,7 @@ export class Reparto implements Movimiento {
   }
 
   acreedor(): string {
-    return this._acreedor;
+    return this._creditos[0].acreedor();
   }
 
   tipo(): TipoDeMovimiento {

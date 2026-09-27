@@ -32,7 +32,7 @@ export class Caja {
     if (creditos.length === 0) throw new Error(`${nombre} no tiene créditos pendientes`);
 
     this._creditosPendientes = this._creditosPendientes.filter((credito) => credito.acreedor() !== nombre);
-    const reparto = new Reparto(fecha, nombre, creditos);
+    const reparto = new Reparto(fecha, creditos);
     this._repartos.push(reparto);
     return reparto;
   }
