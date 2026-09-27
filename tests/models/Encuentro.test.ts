@@ -19,8 +19,6 @@ describe("Encuentro", () => {
     const encuentro = new Encuentro(dia(1), ["ana", "beto"], ["carla"]);
 
     expect(encuentro.fecha()).toEqual(dia(1));
-    expect(encuentro.asistio("ana")).toBe(true);
-    expect(encuentro.asistio("carla")).toBe(false);
     expect([...encuentro.asistentes()]).toEqual(["ana", "beto"]);
     expect([...encuentro.ausentes()]).toEqual(["carla"]);
   });

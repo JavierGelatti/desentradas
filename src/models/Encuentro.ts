@@ -7,8 +7,7 @@ export class Encuentro {
     const presentes = new Set(asistentes);
     const faltantes = new Set(ausentes);
     if (presentes.size === 0) throw new Error("Un encuentro debe tener al menos un asistente");
-    const repetido = [...faltantes].find((nombre) => presentes.has(nombre));
-    if (repetido !== undefined) throw new Error(`${repetido} no puede figurar a la vez como asistente y como ausente`);
+    this._asertarQueNadieFiguraComoAsistenteYAusente(presentes, faltantes);
 
     this._fecha = fecha;
     this._asistentes = presentes;
@@ -27,7 +26,8 @@ export class Encuentro {
     return this._ausentes;
   }
 
-  asistio(nombre: string): boolean {
-    return this._asistentes.has(nombre);
+  private _asertarQueNadieFiguraComoAsistenteYAusente(presentes: Set<string>, faltantes: Set<string>): void {
+    const repetido = [...faltantes].find((nombre) => presentes.has(nombre));
+    if (repetido !== undefined) throw new Error(`${repetido} no puede figurar a la vez como asistente y como ausente`);
   }
 }
