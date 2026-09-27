@@ -26,7 +26,7 @@ const tipoYValorDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
 
 export const camposDeReglas = (reglas?: Reglas): HTMLElement[] => [
   campoNumerico(
-    "¿Cuántas faltas se toleran antes de quedar afuera?",
+    "¿Cuántas faltas seguidas se toleran antes de quedar afuera?",
     "toleranciaDeFaltas",
     reglas?.toleranciaDeFaltas() ?? 1,
     1,

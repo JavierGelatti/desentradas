@@ -194,7 +194,7 @@ describe("VistaPrincipal", () => {
       expect(hayEtiqueta("Rige desde")).toBe(false);
 
       completar("Nombre del grupo", "Fútbol de los jueves");
-      completar("¿Cuántas faltas se toleran", "2");
+      completar("¿Cuántas faltas seguidas se toleran", "2");
       completar("¿Cuánto se paga por falta?", "1000");
       hacerClic("Crear");
 
@@ -226,7 +226,7 @@ describe("VistaPrincipal", () => {
       expect(hayEtiqueta("¿Qué porcentaje se cobra por mes de mora?")).toBe(true);
       completar("¿Qué porcentaje se cobra por mes de mora?", "5");
       completar("Nombre del grupo", "Fútbol de los jueves");
-      completar("¿Cuántas faltas se toleran", "2");
+      completar("¿Cuántas faltas seguidas se toleran", "2");
       completar("¿Cuánto se paga por falta?", "1000");
       hacerClic("Crear");
 
@@ -249,7 +249,7 @@ describe("VistaPrincipal", () => {
       expect(aplicacion.tieneGrupo()).toBe(false);
       expect(pantallaActual()).toBe("Crear el grupo");
       expect(campo("Nombre del grupo").value).toBe("Fútbol de los jueves");
-      expect(campo("¿Cuántas faltas se toleran").value).toBe("3");
+      expect(campo("¿Cuántas faltas seguidas se toleran").value).toBe("3");
       expect(campo("¿Cuánto se paga por falta?").value).toBe("1500");
       expect(campo("¿Cómo se calcula el interés").value).toBe("fijo por día");
       expect(hayEtiqueta("¿Cuánto se cobra por día de mora?")).toBe(true);
