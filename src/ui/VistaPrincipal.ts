@@ -64,8 +64,11 @@ export class VistaPrincipal implements Entorno {
     return this._ahora();
   }
 
+  // Deja los diálogos abiertos, que pueden haberse abierto durante la acción que refresca.
   refrescar(): void {
-    this._raizMontada().replaceChildren(this._encabezado(), crear("main", {}, this._pantalla()));
+    const raiz = this._raizMontada();
+    raiz.querySelectorAll(":scope > :not(dialog)").forEach((elemento) => elemento.remove());
+    raiz.prepend(this._encabezado(), crear("main", {}, this._pantalla()));
   }
 
   // Si falla no se refresca, para que la alerta siga a la vista.

@@ -556,6 +556,21 @@ describe("VistaPrincipal", () => {
       expect(casillaDeAsistencia("carla").checked).toBe(false);
     });
 
+    it("si vuelve un moroso se le cobra, y si paga toda su deuda queda reingresado y marcado como presente", () => {
+      const { aplicacion } = montar(almacenamientosConAnaMorosa());
+      hacerClic("Empezar encuentro");
+
+      hacerClic("Vino alguien nuevo");
+      completar("Nombre", "ana", dialogoAbierto());
+      hacerClic("Registrar", dialogoAbierto());
+      expect(textoDe(dialogoAbierto().querySelector("h3")!)).toBe("Cobrar a ana");
+      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      hacerClic("Cobrar", dialogoAbierto());
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+      expect(casillaDeAsistencia("ana").checked).toBe(true);
+    });
+
     it("sin posibles asistentes dice que todavía no hay nadie", async () => {
       montar(almacenamientosConGrupoSinParticipantes());
       await navegarA("Encuentro");
