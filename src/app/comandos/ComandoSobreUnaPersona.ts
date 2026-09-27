@@ -6,7 +6,7 @@ export abstract class ComandoSobreUnaPersona extends ComandoSobreElGrupo {
 
   constructor(nombre: string, fecha: Date) {
     super();
-    this._nombre = nombre;
+    this._nombre = nombre.trim();
     this._fecha = fecha;
   }
 

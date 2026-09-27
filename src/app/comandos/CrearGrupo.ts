@@ -16,7 +16,7 @@ export class CrearGrupo implements Comando {
   }
 
   constructor(nombreDelGrupo: string, reglas: Reglas) {
-    this._nombreDelGrupo = nombreDelGrupo;
+    this._nombreDelGrupo = nombreDelGrupo.trim();
     this._reglas = reglas;
   }
 

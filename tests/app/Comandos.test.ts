@@ -44,6 +44,20 @@ describe("CrearGrupo", () => {
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
   });
 
+  it("recuerda el nombre del grupo sin los espacios de los extremos, tanto al describirse como en JSON", () => {
+    const comando = new CrearGrupo(" Fútbol de los jueves  ", reglas());
+
+    const descripcion = comando.describir();
+    const json = comando.aJson();
+
+    expect(descripcion).toBe('Se creó el grupo "Fútbol de los jueves"');
+    expect(json).toEqual({
+      tipo: "crear grupo",
+      nombreDelGrupo: "Fútbol de los jueves",
+      reglas: reglasAJson(reglas()),
+    });
+  });
+
   it("conoce el nombre del grupo y las reglas iniciales, para poder volver a pedirlos si se deshace", () => {
     const reglasIniciales = reglas();
     const comando = new CrearGrupo("Fútbol de los jueves", reglasIniciales);
@@ -125,6 +139,16 @@ describe("Ingresar", () => {
     expect(json).toEqual({ tipo: "ingresar", nombre: "ana", fecha: dia(1).toISOString() });
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
   });
+
+  it("recuerda el nombre sin los espacios de los extremos, tanto al describirse como en JSON", () => {
+    const comando = new Ingresar("  ana ", dia(1));
+
+    const descripcion = comando.describir();
+    const json = comando.aJson();
+
+    expect(descripcion).toBe("Ingresó ana");
+    expect(json).toEqual({ tipo: "ingresar", nombre: "ana", fecha: dia(1).toISOString() });
+  });
 });
 
 describe("Reingresar", () => {
@@ -148,6 +172,16 @@ describe("Reingresar", () => {
 
     expect(json).toEqual({ tipo: "reingresar", nombre: "ana", fecha: dia(11).toISOString() });
     expect(comandoDesdeJson(json).aJson()).toEqual(json);
+  });
+
+  it("recuerda el nombre sin los espacios de los extremos, tanto al describirse como en JSON", () => {
+    const comando = new Reingresar(" ana  ", dia(11));
+
+    const descripcion = comando.describir();
+    const json = comando.aJson();
+
+    expect(descripcion).toBe("Reingresó ana");
+    expect(json).toEqual({ tipo: "reingresar", nombre: "ana", fecha: dia(11).toISOString() });
   });
 });
 
