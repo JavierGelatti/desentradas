@@ -1,4 +1,6 @@
+import { monto } from "../app/Formato.ts";
 import type { Participante } from "../models/Participante.ts";
+import { DialogoDeCobro } from "./DialogoDeCobro.ts";
 import { DialogoDeRegistro } from "./DialogoDeRegistro.ts";
 import { alerta, boton, crear, desplegable, fila, type Hijo, tabla, tablaOAviso } from "./dom.ts";
 import type { Entorno } from "./Entorno.ts";
@@ -33,12 +35,16 @@ export class PantallaParticipantes {
       {},
       crear("h2", {}, "Participantes"),
       ...this._tablaDeActivos(),
-      desplegable("Participaciones finalizadas", this._tablaDeFinalizados(), this._erroresDeReingreso),
+      desplegable("Quienes ya no participan", this._tablaDeQuienesYaNoParticipan(), this._erroresDeReingreso),
     );
   }
 
   private _tablaDeActivos(): Hijo[] {
-    const activos = this._entorno.grupo().participantes().toSorted(porAtencionYNombre);
+    const activos = this._entorno
+      .grupo()
+      .participantes()
+      .filter((participante) => !participante.soloLeFaltaPagarParaReingresar())
+      .toSorted(porAtencionYNombre);
     return tablaOAviso(
       "Participaciones activas",
       ["Nombre", "Estado"],
@@ -61,12 +67,29 @@ export class PantallaParticipantes {
     return `${estado} (${participante.faltas()}/${tolerancia} faltas)`;
   }
 
-  private _tablaDeFinalizados(): HTMLElement | undefined {
-    const finalizados = this._entorno.grupo().participantesFinalizados().toSorted(porNombre);
+  // Un moroso sigue activo en el grupo, pero para volver a participar tiene que pagar y reingresar.
+  private _tablaDeQuienesYaNoParticipan(): HTMLElement | undefined {
+    const grupo = this._entorno.grupo();
+    const morosos = grupo.participantes().filter((participante) => participante.soloLeFaltaPagarParaReingresar());
     return tabla(
-      "Quienes ya no participan",
+      undefined,
       ["Nombre", "Motivo", ""],
-      finalizados.map((participante) => this._filaDeFinalizado(participante)),
+      [...morosos, ...grupo.participantesFinalizados()]
+        .toSorted(porNombre)
+        .map((participante) =>
+          participante.soloLeFaltaPagarParaReingresar()
+            ? this._filaDeMoroso(participante)
+            : this._filaDeFinalizado(participante),
+        ),
+    );
+  }
+
+  private _filaDeMoroso(participante: Participante): HTMLTableRowElement {
+    const deuda = participante.deudaAl(this._entorno.ahora());
+    return fila(
+      participante.nombre(),
+      `moroso, debe ${monto(deuda)}`,
+      boton("Cobrar y reingresar", () => this._abrirCobro(participante.nombre(), deuda)),
     );
   }
 
@@ -82,6 +105,12 @@ export class PantallaParticipantes {
   private _abrirIngreso(): void {
     new DialogoDeRegistro(this._entorno, "Registrar participante", (nombre) =>
       this._entorno.aplicacion().ingresar(nombre, this._entorno.ahora()),
+    ).abrir();
+  }
+
+  private _abrirCobro(nombre: string, deuda: number): void {
+    new DialogoDeCobro(this._entorno, nombre, deuda, (monto) =>
+      this._entorno.aplicacion().cobrarYReingresar(nombre, monto, this._entorno.ahora()),
     ).abrir();
   }
 

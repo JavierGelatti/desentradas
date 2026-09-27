@@ -164,6 +164,11 @@ const dialogoAbierto = () => {
 
 const filasDe = (raiz: ParentNode) => [...raiz.querySelectorAll("tbody tr")].map(textosDeLasCeldas);
 
+const filasDeActivos = () => filasDe(elementoConTexto("caption", "Participaciones activas").closest("table")!);
+
+const filasDeQuienesYaNoParticipan = () =>
+  filasDe(elementoConTexto("summary", "Quienes ya no participan").parentElement!);
+
 describe("VistaPrincipal", () => {
   beforeEach(() => {
     location.hash = "";
@@ -174,7 +179,7 @@ describe("VistaPrincipal", () => {
     const almacenamientos = almacenamientosConDeudaDeAna();
     montar(almacenamientos);
     await navegarA("Participantes");
-    expect(hayDesplegable("Participaciones finalizadas")).toBe(false);
+    expect(hayDesplegable("Quienes ya no participan")).toBe(false);
     await navegarA("Caja");
     expect(hayDesplegable("Movimientos")).toBe(false);
     await navegarA("Reglas");
@@ -185,7 +190,7 @@ describe("VistaPrincipal", () => {
     preparacion.cobrar("ana", 1000, dia(4)); // ana queda finalizada por pago de morosidad
     recargar(almacenamientos);
     await navegarA("Participantes");
-    expect(hayDesplegable("Participaciones finalizadas")).toBe(true);
+    expect(hayDesplegable("Quienes ya no participan")).toBe(true);
     expect(fila("ana")).toBeDefined();
     await navegarA("Caja");
     expect(hayDesplegable("Movimientos")).toBe(true);
@@ -295,6 +300,28 @@ describe("VistaPrincipal", () => {
 
       expect(hayDialogoAbierto()).toBe(false);
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+    });
+
+    it("un moroso figura entre quienes ya no participan, con su deuda y para cobrarle y reingresarlo, y no entre los activos", async () => {
+      montar(almacenamientosConAnaMorosa());
+
+      await navegarA("Participantes");
+
+      expect(filasDeQuienesYaNoParticipan()).toEqual([["ana", "moroso, debe $ 1.000", "Cobrar y reingresar"]]);
+      expect(filasDeActivos().map(([nombre]) => nombre)).toEqual(["beto", "carla", "dani"]);
+    });
+
+    it("cobrarle toda la deuda a un moroso lo reingresa entre los activos", async () => {
+      const { aplicacion } = montar(almacenamientosConAnaMorosa());
+      await navegarA("Participantes");
+
+      hacerClic("Cobrar y reingresar", fila("ana"));
+      expect(campo("Monto", dialogoAbierto()).value).toBe("1000");
+      hacerClic("Cobrar", dialogoAbierto());
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.fechaDelUltimoCambio()).toEqual(ahora());
+      expect(filasDeActivos()).toContainEqual(["ana", "participando"]);
+      expect(hayDesplegable("Quienes ya no participan")).toBe(false);
     });
 
     it("las faltas de quien está libre de deuda se cuentan contra su propia tolerancia", async () => {
