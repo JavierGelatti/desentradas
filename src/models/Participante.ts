@@ -11,17 +11,17 @@ export class Participante {
   private _nombre: string;
   private _historial: Transicion[];
 
-  constructor(nombre: string, fechaDeIngreso: Date) {
+  constructor(nombre: string, fechaDeIngreso: Date, reglas: Reglas) {
     this._nombre = nombre;
-    this._historial = [new Transicion(fechaDeIngreso, "ingreso", new Participando())];
+    this._historial = [new Transicion(fechaDeIngreso, "ingreso", new Participando(reglas))];
   }
 
-  voy(encuentro: Encuentro): void {
-    this._transicionar("voy", encuentro.fecha(), this._estado().voy());
+  voy(encuentro: Encuentro, reglas: Reglas): void {
+    this._transicionar("voy", encuentro.fecha(), this._estado().voy(reglas));
   }
 
-  falto(encuentro: Encuentro, reglas: Reglas): void {
-    this._transicionar("falto", encuentro.fecha(), this._estado().falto(encuentro, reglas));
+  falto(encuentro: Encuentro): void {
+    this._transicionar("falto", encuentro.fecha(), this._estado().falto(encuentro));
   }
 
   pago(fecha: Date, monto: number, origen: OrigenDeCobro): Cobro {
@@ -30,8 +30,8 @@ export class Participante {
     return cobro;
   }
 
-  reingresar(fecha: Date): void {
-    const participando = this._estado().reingresar();
+  reingresar(fecha: Date, reglas: Reglas): void {
+    const participando = this._estado().reingresar(reglas);
     this._asertarQueNoEsAnteriorALaFinalizacion(fecha);
 
     this._transicionar("reingresar", fecha, participando);
@@ -43,6 +43,10 @@ export class Participante {
 
   estado(): NombreDeEstado {
     return this._estado().nombre();
+  }
+
+  reglas(): Reglas {
+    return this._estado().reglas();
   }
 
   historial(): readonly Transicion[] {

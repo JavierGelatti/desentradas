@@ -1,4 +1,5 @@
 import type { Deuda } from "../Deuda.ts";
+import type { Reglas } from "../Reglas.ts";
 import { ConDeuda } from "./ConDeuda.ts";
 import type { Estado, NombreDeEstado } from "./Estado.ts";
 import { Finalizado } from "./Finalizado.ts";
@@ -6,8 +7,8 @@ import { Finalizado } from "./Finalizado.ts";
 export class Moroso extends ConDeuda {
   private _devengaInteresDesde: Date;
 
-  constructor(deuda: Deuda, devengaInteresDesde: Date) {
-    super(deuda);
+  constructor(deuda: Deuda, devengaInteresDesde: Date, reglas: Reglas) {
+    super(deuda, reglas);
     this._devengaInteresDesde = devengaInteresDesde;
   }
 

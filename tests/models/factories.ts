@@ -3,6 +3,7 @@ import { Credito } from "../../src/models/Credito.ts";
 import { DesempateAlfabetico } from "../../src/models/Desempate.ts";
 import { Encuentro } from "../../src/models/Encuentro.ts";
 import { Grupo } from "../../src/models/Grupo.ts";
+import { Participante } from "../../src/models/Participante.ts";
 import { Reglas } from "../../src/models/Reglas.ts";
 import { type PoliticaDeInteres, SinInteres } from "../../src/models/PoliticaDeInteres.ts";
 
@@ -26,6 +27,13 @@ export const reglas = ({
   montoPorFalta?: number;
   politicaDeInteres?: PoliticaDeInteres;
 } = {}) => new Reglas(rigeDesde, toleranciaDeFaltas, montoPorFalta, politicaDeInteres);
+
+export const nuevoParticipante = ({
+  nombre = "ana",
+  fechaDeIngreso = dia(1),
+  reglasDeIngreso = reglas(),
+}: { nombre?: string; fechaDeIngreso?: Date; reglasDeIngreso?: Reglas } = {}) =>
+  new Participante(nombre, fechaDeIngreso, reglasDeIngreso);
 
 export const desempate = new DesempateAlfabetico();
 

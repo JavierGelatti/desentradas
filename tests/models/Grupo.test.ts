@@ -3,7 +3,7 @@ import type { Caja } from "../../src/models/Caja.ts";
 import type { Credito } from "../../src/models/Credito.ts";
 import type { Encuentro } from "../../src/models/Encuentro.ts";
 import { Grupo } from "../../src/models/Grupo.ts";
-import { InteresFijoPorDia } from "../../src/models/PoliticaDeInteres.ts";
+import { InteresFijoPorDia, InteresMensual } from "../../src/models/PoliticaDeInteres.ts";
 import { desempate, dia, nuevoEncuentro, nuevoGrupo, reglas } from "./factories.ts";
 
 const grupoConAnaMorosa = () => {
@@ -153,7 +153,7 @@ describe("Grupo", () => {
       expect(grupo.historialDeReglas()).toEqual([reglasDefinitivas]);
     });
 
-    it("el monto por falta de un encuentro es el de las reglas vigentes en su fecha", () => {
+    it("el monto por falta es el de las reglas vigentes la última vez que fue", () => {
       const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
@@ -162,32 +162,90 @@ describe("Grupo", () => {
 
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
 
-      expect(ana.deudaAl(dia(10))).toBe(2000);
+      expect(ana.deudaAl(dia(10))).toBe(1000);
     });
 
-    it("mientras las nuevas reglas no rijan, los encuentros se siguen rigiendo por las anteriores", () => {
+    it("ir a un encuentro después de un cambio de reglas hace que la próxima falta se rija por las nuevas", () => {
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(5), montoPorFalta: 2000 }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["ana", "beto"] }));
+
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      expect(ana.deudaAl(dia(17))).toBe(2000);
+    });
+
+    it("quien va a un encuentro antes de que rijan las nuevas reglas se sigue rigiendo por las anteriores", () => {
       const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(20), montoPorFalta: 2000 }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["ana", "beto"] }));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 23, asistentes: ["beto"], ausentes: ["ana"] }));
 
-      expect(ana.deudaAl(dia(10))).toBe(1000);
+      expect(ana.deudaAl(dia(24))).toBe(1000);
     });
 
-    it("la tolerancia de faltas que se aplica en un encuentro es la de las reglas vigentes en su fecha", () => {
-      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
+    it("el interés de un moroso es el de las reglas vigentes la última vez que fue, aunque después se agregue", () => {
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(3), politicaDeInteres: new InteresMensual(30) }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 4, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 5, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      expect(ana.estado()).toBe("moroso");
+      expect(ana.deudaAl(dia(15))).toBe(1000);
+    });
+
+    it("el interés de un moroso es el de las reglas vigentes la última vez que fue, aunque después se quite", () => {
+      const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000, politicaDeInteres: new InteresMensual(30) }));
+      const ana = grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(3) }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 4, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 5, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      expect(ana.estado()).toBe("moroso");
+      expect(ana.deudaAl(dia(15))).toBe(1100);
+    });
+
+    it("la tolerancia de faltas es la de las reglas vigentes la última vez que fue", () => {
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 3 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
-      grupo.cambiarReglas(reglas({ rigeDesde: dia(5), toleranciaDeFaltas: 1 }));
-
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(10), toleranciaDeFaltas: 1 }));
 
-      expect(ana.motivoDeFinalizacion()).toBe("por faltas");
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"], ausentes: ["ana"] }));
+
+      expect(ana.estado()).toBe("libre de deuda");
+      expect(ana.faltas()).toBe(3);
+    });
+
+    it("quien va a un encuentro después de un cambio de tolerancia queda finalizado según la nueva", () => {
+      const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 3 }));
+      grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(10), toleranciaDeFaltas: 1 }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["ana", "beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 23, asistentes: ["ana"], ausentes: ["beto"] }));
+      grupo.cobrar("beto", 1000, dia(24));
+
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 30, asistentes: ["ana"], ausentes: ["beto"] }));
+
+      expect(beto.motivoDeFinalizacion()).toBe("por faltas");
     });
 
     it("un cambio de reglas no altera las deudas existentes", () => {
@@ -204,16 +262,6 @@ describe("Grupo", () => {
       expect(ana.estado()).toBe("moroso");
       expect(ana.deudaAl(dia(12))).toBe(1000);
     });
-
-    it("no se puede registrar un encuentro anterior a que rijan las reglas iniciales", () => {
-      const grupo = nuevoGrupo(reglas({ rigeDesde: dia(5) }));
-      grupo.ingresar("beto", dia(1));
-
-      expect(() => {
-        grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
-      }).toThrow("No hay reglas vigentes en esa fecha");
-      expect(grupo.encuentros()).toEqual([]);
-    });
   });
 
   describe("ingreso", () => {
@@ -224,6 +272,28 @@ describe("Grupo", () => {
 
       expect(grupo.participanteActivo("ana")).toBe(ana);
       expect(grupo.participantes()).toEqual([ana]);
+    });
+
+    it("quien ingresa se rige por las reglas vigentes en la fecha de ingreso", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("beto", dia(1));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      const reglasVigentes = reglas({ rigeDesde: dia(3) });
+      grupo.cambiarReglas(reglasVigentes);
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 4, asistentes: ["beto"] }));
+      grupo.cambiarReglas(reglas({ rigeDesde: dia(20) }));
+
+      const ana = grupo.ingresar("ana", dia(5));
+
+      expect(ana.reglas()).toBe(reglasVigentes);
+    });
+
+    it("no se puede ingresar antes de que rijan las reglas iniciales", () => {
+      const grupo = nuevoGrupo(reglas({ rigeDesde: dia(5) }));
+
+      expect(() => {
+        grupo.ingresar("ana", dia(1));
+      }).toThrow("No hay reglas vigentes en esa fecha");
     });
 
     it("no hay participante activo para quien no ingresó", () => {
@@ -291,6 +361,16 @@ describe("Grupo", () => {
       expect(grupo.participantes()).toEqual(expect.arrayContaining([ana, beto]));
       expect(grupo.participantes()).toHaveLength(2);
       expect(grupo.participantesFinalizados()).toEqual([]);
+    });
+
+    it("quien reingresa se rige por las reglas vigentes en la fecha de reingreso", () => {
+      const { grupo, ana } = grupoConAnaFinalizada();
+      const reglasVigentes = reglas({ rigeDesde: dia(11) });
+      grupo.cambiarReglas(reglasVigentes);
+
+      grupo.reingresar("ana", dia(12));
+
+      expect(ana.reglas()).toBe(reglasVigentes);
     });
 
     it("el nombre de la persona también se toma sin espacios al principio ni al final", () => {

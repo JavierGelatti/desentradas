@@ -61,8 +61,9 @@ export class Grupo {
     if (nombreLimpio === "") throw new Error("El nombre no puede estar vacío");
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
     this._asertarQueNuncaParticipo(nombreLimpio);
+    const reglas = this.reglasVigentesAl(fecha);
 
-    const participante = new Participante(nombreLimpio, fecha);
+    const participante = new Participante(nombreLimpio, fecha, reglas);
     this._participantes.push(participante);
     return participante;
   }
@@ -71,8 +72,9 @@ export class Grupo {
     const nombreLimpio = nombre.trim();
     this._asertarQueNoTieneParticipacionActiva(nombreLimpio);
     const participante = this._participanteFinalizadoLlamado(nombreLimpio);
+    const reglas = this.reglasVigentesAl(fecha);
 
-    participante.reingresar(fecha);
+    participante.reingresar(fecha, reglas);
     return participante;
   }
 
@@ -96,9 +98,9 @@ export class Grupo {
     this._asertarQuePuedenFaltar(encuentro);
     const reglas = this.reglasVigentesAl(encuentro.fecha());
 
-    this._participantesLlamados(encuentro.asistentes()).forEach((participante) => participante.voy(encuentro));
+    this._participantesLlamados(encuentro.asistentes()).forEach((participante) => participante.voy(encuentro, reglas));
     this._participantesLlamados(encuentro.ausentes()).forEach((participante) => {
-      participante.falto(encuentro, reglas);
+      participante.falto(encuentro);
       this._aplicarCreditosPendientesDe(participante, encuentro.fecha());
     });
     this._encuentros.push(encuentro);

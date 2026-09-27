@@ -1,3 +1,4 @@
+import type { Reglas } from "../Reglas.ts";
 import { Estado, type NombreDeEstado } from "./Estado.ts";
 import { Participando } from "./Participando.ts";
 
@@ -6,8 +7,8 @@ export class Finalizado extends Estado {
     return "finalizado";
   }
 
-  override reingresar(): Estado {
-    return new Participando();
+  override reingresar(reglas: Reglas): Estado {
+    return new Participando(reglas);
   }
 
   override estaActivo(): boolean {

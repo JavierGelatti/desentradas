@@ -18,11 +18,11 @@ export abstract class Estado {
     return this.accionesPosibles().includes(accion);
   }
 
-  voy(): Estado {
+  voy(_reglas: Reglas): Estado {
     throw new TransicionInvalida("voy", this.nombre());
   }
 
-  falto(_encuentro: Encuentro, _reglas: Reglas): Estado {
+  falto(_encuentro: Encuentro): Estado {
     throw new TransicionInvalida("falto", this.nombre());
   }
 
@@ -34,8 +34,12 @@ export abstract class Estado {
     throw new TransicionInvalida("pago", this.nombre());
   }
 
-  reingresar(): Estado {
+  reingresar(_reglas: Reglas): Estado {
     throw new TransicionInvalida("reingresar", this.nombre());
+  }
+
+  reglas(): Reglas {
+    throw new Error("Un participante finalizado no se rige por ninguna regla");
   }
 
   puedeAsistir(): boolean {
