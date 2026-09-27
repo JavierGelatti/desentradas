@@ -35,15 +35,15 @@ const grupoConBetoFinalizadoPorFaltas = () => {
 
 const esperarCobroABetoConCreditoDelPrimerCobro = (caja: Caja, fecha: Date, encuentroFaltado: Encuentro) => {
   expect(caja.cobros()).toHaveLength(2);
-  const [primerCobro, cobroABeto] = caja.cobros();
+  const [, cobroABeto] = caja.cobros();
   expect(cobroABeto.deudor()).toBe("beto");
   expect(cobroABeto.monto()).toBe(500);
   expect(cobroABeto.fecha()).toEqual(fecha);
   expect(cobroABeto.encuentroFaltado()).toBe(encuentroFaltado);
   const creditoAplicado = cobroABeto.origen() as Credito;
   expect(creditoAplicado.acreedor()).toBe("beto");
-  expect(creditoAplicado.estado()).toBe("aplicado");
-  expect(creditoAplicado.cobro()).toBe(primerCobro);
+  expect(creditoAplicado.monto()).toBe(500);
+  expect(caja.creditosPendientesDe("beto")).not.toContain(creditoAplicado);
 };
 
 describe("Grupo", () => {

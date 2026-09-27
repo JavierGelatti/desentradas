@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Caja } from "../../src/models/Caja.ts";
 import { Cobro } from "../../src/models/Cobro.ts";
+import type { Credito } from "../../src/models/Credito.ts";
 import { cobroEnEfectivo, desempate, dia, nuevoEncuentro } from "./factories.ts";
 
 const nuevaCaja = () => new Caja(desempate);
+
+const cobroConCredito = (credito: Credito, monto: number) =>
+  new Cobro(credito.acreedor(), monto, dia(4), nuevoEncuentro({ numero: 4, asistentes: ["carla"] }), credito);
 
 describe("Caja", () => {
   describe("distribución de cobros", () => {
@@ -17,10 +21,8 @@ describe("Caja", () => {
         ["beto", 500],
         ["carla", 500],
       ]);
-      expect(creditos.every((credito) => credito.cobro() === cobro)).toBe(true);
-      expect(creditos.every((credito) => credito.estaPendiente())).toBe(true);
       expect(caja.cobros()).toEqual([cobro]);
-      expect(caja.creditos()).toEqual(creditos);
+      expect([...caja.creditosPendientesDe("beto"), ...caja.creditosPendientesDe("carla")]).toEqual(creditos);
     });
 
     it("cuando el monto no se divide en partes iguales, el sobrante va de a un peso a los primeros según el desempate", () => {
@@ -73,62 +75,42 @@ describe("Caja", () => {
   });
 
   describe("aplicación de créditos", () => {
-    it("aplicar un crédito por su monto completo lo deja aplicado", () => {
+    it("un crédito aplicado por su monto completo deja de estar pendiente", () => {
       const caja = nuevaCaja();
       const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
 
-      const aplicado = caja.aplicar(credito, 1000);
+      caja.cobrar(cobroConCredito(credito, 1000));
 
-      expect(aplicado).toBe(credito);
-      expect(credito.estado()).toBe("aplicado");
-      expect(caja.montoPendienteDe("beto")).toBe(0);
-      expect(caja.creditos()).toEqual([credito]);
+      expect(caja.creditosPendientesDe("beto")).toEqual([]);
     });
 
-    it("aplicar parte de un crédito lo divide en uno aplicado y otro pendiente por el resto", () => {
+    it("aplicar parte de un crédito deja pendiente el resto a nombre del mismo acreedor", () => {
       const caja = nuevaCaja();
-      const cobro = cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] });
-      const [credito] = caja.cobrar(cobro);
+      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
 
-      const aplicado = caja.aplicar(credito, 400);
+      caja.cobrar(cobroConCredito(credito, 400));
 
-      expect(aplicado.monto()).toBe(400);
-      expect(aplicado.estado()).toBe("aplicado");
-      expect(aplicado.cobro()).toBe(cobro);
-      expect(caja.montoPendienteDe("beto")).toBe(600);
-      expect(caja.creditos().map((credito) => [credito.monto(), credito.estado()])).toEqual([
-        [400, "aplicado"],
-        [600, "pendiente"],
-      ]);
+      expect(caja.creditosPendientesDe("beto").map((pendiente) => pendiente.monto())).toEqual([600]);
     });
 
-    it("no se puede aplicar un crédito que no es de la caja", () => {
+    it("no se puede aplicar un crédito que no está pendiente en la caja", () => {
       const caja = nuevaCaja();
       const [credito] = nuevaCaja().cobrar(cobroEnEfectivo({ asistentes: ["beto"] }));
 
       expect(() => {
-        caja.aplicar(credito, 1000);
-      }).toThrow("El crédito no es de esta caja");
+        caja.cobrar(cobroConCredito(credito, 400));
+      }).toThrow("El crédito no está pendiente en esta caja");
+      expect(caja.cobros()).toEqual([]);
     });
 
-    it("no se puede aplicar más que el monto del crédito", () => {
+    it("no se puede aplicar un crédito ya repartido", () => {
       const caja = nuevaCaja();
       const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
+      caja.repartir("beto", dia(4));
 
       expect(() => {
-        caja.aplicar(credito, 1001);
-      }).toThrow("El monto a aplicar no puede superar el del crédito");
-      expect(credito.estaPendiente()).toBe(true);
-    });
-
-    it("no se puede aplicar parte de un crédito que no está pendiente", () => {
-      const caja = nuevaCaja();
-      const [credito] = caja.cobrar(cobroEnEfectivo({ monto: 1000, asistentes: ["beto"] }));
-      caja.repartir("beto", dia(5));
-
-      expect(() => {
-        caja.aplicar(credito, 300);
-      }).toThrow("El crédito ya no está pendiente");
+        caja.cobrar(cobroConCredito(credito, 400));
+      }).toThrow("El crédito no está pendiente en esta caja");
       expect(caja.montoPendienteDe("beto")).toBe(0);
     });
   });
@@ -146,8 +128,7 @@ describe("Caja", () => {
       expect(reparto.fecha()).toEqual(dia(5));
       expect(reparto.monto()).toBe(800);
       expect(reparto.creditos()).toEqual(creditosDeBeto);
-      expect(creditosDeBeto.every((credito) => credito.estado() === "repartido")).toBe(true);
-      expect(caja.montoPendienteDe("beto")).toBe(0);
+      expect(caja.creditosPendientesDe("beto")).toEqual([]);
       expect(caja.montoPendienteDe("carla")).toBe(500);
       expect(caja.repartos()).toEqual([reparto]);
     });
@@ -188,8 +169,7 @@ describe("Caja", () => {
     it("los cobros hechos con créditos no son movimientos", () => {
       const caja = nuevaCaja();
       const [credito] = caja.cobrar(cobroEnEfectivo({ deudor: "ana", monto: 1000, numero: 3, asistentes: ["beto"] }));
-      const aplicado = caja.aplicar(credito, 400);
-      caja.cobrar(new Cobro("beto", 400, dia(4), nuevoEncuentro({ numero: 4, asistentes: ["carla"] }), aplicado));
+      caja.cobrar(cobroConCredito(credito, 400));
 
       const movimientos = caja.movimientos();
 

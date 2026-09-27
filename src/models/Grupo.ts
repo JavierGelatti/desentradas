@@ -246,7 +246,7 @@ export class Grupo {
       if (deuda === 0) return;
 
       const monto = Math.min(credito.monto(), deuda);
-      this._cobrarYDistribuir(participante, monto, fecha, this._caja.aplicar(credito, monto));
+      this._cobrarYDistribuir(participante, monto, fecha, credito);
     }
   }
 }

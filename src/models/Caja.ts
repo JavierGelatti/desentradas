@@ -7,37 +7,31 @@ import { Reparto } from "./Reparto.ts";
 export class Caja {
   private _desempate: Desempate;
   private _cobros: Cobro[];
-  private _creditos: Credito[];
+  private _creditosPendientes: Credito[];
   private _repartos: Reparto[];
 
   constructor(desempate: Desempate) {
     this._desempate = desempate;
     this._cobros = [];
-    this._creditos = [];
+    this._creditosPendientes = [];
     this._repartos = [];
   }
 
   cobrar(cobro: Cobro): readonly Credito[] {
+    const origen = cobro.origen();
+    if (origen !== "efectivo") this._consumir(origen, cobro.monto());
+
     const creditos = this._distribuirEnCreditos(cobro);
     this._cobros.push(cobro);
-    this._creditos.push(...creditos);
+    this._creditosPendientes.push(...creditos);
     return creditos;
-  }
-
-  aplicar(credito: Credito, monto: number): Credito {
-    if (!this._creditos.includes(credito)) throw new Error("El crédito no es de esta caja");
-    if (monto > credito.monto()) throw new Error("El monto a aplicar no puede superar el del crédito");
-
-    const aplicado = monto === credito.monto() ? credito : this._separarParteDe(credito, monto);
-    aplicado.aplicar();
-    return aplicado;
   }
 
   repartir(nombre: string, fecha: Date): Reparto {
     const creditos = this.creditosPendientesDe(nombre);
     if (creditos.length === 0) throw new Error(`${nombre} no tiene créditos pendientes`);
 
-    creditos.forEach((credito) => credito.repartir());
+    this._creditosPendientes = this._creditosPendientes.filter((credito) => credito.acreedor() !== nombre);
     const reparto = new Reparto(fecha, nombre, creditos);
     this._repartos.push(reparto);
     return reparto;
@@ -45,10 +39,6 @@ export class Caja {
 
   cobros(): readonly Cobro[] {
     return this._cobros;
-  }
-
-  creditos(): readonly Credito[] {
-    return this._creditos;
   }
 
   repartos(): readonly Reparto[] {
@@ -65,7 +55,7 @@ export class Caja {
   }
 
   creditosPendientesDe(nombre: string): readonly Credito[] {
-    return this._creditos.filter((credito) => credito.estaPendiente() && credito.acreedor() === nombre);
+    return this._creditosPendientes.filter((credito) => credito.acreedor() === nombre);
   }
 
   montoPendienteDe(nombre: string): number {
@@ -73,11 +63,11 @@ export class Caja {
   }
 
   totalPendiente(): number {
-    return Credito.montoTotalDe(this._creditosPendientes());
+    return Credito.montoTotalDe(this._creditosPendientes);
   }
 
   nombresConCreditosPendientes(): string[] {
-    return [...new Set(this._creditosPendientes().map((credito) => credito.acreedor()))];
+    return [...new Set(this._creditosPendientes.map((credito) => credito.acreedor()))];
   }
 
   private _distribuirEnCreditos(cobro: Cobro): Credito[] {
@@ -89,13 +79,12 @@ export class Caja {
       .filter((credito) => credito.monto() > 0);
   }
 
-  private _separarParteDe(credito: Credito, monto: number): Credito {
-    const partes = credito.dividir(monto);
-    this._creditos.splice(this._creditos.indexOf(credito), 1, ...partes);
-    return partes[0];
-  }
+  private _consumir(credito: Credito, monto: number): void {
+    const posicion = this._creditosPendientes.indexOf(credito);
+    if (posicion === -1) throw new Error("El crédito no está pendiente en esta caja");
 
-  private _creditosPendientes(): Credito[] {
-    return this._creditos.filter((credito) => credito.estaPendiente());
+    const resto = credito.monto() - monto;
+    const restoPendiente = resto > 0 ? [new Credito(credito.acreedor(), resto, credito.cobro())] : [];
+    this._creditosPendientes.splice(posicion, 1, ...restoPendiente);
   }
 }
