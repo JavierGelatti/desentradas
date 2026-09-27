@@ -16,6 +16,9 @@ export class Cobro implements Movimiento {
     if (origen !== "efectivo" && origen.acreedor() !== deudor) {
       throw new Error("Un crédito sólo se aplica a una deuda de su dueño");
     }
+    if (origen !== "efectivo" && monto > origen.monto()) {
+      throw new Error("Un cobro no puede tomar más de lo que tiene su crédito");
+    }
 
     this._deudor = deudor;
     this._monto = monto;
