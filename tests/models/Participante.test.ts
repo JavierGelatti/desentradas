@@ -354,10 +354,10 @@ describe("Participante", () => {
       expect(cobro.encuentroFaltado()).toBe(encuentro);
     });
 
-    it("sus acciones posibles son faltar y pagar", () => {
+    it("su única acción posible es pagar", () => {
       const ana = moroso();
 
-      expect(ana.accionesPosibles()).toEqual(["falto", "pago"]);
+      expect(ana.accionesPosibles()).toEqual(["pago"]);
     });
 
     it("sigue activo", () => {
@@ -406,14 +406,12 @@ describe("Participante", () => {
       }).toThrow(TransicionInvalida);
     });
 
-    it("sus faltas no se cuentan ni generan deuda", () => {
+    it("no puede faltar a un encuentro", () => {
       const ana = moroso();
 
-      ana.falto(nuevoEncuentro(), lasReglas);
-
-      expect(ana.estado()).toBe("moroso");
-      expect(ana.faltas()).toBe(1);
-      expect(ana.deudaAl(dia(17))).toBe(1000);
+      expect(() => {
+        ana.falto(nuevoEncuentro({ numero: 16 }), lasReglas);
+      }).toThrow(TransicionInvalida);
     });
 
     it("su deuda acumula interés desde el encuentro en que se volvió moroso", () => {
