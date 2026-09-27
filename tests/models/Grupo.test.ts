@@ -33,7 +33,7 @@ const grupoConBetoFinalizadoPorFaltas = () => {
   return { grupo, ana, beto, carla };
 };
 
-const esperarCobroABetoConCreditoDelPrimerCobro = (caja: Caja, fecha: Date, encuentroFaltado: Encuentro) => {
+const esperarCobroABetoConUnCreditoSuyoYaConsumido = (caja: Caja, fecha: Date, encuentroFaltado: Encuentro) => {
   expect(caja.cobros()).toHaveLength(2);
   const [, cobroABeto] = caja.cobros();
   expect(cobroABeto.deudor()).toBe("beto");
@@ -695,7 +695,7 @@ describe("Grupo", () => {
       const caja = grupo.caja();
       expect(caja.montoPendienteDe("beto")).toBe(0);
       expect(caja.montoPendienteDe("carla")).toBe(1000);
-      esperarCobroABetoConCreditoDelPrimerCobro(caja, dia(10), encuentroQueDebeBeto);
+      esperarCobroABetoConUnCreditoSuyoYaConsumido(caja, dia(10), encuentroQueDebeBeto);
     });
 
     it("si el crédito supera la deuda, se aplica sólo hasta saldarla y el excedente queda pendiente", () => {
@@ -766,7 +766,7 @@ describe("Grupo", () => {
       const caja = grupo.caja();
       expect(caja.montoPendienteDe("beto")).toBe(0);
       expect(caja.montoPendienteDe("carla")).toBe(1000);
-      esperarCobroABetoConCreditoDelPrimerCobro(caja, dia(9), encuentroQueFaltaBeto);
+      esperarCobroABetoConUnCreditoSuyoYaConsumido(caja, dia(9), encuentroQueFaltaBeto);
     });
 
     it("si los créditos pendientes superan la deuda por faltar, se aplican sólo hasta saldarla y el excedente queda pendiente", () => {
