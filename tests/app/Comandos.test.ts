@@ -15,7 +15,7 @@ const grupoConDeudaDeAna = () => {
   const grupo = nuevoGrupo();
   grupo.ingresar("ana", dia(1));
   grupo.ingresar("beto", dia(1));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
   return grupo;
 };
 
@@ -130,7 +130,7 @@ describe("Ingresar", () => {
 describe("Reingresar", () => {
   it("vuelve a dejar como participante activo a quien ya participó, desde la fecha indicada", () => {
     const grupo = grupoConDeudaDeAna();
-    grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana queda morosa
+    grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] })); // ana queda morosa
     grupo.cobrar("ana", 1000, dia(10)); // y finalizada por pagar la morosidad
     const [ana] = grupo.participantesFinalizados();
     const comando = new Reingresar("ana", dia(11));

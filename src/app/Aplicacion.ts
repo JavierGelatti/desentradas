@@ -99,7 +99,6 @@ export class Aplicacion {
     planilla.marcarComoPresente(nombreLimpio);
   }
 
-  // El modelo igual registra la falta a todos los participantes activos, morosos incluidos.
   ausentesEnPlanillaDeAsistencia(): string[] {
     const planilla = this.planillaDeAsistencia();
     return this.grupo()

@@ -94,15 +94,13 @@ export class Grupo {
     this._asertarQueEsPosteriorAlUltimoEncuentro(encuentro);
     this._asertarQueNoEsAnteriorAlUltimoMovimiento("El encuentro", encuentro.fecha());
     this._asertarQuePuedenAsistir(encuentro);
+    this._asertarQuePuedenFaltar(encuentro);
     const reglas = this.reglasVigentesAl(encuentro.fecha());
 
-    this._participantesDelEncuentro(encuentro).forEach((participante) => {
-      if (encuentro.asistio(participante.nombre())) {
-        participante.voy(encuentro);
-      } else {
-        participante.falto(encuentro, reglas);
-        this._aplicarCreditosPendientesDe(participante, encuentro.fecha());
-      }
+    this._participantesLlamados(encuentro.asistentes()).forEach((participante) => participante.voy(encuentro));
+    this._participantesLlamados(encuentro.ausentes()).forEach((participante) => {
+      participante.falto(encuentro, reglas);
+      this._aplicarCreditosPendientesDe(participante, encuentro.fecha());
     });
     this._encuentros.push(encuentro);
   }
@@ -156,8 +154,8 @@ export class Grupo {
     this._participantes.push(participante);
   }
 
-  private _participantesDelEncuentro(encuentro: Encuentro): readonly Participante[] {
-    return this.participantes().filter((participante) => !participante.ingresoDespuesDe(encuentro));
+  private _participantesLlamados(nombres: Iterable<string>): readonly Participante[] {
+    return [...nombres].map((nombre) => this._participanteActivoLlamado(nombre));
   }
 
   private _participanteActivoLlamado(nombre: string): Participante {
@@ -190,11 +188,24 @@ export class Grupo {
 
   private _asertarQuePuedenAsistir(encuentro: Encuentro): void {
     for (const nombre of encuentro.asistentes()) {
-      const participante = this.participanteActivo(nombre);
-      if (participante === undefined) throw new Error(`${nombre} no es un participante activo`);
-      if (participante.ingresoDespuesDe(encuentro)) throw new Error(`${nombre} ingresó después del encuentro`);
+      const participante = this._participanteDelEncuentroLlamado(nombre, encuentro);
       if (!participante.puedeAsistir()) throw new Error(`${nombre} no puede asistir`);
     }
+  }
+
+  private _asertarQuePuedenFaltar(encuentro: Encuentro): void {
+    for (const nombre of encuentro.ausentes()) {
+      const participante = this._participanteDelEncuentroLlamado(nombre, encuentro);
+      if (!participante.esPosibleAsistente()) throw new Error(`${nombre} no puede faltar`);
+    }
+  }
+
+  private _participanteDelEncuentroLlamado(nombre: string, encuentro: Encuentro): Participante {
+    const participante = this.participanteActivo(nombre);
+    if (participante === undefined) throw new Error(`${nombre} no es un participante activo`);
+    if (participante.ingresoDespuesDe(encuentro)) throw new Error(`${nombre} ingresó después del encuentro`);
+
+    return participante;
   }
 
   private _asertarQueEsPosteriorAlUltimoEncuentro(encuentro: Encuentro): void {

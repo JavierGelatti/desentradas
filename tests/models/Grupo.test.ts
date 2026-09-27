@@ -10,8 +10,8 @@ const grupoConAnaMorosa = () => {
   const grupo = nuevoGrupo();
   const ana = grupo.ingresar("ana", dia(1));
   const beto = grupo.ingresar("beto", dia(1));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
   return { grupo, ana, beto };
 };
 
@@ -26,10 +26,10 @@ const grupoConBetoFinalizadoPorFaltas = () => {
   const ana = grupo.ingresar("ana", dia(1));
   const beto = grupo.ingresar("beto", dia(1));
   const carla = grupo.ingresar("carla", dia(1));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
   grupo.cobrar("beto", 1000, dia(10));
-  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"] })); // ana queda morosa
+  grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"], ausentes: ["beto"] })); // ana queda morosa
   return { grupo, ana, beto, carla };
 };
 
@@ -160,7 +160,7 @@ describe("Grupo", () => {
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(5), montoPorFalta: 2000 }));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.deudaAl(dia(10))).toBe(2000);
     });
@@ -172,7 +172,7 @@ describe("Grupo", () => {
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "beto"] }));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(20), montoPorFalta: 2000 }));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.deudaAl(dia(10))).toBe(1000);
     });
@@ -181,11 +181,11 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
       grupo.cambiarReglas(reglas({ rigeDesde: dia(5), toleranciaDeFaltas: 1 }));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
     });
@@ -194,12 +194,12 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo(reglas({ montoPorFalta: 1000 }));
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cambiarReglas(
         reglas({ rigeDesde: dia(5), montoPorFalta: 2000, politicaDeInteres: new InteresFijoPorDia(10) }),
       );
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.estado()).toBe("moroso");
       expect(ana.deudaAl(dia(12))).toBe(1000);
@@ -343,9 +343,9 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["ana", "carla"], ausentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(17)); // ana salda la morosidad y queda finalizada
       grupo.cobrar("beto", 1000, dia(18)); // ana recibe 500 de crédito aunque esté finalizada
 
@@ -371,11 +371,11 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo(reglas({ toleranciaDeFaltas: 2 }));
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana llega a las dos faltas toleradas
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] })); // ana llega a las dos faltas toleradas
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.motivoDeFinalizacion()).toBe("por faltas");
       expect(grupo.participanteActivo("ana")).toBeUndefined();
@@ -385,17 +385,29 @@ describe("Grupo", () => {
   });
 
   describe("encuentros", () => {
-    it("registrar un encuentro hace ir a los asistentes y faltar al resto de los participantes activos", () => {
+    it("registrar un encuentro hace ir a los asistentes y faltar a los ausentes", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
-      const encuentro = nuevoEncuentro({ asistentes: ["ana"] });
+      const encuentro = nuevoEncuentro({ asistentes: ["ana"], ausentes: ["beto"] });
 
       grupo.registrarEncuentro(encuentro);
 
       expect(ana.estado()).toBe("participando");
       expect(beto.estado()).toBe("en deuda");
       expect(grupo.encuentros()).toEqual([encuentro]);
+    });
+
+    it("un encuentro no afecta a los participantes activos que no figuran ni como asistentes ni como ausentes", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("ana", dia(1));
+      grupo.ingresar("beto", dia(1));
+      const carla = grupo.ingresar("carla", dia(1));
+
+      grupo.registrarEncuentro(nuevoEncuentro({ asistentes: ["ana"], ausentes: ["beto"] }));
+
+      expect(carla.estado()).toBe("participando");
+      expect(carla.historial()).toHaveLength(1);
     });
 
     it("los participantes finalizados no son afectados por los encuentros", () => {
@@ -431,7 +443,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(5));
 
       expect(() => {
@@ -445,7 +457,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
       grupo.repartir("beto", dia(5));
 
@@ -459,7 +471,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(9));
       grupo.repartir("beto", dia(9));
       const encuentro = nuevoEncuentro({ numero: 9, asistentes: ["ana", "beto"] });
@@ -482,11 +494,25 @@ describe("Grupo", () => {
       expect(grupo.encuentros()).toEqual([]);
     });
 
+    it("los ausentes de un encuentro deben ser participantes activos del grupo", () => {
+      const grupo = nuevoGrupo();
+      const ana = grupo.ingresar("ana", dia(1));
+      const beto = grupo.ingresar("beto", dia(1));
+      const encuentro = nuevoEncuentro({ asistentes: ["ana"], ausentes: ["beto", "alguien de afuera"] });
+
+      expect(() => {
+        grupo.registrarEncuentro(encuentro);
+      }).toThrow("alguien de afuera no es un participante activo");
+      expect(ana.historial()).toHaveLength(1);
+      expect(beto.estado()).toBe("participando");
+      expect(grupo.encuentros()).toEqual([]);
+    });
+
     it("quien debe no puede figurar como asistente de un encuentro", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] })); // ana queda en deuda
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] })); // ana queda en deuda
       const encuentro = nuevoEncuentro({ numero: 9, asistentes: ["beto", "ana"] });
 
       expect(() => {
@@ -497,26 +523,34 @@ describe("Grupo", () => {
       expect(grupo.encuentros()).toHaveLength(1);
     });
 
-    it("quien ingresó después del encuentro no participa de él, ni como asistente ni con falta", () => {
-      const grupo = nuevoGrupo();
-      grupo.ingresar("beto", dia(1));
-      const ana = grupo.ingresar("ana", dia(3));
+    it("un moroso no puede figurar como ausente de un encuentro", () => {
+      const { grupo, ana } = grupoConAnaMorosa();
+      const transicionesAlVolverseMoroso = ana.historial().length;
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
-
-      expect(ana.estado()).toBe("participando");
-      expect(ana.historial()).toHaveLength(1);
+      expect(() => {
+        grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"], ausentes: ["ana"] }));
+      }).toThrow("ana no puede faltar");
+      expect(ana.historial()).toHaveLength(transicionesAlVolverseMoroso);
+      expect(grupo.encuentros()).toHaveLength(2);
     });
 
-    it("quien reingresó después del encuentro no participa de él", () => {
-      const { grupo, ana } = grupoConAnaFinalizada();
+    it("no se puede registrar un encuentro con un ausente que ingresó después", () => {
+      const grupo = nuevoGrupo();
+      grupo.ingresar("beto", dia(1));
+      grupo.ingresar("ana", dia(3));
+
+      expect(() => {
+        grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
+      }).toThrow("ana ingresó después del encuentro");
+    });
+
+    it("no se puede registrar un encuentro con un ausente que reingresó después", () => {
+      const { grupo } = grupoConAnaFinalizada();
       grupo.reingresar("ana", dia(20));
-      const transicionesAlReingresar = ana.historial().length;
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"] }));
-
-      expect(ana.estado()).toBe("participando");
-      expect(ana.historial()).toHaveLength(transicionesAlReingresar);
+      expect(() => {
+        grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["beto"], ausentes: ["ana"] }));
+      }).toThrow("ana ingresó después del encuentro");
     });
 
     it("quien ingresó el mismo día del encuentro sí participa", () => {
@@ -524,7 +558,7 @@ describe("Grupo", () => {
       grupo.ingresar("beto", dia(1));
       const ana = grupo.ingresar("ana", dia(2));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
 
       expect(ana.estado()).toBe("en deuda");
     });
@@ -545,8 +579,8 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo(reglas({ politicaDeInteres: new InteresFijoPorDia(10) }));
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana queda morosa y empieza a sumar interés
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana"] })); // ana queda morosa y empieza a sumar interés
 
       const saldos = grupo.saldosAl(dia(11));
 
@@ -572,8 +606,8 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       const carla = grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] })); // ana queda en deuda
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"] })); // ana queda morosa y carla en deuda
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] })); // ana queda en deuda
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["beto"], ausentes: ["ana", "carla"] })); // ana queda morosa y carla en deuda
 
       const posibles = grupo.posiblesAsistentes();
 
@@ -586,7 +620,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ asistentes: ["beto"], ausentes: ["ana"] }));
 
       grupo.cobrar("ana", 1000, dia(3));
 
@@ -605,7 +639,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       const siguienteEncuentro = nuevoEncuentro({ numero: 9, asistentes: ["ana", "beto"] });
 
       grupo.cobrar("ana", 1000, siguienteEncuentro.fecha());
@@ -619,7 +653,7 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      const encuentro = nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] });
+      const encuentro = nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] });
       grupo.registrarEncuentro(encuentro);
 
       grupo.cobrar("ana", 1000, dia(3));
@@ -639,8 +673,8 @@ describe("Grupo", () => {
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
 
       expect(() => {
         grupo.cobrar("ana", 1000, dia(5));
@@ -656,7 +690,7 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
 
       grupo.cobrar("ana", 1000, dia(3));
 
@@ -670,7 +704,7 @@ describe("Grupo", () => {
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
 
       grupo.cobrar("ana", 400, dia(3));
 
@@ -685,8 +719,8 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
-      const encuentroQueDebeBeto = nuevoEncuentro({ numero: 9, asistentes: ["carla"] });
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
+      const encuentroQueDebeBeto = nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] });
       grupo.registrarEncuentro(encuentroQueDebeBeto);
 
       grupo.cobrar("ana", 1000, dia(10));
@@ -703,8 +737,8 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
       grupo.cobrar("beto", 600, dia(9));
 
       grupo.cobrar("ana", 1000, dia(10));
@@ -720,9 +754,9 @@ describe("Grupo", () => {
       const ana = grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 16, asistentes: ["carla"], ausentes: ["beto"] }));
       grupo.cobrar("beto", 500, dia(16)); // beto sigue moroso por los 500 que faltan
 
       grupo.cobrar("ana", 1000, dia(17));
@@ -740,8 +774,12 @@ describe("Grupo", () => {
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
       grupo.ingresar("dario", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla", "dario"] }));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla", "dario"] }));
+      grupo.registrarEncuentro(
+        nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla", "dario"], ausentes: ["ana"] }),
+      );
+      grupo.registrarEncuentro(
+        nuevoEncuentro({ numero: 9, asistentes: ["carla", "dario"], ausentes: ["ana", "beto"] }),
+      );
 
       grupo.cobrar("ana", 300, dia(10));
 
@@ -755,9 +793,9 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3)); // beto queda con 500 pendientes
-      const encuentroQueFaltaBeto = nuevoEncuentro({ numero: 9, asistentes: ["carla"] });
+      const encuentroQueFaltaBeto = nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] });
 
       grupo.registrarEncuentro(encuentroQueFaltaBeto);
 
@@ -774,11 +812,11 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       const beto = grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana", "carla"] }));
       grupo.cobrar("ana", 400, dia(3));
       grupo.cobrar("carla", 1000, dia(3)); // beto queda con 400 + 1000 pendientes
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["carla"], ausentes: ["ana", "beto"] }));
 
       expect(beto.estado()).toBe("libre de deuda");
       expect(beto.deudaAl(dia(9))).toBe(0);
@@ -799,7 +837,7 @@ describe("Grupo", () => {
       grupo.cobrar("ana", 1000, dia(17)); // beto queda con 500 pendientes
       grupo.reingresar("beto", dia(18));
 
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 23, asistentes: ["carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 23, asistentes: ["carla"], ausentes: ["beto"] }));
 
       expect(beto.deudaAl(dia(23))).toBe(500);
       expect(grupo.caja().montoPendienteDe("beto")).toBe(0);
@@ -809,7 +847,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       const ana = grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 400, dia(5));
 
       expect(() => {
@@ -824,7 +862,7 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       const carla = grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana", "carla"] }));
       grupo.cobrar("ana", 1000, dia(3));
       grupo.repartir("beto", dia(5));
 
@@ -839,7 +877,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
 
       const reparto = grupo.repartir("beto", dia(4));
@@ -854,7 +892,7 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana", "carla"] }));
       grupo.cobrar("ana", 1000, dia(3));
       grupo.cobrar("carla", 1000, dia(5));
 
@@ -870,7 +908,7 @@ describe("Grupo", () => {
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
       grupo.ingresar("carla", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto", "carla"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
       const repartoABeto = grupo.repartir("beto", dia(5));
 
@@ -885,7 +923,7 @@ describe("Grupo", () => {
       const grupo = nuevoGrupo();
       grupo.ingresar("ana", dia(1));
       grupo.ingresar("beto", dia(1));
-      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"] }));
+      grupo.registrarEncuentro(nuevoEncuentro({ numero: 2, asistentes: ["beto"], ausentes: ["ana"] }));
       grupo.cobrar("ana", 1000, dia(3));
       grupo.registrarEncuentro(nuevoEncuentro({ numero: 9, asistentes: ["ana", "beto"] }));
 
