@@ -5,8 +5,6 @@ import { TransicionInvalida } from "./TransicionInvalida.ts";
 
 export type NombreDeEstado = "participando" | "en deuda" | "libre de deuda" | "moroso" | "finalizado";
 
-export type MotivoDeFinalizacion = "por faltas" | "por pago de morosidad";
-
 const acciones: readonly Accion[] = ["voy", "falto", "pago", "reingresar"];
 
 export abstract class Estado {

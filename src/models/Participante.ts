@@ -1,9 +1,11 @@
 import { Cobro, type OrigenDeCobro } from "./Cobro.ts";
 import type { Encuentro } from "./Encuentro.ts";
 import type { Reglas } from "./Reglas.ts";
-import type { Estado, MotivoDeFinalizacion, NombreDeEstado } from "./estados/Estado.ts";
+import type { Estado, NombreDeEstado } from "./estados/Estado.ts";
 import { Participando } from "./estados/Participando.ts";
 import { Transicion, type Accion, type Disparador } from "./Transicion.ts";
+
+export type MotivoDeFinalizacion = "por faltas" | "por pago de morosidad";
 
 export class Participante {
   private _nombre: string;
