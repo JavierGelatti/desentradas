@@ -297,6 +297,18 @@ describe("VistaPrincipal", () => {
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
     });
 
+    it("las faltas de quien está libre de deuda se cuentan contra su propia tolerancia", async () => {
+      const almacenamientos = almacenamientosConDeudaDeAna();
+      const aplicacion = nuevaAplicacion(almacenamientos);
+      aplicacion.cobrar("ana", 1000, dia(3));
+      aplicacion.cambiarReglas(reglas({ rigeDesde: dia(4), toleranciaDeFaltas: 1 }));
+      montar(almacenamientos);
+
+      await navegarA("Participantes");
+
+      expect(textosDeLasCeldas(fila("ana"))).toEqual(["ana", "libre de deuda (1/2 faltas)"]);
+    });
+
     it("sin participaciones activas dice que todavía no hay nadie", async () => {
       montar(almacenamientosConGrupoSinParticipantes());
 

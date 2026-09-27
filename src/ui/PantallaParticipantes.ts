@@ -57,7 +57,7 @@ export class PantallaParticipantes {
     const estado = participante.estado();
     if (estado !== "libre de deuda") return estado;
 
-    const tolerancia = this._entorno.grupo().reglas().toleranciaDeFaltas();
+    const tolerancia = participante.reglas().toleranciaDeFaltas();
     return `${estado} (${participante.faltas()}/${tolerancia} faltas)`;
   }
 
