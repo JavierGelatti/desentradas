@@ -538,6 +538,51 @@ describe("VistaPrincipal", () => {
 
       expect(hayElementoConTexto("dd", "$ 1.000 por día de mora")).toBe(true);
     });
+
+    it("el porcentaje de interés mensual admite decimales", async () => {
+      const { aplicacion } = montar(almacenamientosConDeudaDeAna());
+      await navegarA("Reglas");
+
+      completar("¿Cómo se calcula el interés", "mensual");
+      completar("¿Qué porcentaje se cobra por mes de mora?", "0.5");
+      hacerClic("Cambiar reglas");
+
+      const politica = aplicacion.grupo().reglas().politicaDeInteres();
+      expect(politica).toBeInstanceOf(InteresMensual);
+      expect((politica as InteresMensual).porcentaje()).toBe(0.5);
+    });
+
+    it("al pasar a interés mensual, el porcentaje se puede cargar con decimales", async () => {
+      const almacenamientos = nuevosAlmacenamientos();
+      nuevaAplicacion(almacenamientos).crearGrupo(
+        "Fútbol de los jueves",
+        reglas({ politicaDeInteres: new InteresFijoPorDia(1000) }),
+      );
+      montar(almacenamientos);
+      await navegarA("Reglas");
+
+      completar("¿Cómo se calcula el interés", "mensual");
+
+      const valor = campo("¿Qué porcentaje se cobra por mes de mora?");
+      expect(valor.step).toBe("any");
+      expect(valor.min).toBe("0.01");
+    });
+
+    it("al pasar a interés fijo por día, el monto se carga en pesos enteros", async () => {
+      const almacenamientos = nuevosAlmacenamientos();
+      nuevaAplicacion(almacenamientos).crearGrupo(
+        "Fútbol de los jueves",
+        reglas({ politicaDeInteres: new InteresMensual(0.5) }),
+      );
+      montar(almacenamientos);
+      await navegarA("Reglas");
+
+      completar("¿Cómo se calcula el interés", "fijo por día");
+
+      const valor = campo("¿Cuánto se cobra por día de mora?");
+      expect(valor.step).toBe("1");
+      expect(valor.min).toBe("1");
+    });
   });
 
   describe("pantalla del historial", () => {

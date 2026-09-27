@@ -11,11 +11,22 @@ const tiposDeInteres: readonly [TipoDeInteres, string][] = [
   ["mensual", "Porcentaje por mes"],
 ];
 
-type ValorDelInteres = { pregunta: string; unidadAntes?: string; unidadDespues?: string };
+type ValorDelInteres = {
+  pregunta: string;
+  unidadAntes?: string;
+  unidadDespues?: string;
+  paso: number | "any";
+  minimo: number;
+};
 const valorQuePide: Record<TipoDeInteres, ValorDelInteres | undefined> = {
   "sin interés": undefined,
-  "fijo por día": { pregunta: "¿Cuánto se cobra por día de mora?", unidadAntes: "$" },
-  mensual: { pregunta: "¿Qué porcentaje se cobra por mes de mora?", unidadDespues: "%" },
+  "fijo por día": { pregunta: "¿Cuánto se cobra por día de mora?", unidadAntes: "$", paso: 1, minimo: 1 },
+  mensual: {
+    pregunta: "¿Qué porcentaje se cobra por mes de mora?",
+    unidadDespues: "%",
+    paso: "any",
+    minimo: 0.01,
+  },
 };
 
 const tipoYValorDe = (politica: PoliticaDeInteres): [TipoDeInteres, number] => {
@@ -46,23 +57,17 @@ const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
   const preguntaDelValor = document.createTextNode("");
   const unidadAntes = document.createTextNode("");
   const unidadDespues = document.createTextNode("");
+  const entradaDelValor = crear("input", {
+    type: "number",
+    name: "valorDelInteres",
+    value: valorInicial,
+    required: true,
+  });
   const campoDelValor = crear(
     "label",
     {},
     preguntaDelValor,
-    crear(
-      "span",
-      {},
-      unidadAntes,
-      crear("input", {
-        type: "number",
-        name: "valorDelInteres",
-        value: valorInicial,
-        min: 1,
-        required: true,
-      }),
-      unidadDespues,
-    ),
+    crear("span", {}, unidadAntes, entradaDelValor, unidadDespues),
   );
   const valorElegido = () => valorQuePide[controlDe(tipo).value as TipoDeInteres];
   const ajustar = () => {
@@ -73,6 +78,8 @@ const camposDeInteres = (politica: PoliticaDeInteres): HTMLElement[] => {
       preguntaDelValor.textContent = `${valor.pregunta} `;
       unidadAntes.textContent = valor.unidadAntes ?? "";
       unidadDespues.textContent = valor.unidadDespues ?? "";
+      entradaDelValor.step = String(valor.paso);
+      entradaDelValor.min = String(valor.minimo);
       tipo.after(campoDelValor);
     }
   };
