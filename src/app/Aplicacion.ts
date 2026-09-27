@@ -12,6 +12,7 @@ import { CambiarReglas } from "./comandos/CambiarReglas.ts";
 import type { Desempate } from "../models/Desempate.ts";
 import type { Grupo } from "../models/Grupo.ts";
 import type { Reglas } from "../models/Reglas.ts";
+import { formatoInvalido } from "./json/Campos.ts";
 
 export class Aplicacion {
   private _almacenamiento: Almacenamiento;
@@ -207,6 +208,14 @@ export class Aplicacion {
   }
 
   private _bitacoraDesde(texto: string): Bitacora {
-    return Bitacora.desdeJson(JSON.parse(texto), this._desempate);
+    return Bitacora.desdeJson(this._jsonDesde(texto), this._desempate);
+  }
+
+  private _jsonDesde(texto: string): unknown {
+    try {
+      return JSON.parse(texto);
+    } catch {
+      throw formatoInvalido("el texto no es JSON");
+    }
   }
 }

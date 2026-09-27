@@ -540,14 +540,14 @@ describe("Aplicacion", () => {
       expect(almacenamiento.leer()).toBe(exportado);
     });
 
-    it("no se puede importar un texto que no es una bitácora", () => {
+    it("no se puede importar un texto que no es JSON", () => {
       const almacenamiento = new AlmacenamientoEnMemoria();
       const aplicacion = aplicacionConGrupo({ bitacora: almacenamiento });
       const exportadoAntes = aplicacion.exportar();
 
       expect(() => {
         aplicacion.importar("esto no es JSON");
-      }).toThrow();
+      }).toThrow(/^Formato inválido/);
       expect(aplicacion.exportar()).toBe(exportadoAntes);
       expect(almacenamiento.leer()).toBe(exportadoAntes);
     });
