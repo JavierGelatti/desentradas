@@ -556,7 +556,7 @@ describe("Participante", () => {
   });
 
   describe("historial", () => {
-    it("registra el ingreso y cada cambio de estado, con su fecha, qué lo provocó y de qué estado a cuál pasó", () => {
+    it("registra el ingreso y cada cambio de estado, con su fecha, qué lo provocó y a qué estado llevó", () => {
       const ana = nuevoParticipante();
       ana.voy(nuevoEncuentro({ numero: 2 }));
       ana.falto(nuevoEncuentro({ numero: 9 }), lasReglas);
@@ -564,17 +564,14 @@ describe("Participante", () => {
 
       const historial = ana.historial();
 
-      expect(historial.map((transicion) => transicion.describir())).toEqual([
-        "ingreso -> participando",
-        "voy: participando -> participando",
-        "falto: participando -> en deuda",
-        "pago: en deuda -> libre de deuda",
-      ]);
-      expect(historial.map((transicion) => transicion.fecha())).toEqual([dia(1), dia(2), dia(9), dia(10)]);
-      expect(historial[3].disparador()).toBe("pago");
-      expect(historial[3].desde()).toBe("en deuda");
-      expect(historial[3].hacia()).toBe("libre de deuda");
-      expect(historial[0].desde()).toBeUndefined();
+      expect(historial.map((transicion) => [transicion.fecha(), transicion.disparador(), transicion.estado()])).toEqual(
+        [
+          [dia(1), "ingreso", "participando"],
+          [dia(2), "voy", "participando"],
+          [dia(9), "falto", "en deuda"],
+          [dia(10), "pago", "libre de deuda"],
+        ],
+      );
     });
 
     it("la fecha del último cambio es la de la última transición del historial", () => {
@@ -611,8 +608,7 @@ describe("Participante", () => {
 
       const ultima = ana.historial().at(-1)!;
       expect(ana.historial()).toHaveLength(transicionesAlFinalizar + 1);
-      expect(ultima.describir()).toBe("reingresar: finalizado -> participando");
-      expect(ultima.fecha()).toEqual(dia(20));
+      expect([ultima.fecha(), ultima.disparador(), ultima.estado()]).toEqual([dia(20), "reingresar", "participando"]);
     });
 
     it("un pago parcial queda en el historial aunque el estado no cambie", () => {
@@ -620,7 +616,8 @@ describe("Participante", () => {
 
       ana.pago(dia(3), 400, "efectivo");
 
-      expect(ana.historial().at(-1)!.describir()).toBe("pago: en deuda -> en deuda");
+      const ultima = ana.historial().at(-1)!;
+      expect([ultima.fecha(), ultima.disparador(), ultima.estado()]).toEqual([dia(3), "pago", "en deuda"]);
     });
 
     it("una acción rechazada no deja rastro en el historial", () => {

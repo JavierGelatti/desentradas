@@ -1,4 +1,4 @@
-import type { NombreDeEstado } from "./estados/Estado.ts";
+import type { Estado, NombreDeEstado } from "./estados/Estado.ts";
 
 export type Accion = "voy" | "falto" | "pago" | "reingresar";
 
@@ -7,17 +7,11 @@ export type Disparador = "ingreso" | Accion;
 export class Transicion {
   private _fecha: Date;
   private _disparador: Disparador;
-  private _desde: NombreDeEstado | undefined;
-  private _hacia: NombreDeEstado;
+  private _hacia: Estado;
 
-  static ingreso(fecha: Date, hacia: NombreDeEstado): Transicion {
-    return new Transicion(fecha, "ingreso", undefined, hacia);
-  }
-
-  constructor(fecha: Date, disparador: Disparador, desde: NombreDeEstado | undefined, hacia: NombreDeEstado) {
+  constructor(fecha: Date, disparador: Disparador, hacia: Estado) {
     this._fecha = fecha;
     this._disparador = disparador;
-    this._desde = desde;
     this._hacia = hacia;
   }
 
@@ -29,20 +23,15 @@ export class Transicion {
     return this._disparador;
   }
 
-  desde(): NombreDeEstado | undefined {
-    return this._desde;
+  hacia(): Estado {
+    return this._hacia;
   }
 
-  hacia(): NombreDeEstado {
-    return this._hacia;
+  estado(): NombreDeEstado {
+    return this._hacia.nombre();
   }
 
   iniciaParticipacion(): boolean {
     return this._disparador === "ingreso" || this._disparador === "reingresar";
-  }
-
-  describir(): string {
-    if (this._desde === undefined) return `${this._disparador} -> ${this._hacia}`;
-    return `${this._disparador}: ${this._desde} -> ${this._hacia}`;
   }
 }

@@ -7,31 +7,29 @@ import { Transicion, type Accion, type Disparador } from "./Transicion.ts";
 
 export class Participante {
   private _nombre: string;
-  private _estado: Estado;
   private _historial: Transicion[];
 
   constructor(nombre: string, fechaDeIngreso: Date) {
     this._nombre = nombre;
-    this._estado = new Participando();
-    this._historial = [Transicion.ingreso(fechaDeIngreso, this._estado.nombre())];
+    this._historial = [new Transicion(fechaDeIngreso, "ingreso", new Participando())];
   }
 
   voy(encuentro: Encuentro): void {
-    this._transicionar("voy", encuentro.fecha(), this._estado.voy());
+    this._transicionar("voy", encuentro.fecha(), this._estado().voy());
   }
 
   falto(encuentro: Encuentro, reglas: Reglas): void {
-    this._transicionar("falto", encuentro.fecha(), this._estado.falto(encuentro, reglas));
+    this._transicionar("falto", encuentro.fecha(), this._estado().falto(encuentro, reglas));
   }
 
   pago(fecha: Date, monto: number, origen: OrigenDeCobro): Cobro {
-    const cobro = new Cobro(this._nombre, monto, fecha, this._estado.encuentroAdeudado(), origen);
-    this._transicionar("pago", fecha, this._estado.pago(fecha, monto));
+    const cobro = new Cobro(this._nombre, monto, fecha, this._estado().encuentroAdeudado(), origen);
+    this._transicionar("pago", fecha, this._estado().pago(fecha, monto));
     return cobro;
   }
 
   reingresar(fecha: Date): void {
-    const participando = this._estado.reingresar();
+    const participando = this._estado().reingresar();
     this._asertarQueNoEsAnteriorALaFinalizacion(fecha);
 
     this._transicionar("reingresar", fecha, participando);
@@ -42,7 +40,7 @@ export class Participante {
   }
 
   estado(): NombreDeEstado {
-    return this._estado.nombre();
+    return this._estado().nombre();
   }
 
   historial(): readonly Transicion[] {
@@ -58,47 +56,47 @@ export class Participante {
   }
 
   fechaDelUltimoCambio(): Date {
-    return this._historial.at(-1)!.fecha();
+    return this._ultimaTransicion().fecha();
   }
 
   puede(accion: Accion): boolean {
-    return this._estado.puede(accion);
+    return this._estado().puede(accion);
   }
 
   accionesPosibles(): readonly Accion[] {
-    return this._estado.accionesPosibles();
+    return this._estado().accionesPosibles();
   }
 
   puedeAsistir(): boolean {
-    return this._estado.puedeAsistir();
+    return this._estado().puedeAsistir();
   }
 
   esPosibleAsistente(): boolean {
-    return this._estado.esPosibleAsistente();
+    return this._estado().esPosibleAsistente();
   }
 
   soloLeFaltaPagarParaAsistir(): boolean {
-    return this._estado.soloLeFaltaPagarParaAsistir();
+    return this._estado().soloLeFaltaPagarParaAsistir();
   }
 
   estaAlDia(): boolean {
-    return this._estado.estaAlDia();
+    return this._estado().estaAlDia();
   }
 
   estaActivo(): boolean {
-    return this._estado.estaActivo();
+    return this._estado().estaActivo();
   }
 
   faltas(): number {
-    return this._estado.faltas();
+    return this._estado().faltas();
   }
 
   deudaAl(fecha: Date): number {
-    return this._estado.deudaAl(fecha);
+    return this._estado().deudaAl(fecha);
   }
 
   motivoDeFinalizacion(): MotivoDeFinalizacion | undefined {
-    return this._estado.motivoDeFinalizacion();
+    return this._estado().motivoDeFinalizacion();
   }
 
   private _asertarQueNoEsAnteriorALaFinalizacion(fecha: Date): void {
@@ -106,7 +104,14 @@ export class Participante {
   }
 
   private _transicionar(disparador: Disparador, fecha: Date, nuevoEstado: Estado): void {
-    this._historial.push(new Transicion(fecha, disparador, this._estado.nombre(), nuevoEstado.nombre()));
-    this._estado = nuevoEstado;
+    this._historial.push(new Transicion(fecha, disparador, nuevoEstado));
+  }
+
+  private _estado(): Estado {
+    return this._ultimaTransicion().hacia();
+  }
+
+  private _ultimaTransicion(): Transicion {
+    return this._historial.at(-1)!;
   }
 }
