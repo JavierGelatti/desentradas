@@ -75,7 +75,7 @@ export class Caja {
     const parte = Math.floor(cobro.monto() / asistentes.length);
     const sobrante = cobro.monto() % asistentes.length;
     return asistentes
-      .map((nombre, posicion) => new Credito(nombre, parte + (posicion < sobrante ? 1 : 0), cobro))
+      .map((nombre, posicion) => new Credito(nombre, parte + (posicion < sobrante ? 1 : 0)))
       .filter((credito) => credito.monto() > 0);
   }
 
@@ -84,7 +84,7 @@ export class Caja {
     if (posicion === -1) throw new Error("El crédito no está pendiente en esta caja");
 
     const resto = credito.monto() - monto;
-    const restoPendiente = resto > 0 ? [new Credito(credito.acreedor(), resto, credito.cobro())] : [];
+    const restoPendiente = resto > 0 ? [new Credito(credito.acreedor(), resto)] : [];
     this._creditosPendientes.splice(posicion, 1, ...restoPendiente);
   }
 }

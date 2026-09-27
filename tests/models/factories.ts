@@ -38,8 +38,5 @@ export const cobroEnEfectivo = ({
 }: { deudor?: string; monto?: number; numero?: number; asistentes?: string[]; encuentro?: Encuentro } = {}) =>
   new Cobro(deudor, monto, dia(numero), encuentro, "efectivo");
 
-export const nuevoCredito = ({
-  acreedor = "beto",
-  monto = 500,
-  cobro = cobroEnEfectivo(),
-}: { acreedor?: string; monto?: number; cobro?: Cobro } = {}) => new Credito(acreedor, monto, cobro);
+export const nuevoCredito = ({ acreedor = "beto", monto = 500 }: { acreedor?: string; monto?: number } = {}) =>
+  new Credito(acreedor, monto);
