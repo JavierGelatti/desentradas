@@ -85,6 +85,10 @@ export class Participante {
     return this._estado().soloLeFaltaPagarParaAsistir();
   }
 
+  soloLeFaltaPagarParaReingresar(): boolean {
+    return this._estado().soloLeFaltaPagarParaReingresar();
+  }
+
   estaAlDia(): boolean {
     return this._estado().estaAlDia();
   }

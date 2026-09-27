@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { AlmacenamientoEnMemoria } from "../../src/app/AlmacenamientoEnMemoria.ts";
 import { CrearGrupo } from "../../src/app/comandos/CrearGrupo.ts";
+import { Cobrar } from "../../src/app/comandos/Cobrar.ts";
 import { Ingresar } from "../../src/app/comandos/Ingresar.ts";
+import { Reingresar } from "../../src/app/comandos/Reingresar.ts";
 import { RegistrarEncuentro } from "../../src/app/comandos/RegistrarEncuentro.ts";
 import { reglasAJson } from "../../src/app/json/ReglasJson.ts";
 import { dia, reglas } from "../models/factories.ts";
@@ -153,6 +155,44 @@ describe("Aplicacion", () => {
       aplicacion.reingresar("ana", dia(11));
 
       expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+    });
+
+    it("cobrar y reingresar a un moroso que paga toda su deuda lo deja participando, con un cobro y un reingreso en el historial", () => {
+      const aplicacion = aplicacionConAnaMorosa();
+
+      aplicacion.cobrarYReingresar("ana", 1000, dia(4));
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+      expect(
+        aplicacion
+          .comandos()
+          .slice(-2)
+          .map((comando) => comando.constructor),
+      ).toEqual([Cobrar, Reingresar]);
+    });
+
+    it("cobrar y reingresar a un moroso que paga parte de su deuda lo deja moroso por el resto, con sólo el cobro en el historial", () => {
+      const aplicacion = aplicacionConAnaMorosa();
+
+      aplicacion.cobrarYReingresar("ana", 400, dia(4));
+
+      const ana = aplicacion.grupo().participanteActivo("ana");
+      expect(ana?.estado()).toBe("moroso");
+      expect(ana?.deudaAl(dia(4))).toBe(600);
+      expect(
+        aplicacion
+          .comandos()
+          .slice(-2)
+          .map((comando) => comando.constructor),
+      ).toEqual([RegistrarEncuentro, Cobrar]);
+    });
+
+    it("no se puede cobrar y reingresar a quien no es moroso", () => {
+      const aplicacion = aplicacionConDeudaDeAna();
+
+      expect(() => {
+        aplicacion.cobrarYReingresar("ana", 1000, dia(4));
+      }).toThrow("Cobrar y reingresar sólo aplica a un moroso");
     });
 
     it("cambiar reglas deja vigentes las nuevas reglas en el grupo", () => {
@@ -358,12 +398,24 @@ describe("Aplicacion", () => {
       expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
     });
 
-    it("no se puede cobrar en la puerta a un moroso, porque pagar no lo habilita a asistir", () => {
+    it("cobrar en la puerta toda la deuda a un moroso lo reingresa y lo deja marcado como presente", () => {
       const aplicacion = aplicacionConAnaMorosa();
+      aplicacion.empezarPlanillaDeAsistencia();
 
-      expect(() => {
-        aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
-      }).toThrow("Pagar en la puerta no habilita a ana");
+      aplicacion.cobrarEnLaPuerta("ana", 1000, dia(4));
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("participando");
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(true);
+    });
+
+    it("un pago parcial de un moroso en la puerta no lo marca, porque sigue moroso", () => {
+      const aplicacion = aplicacionConAnaMorosa();
+      aplicacion.empezarPlanillaDeAsistencia();
+
+      aplicacion.cobrarEnLaPuerta("ana", 400, dia(4));
+
+      expect(aplicacion.grupo().participanteActivo("ana")?.estado()).toBe("moroso");
+      expect(aplicacion.planillaDeAsistencia().asiste("ana")).toBe(false);
     });
 
     it("no se puede cobrar en la puerta a quien no debe nada", () => {

@@ -16,6 +16,10 @@ export class Moroso extends ConDeuda {
     return "moroso";
   }
 
+  override soloLeFaltaPagarParaReingresar(): boolean {
+    return true;
+  }
+
   override deudaAl(fecha: Date): number {
     return this._deuda.montoConInteres(this._devengaInteresDesde, fecha);
   }

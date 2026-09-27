@@ -118,11 +118,22 @@ export class Aplicacion {
     this._ejecutar(new Cobrar(nombre, monto, fecha));
   }
 
+  cobrarYReingresar(nombre: string, monto: number, fecha: Date): void {
+    this._asertarQueSoloLeFaltaPagarParaReingresar(nombre);
+
+    this.cobrar(nombre, monto, fecha);
+    if (this.grupo().participanteActivo(nombre) === undefined) this.reingresar(nombre, fecha);
+  }
+
   cobrarEnLaPuerta(nombre: string, monto: number, fecha: Date): void {
     this._asertarQueSoloLeFaltaPagar(nombre);
     const planilla = this.planillaDeAsistencia();
 
-    this.cobrar(nombre, monto, fecha);
+    if (this._soloLeFaltaPagarParaReingresar(nombre)) {
+      this.cobrarYReingresar(nombre, monto, fecha);
+    } else {
+      this.cobrar(nombre, monto, fecha);
+    }
     if (this._puedeAsistir(nombre)) planilla.marcarComoPresente(nombre);
   }
 
@@ -186,9 +197,23 @@ export class Aplicacion {
     return this.grupo().participanteActivo(nombre)?.puedeAsistir() ?? false;
   }
 
+  private _soloLeFaltaPagarParaReingresar(nombre: string): boolean {
+    return this.grupo().participanteActivo(nombre)?.soloLeFaltaPagarParaReingresar() ?? false;
+  }
+
+  private _asertarQueSoloLeFaltaPagarParaReingresar(nombre: string): void {
+    if (!this._soloLeFaltaPagarParaReingresar(nombre)) {
+      throw new Error("Cobrar y reingresar sólo aplica a un moroso");
+    }
+  }
+
   private _asertarQueSoloLeFaltaPagar(nombre: string): void {
     const participante = this.grupo().participanteActivo(nombre);
-    if (participante !== undefined && !participante.soloLeFaltaPagarParaAsistir()) {
+    if (
+      participante !== undefined &&
+      !participante.soloLeFaltaPagarParaAsistir() &&
+      !participante.soloLeFaltaPagarParaReingresar()
+    ) {
       throw new Error(`Pagar en la puerta no habilita a ${nombre}`);
     }
   }

@@ -426,6 +426,12 @@ describe("Participante", () => {
       expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
     });
 
+    it("sólo le falta pagar para reingresar", () => {
+      const ana = moroso();
+
+      expect(ana.soloLeFaltaPagarParaReingresar()).toBe(true);
+    });
+
     it("no está al día", () => {
       const ana = moroso();
 
@@ -573,6 +579,12 @@ describe("Participante", () => {
       const ana = finalizado();
 
       expect(ana.soloLeFaltaPagarParaAsistir()).toBe(false);
+    });
+
+    it("no tiene nada que pagar para reingresar", () => {
+      const ana = finalizado();
+
+      expect(ana.soloLeFaltaPagarParaReingresar()).toBe(false);
     });
 
     it("no está al día", () => {

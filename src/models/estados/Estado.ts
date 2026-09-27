@@ -52,6 +52,10 @@ export abstract class Estado {
     return false;
   }
 
+  soloLeFaltaPagarParaReingresar(): boolean {
+    return false;
+  }
+
   estaAlDia(): boolean {
     return false;
   }
