@@ -11,7 +11,9 @@ export const dia = (numero: number) => new Date(`2026-09-${String(numero).padSta
 export const nuevoEncuentro = ({
   numero = 1,
   asistentes = ["otra persona"],
-}: { numero?: number; asistentes?: string[] } = {}) => new Encuentro(dia(numero), asistentes);
+  ausentes = [],
+}: { numero?: number; asistentes?: string[]; ausentes?: string[] } = {}) =>
+  new Encuentro(dia(numero), asistentes, ausentes);
 
 export const reglas = ({
   rigeDesde = dia(1),

@@ -152,7 +152,7 @@ describe("Reingresar", () => {
 });
 
 describe("RegistrarEncuentro", () => {
-  it("registra el encuentro en el grupo con su fecha y sus asistentes", () => {
+  it("registra el encuentro en el grupo con su fecha, sus asistentes y sus ausentes", () => {
     const grupo = nuevoGrupo();
     grupo.ingresar("ana", dia(1));
     grupo.ingresar("beto", dia(1));
@@ -163,6 +163,7 @@ describe("RegistrarEncuentro", () => {
     const [encuentro] = grupo.encuentros();
     expect(encuentro.fecha()).toEqual(dia(2));
     expect(encuentro.asistentes()).toEqual(new Set(["beto"]));
+    expect(encuentro.ausentes()).toEqual(new Set(["ana"]));
     expect(grupo.participanteActivo("ana")?.estado()).toBe("en deuda");
   });
 

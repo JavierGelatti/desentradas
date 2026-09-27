@@ -23,7 +23,7 @@ export class RegistrarEncuentro extends ComandoSobreElGrupo {
   }
 
   protected ejecutarEn(grupo: Grupo): void {
-    grupo.registrarEncuentro(new Encuentro(this._fecha, this._asistentes));
+    grupo.registrarEncuentro(new Encuentro(this._fecha, this._asistentes, this._ausentes));
   }
 
   fecha(): Date {
