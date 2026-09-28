@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-const base = "/desentradas/";
+const base = "/";
 
 export default defineConfig({
   base,
